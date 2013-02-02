@@ -78,9 +78,10 @@ sub source_file {
 # methods to get vars of the same name out of the DB package
 # scalars
 foreach my $m ( qw( filename line stack_depth ) ) {
+    no strict 'refs';
     Sub::Install::install_sub({
         as => $m,
-        code => sub { no strict 'vars'; return ${ 'DB::'. $m} }
+        code => sub { return ${ 'DB::'. $m} }
     });
 }
 
