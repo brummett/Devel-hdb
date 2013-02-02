@@ -1,7 +1,7 @@
 use warnings;
 use strict;
 
-package Devel::toydb;
+package Devel::hdb;
 
 use HTTP::Server::PSGI;
 use Sub::Install;
@@ -141,10 +141,10 @@ sub DB {
     # the code here.
     local (*dbline) = $main::{ '_<' . $filename };
 
-    #$dbobj = Devel::toydb->new() unless $dbobj;
+    #$dbobj = Devel::hdb->new() unless $dbobj;
     unless ($dbobj) {
         print "Creating new dbobj\n";
-        $dbobj = Devel::toydb->new();
+        $dbobj = Devel::hdb->new();
     }
     $dbobj->run();
 
