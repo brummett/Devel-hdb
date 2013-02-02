@@ -72,7 +72,7 @@ sub source_file {
     my($self, $filename) = @_;
 
     no strict 'refs';
-    return \$main::{'_<' . $filename};
+    return $main::{'_<' . $filename};
 }
 
 # methods to get vars of the same name out of the DB package
