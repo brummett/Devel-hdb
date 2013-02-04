@@ -12,17 +12,17 @@ sub new {
 
     $self->{server} = HTTP::Server::PSGI->new(
                         host => '127.0.0.1',
-                        server_ready => sub { $self->print_listen_socket_to_stdout },
+                        server_ready => sub { $self->init_debugger },
                     );
 
     return $self;
 }
 
-sub print_listen_socket_to_stdout {
+sub init_debugger {
     my $self = shift;
-    return if $self->{announced};
+    return if $self->{__init__};
 
-    $self->{announced} = 1;
+    $self->{__init__} = 1;
 
     # HTTP::Server::PSGI doesn't have a method to get the listen socket :(
     my $s = $self->{server}->{listen_sock};
