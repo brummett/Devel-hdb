@@ -5,6 +5,9 @@ package Devel::hdb;
 
 use HTTP::Server::PSGI;
 use Sub::Install;
+use Data::Dumper;
+
+use Devel::hdb::Router;
 
 sub new {
     my $class = shift;
@@ -14,7 +17,6 @@ sub new {
                         host => '127.0.0.1',
                         server_ready => sub { $self->init_debugger },
                     );
-
     return $self;
 }
 
@@ -26,18 +28,31 @@ sub init_debugger {
 
     # HTTP::Server::PSGI doesn't have a method to get the listen socket :(
     my $s = $self->{server}->{listen_sock};
-    printf("Debugger listening on http://%s:%d/%d\n",
+    $self->{base_url} = sprintf('http://%s:%d/%d/',
             $s->sockhost, $s->sockport, $$);
+    print "Debugger listening on ",$self->{base_url},"\n";
+
+    $self->{router} = Devel::hdb::Router->new();
+    for ($self->{router}) {
+        # All the paths we listen for
+        $_->get("/$$", sub { $self->show_debugger_position(@_) });
+        $_->get("/$$/stepin", sub { $self->stepin(@_) });
+        $_->get("/$$/stepover", sub { $self->stepover(@_) });
+        $_->get("/$$/stepout", sub { $self->steoput(@_) });
+    }
+print "Router: ".Data::Dumper::Dumper($self->{router});
 }
 
-sub _app {
+sub show_debugger_position {
     my $self = shift;
     my $env = shift;
 
+print "Show debugger position\n";
     my $string = '';
     $string .= 'Env <pre>'.Data::Dumper::Dumper($env).'</pre>';
     $string .= sprintf("<h2>Line %d of %s.  Depth %d</h2>",
                         $self->line, $self->filename, $self->stack_depth);
+    $string .= '<a href="stepin">Step in</a>';
     $string .= "<table>";
     my $file = $self->source_file($self->filename);
     for (my $lineno = 0; $lineno < @$file; $lineno++) {
@@ -46,18 +61,28 @@ sub _app {
                             $file->[$lineno]);
     }
     $string .= "</table>";
-
-    $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
     return [    200,
                 [ 'Content-Type' => 'text/html' ],
                 [ $string ]
             ];
 }
 
+sub stepin {
+    my $self = shift;
+    my $env = shift;
+
+    $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
+    return [    200,
+                [ 'Content-Type' => 'text/html' ],
+                [ '<head><meta http-equiv="REFRESH" content="0;url='.$self->{base_url}.'"></head>' ]
+            ];
+}
+
+
 sub app {
     my $self = shift;
     unless ($self->{app}) {
-        $self->{app} =  sub { unshift @_, $self; &_app; };
+        $self->{app} =  sub { print "run route for ".Data::Dumper::Dumper($_[0]);$self->{router}->route(@_); };
     }
     return $self->{app};
 }
@@ -127,9 +152,10 @@ sub DB {
     return unless $ready;
     #return if (! $ready || $in_debugger);
 
-    local $in_debugger = 1;
+#    local $in_debugger = 1;
 
     local($package, $filename, $line) = caller;
+print "pkg $package file $filename line $line\n";
 
     # set up the context for DB::eval, so it can properly execute
     # code on behalf of the user. We add the package in so that the
