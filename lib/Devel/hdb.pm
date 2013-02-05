@@ -29,8 +29,10 @@ sub init_debugger {
 
     # HTTP::Server::PSGI doesn't have a method to get the listen socket :(
     my $s = $self->{server}->{listen_sock};
-    $self->{base_url} = sprintf('http://%s:%d/%d/',
-            $s->sockhost, $s->sockport, $$);
+    #$self->{base_url} = sprintf('http://%s:%d/%d/',
+    #        $s->sockhost, $s->sockport, $$);
+    $self->{base_url} = sprintf('http://%s:%d/',
+            $s->sockhost, $s->sockport);
     print "Debugger listening on ",$self->{base_url},"\n";
 
     $self->{router} = Devel::hdb::Router->new();
