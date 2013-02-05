@@ -5,6 +5,7 @@ package Devel::hdb;
 
 use HTTP::Server::PSGI;
 use Sub::Install;
+use IO::File;
 use Data::Dumper;
 
 use Devel::hdb::Router;
@@ -35,12 +36,46 @@ sub init_debugger {
     $self->{router} = Devel::hdb::Router->new();
     for ($self->{router}) {
         # All the paths we listen for
+        $_->get(qr(/db/(.*)), sub { $self->assets(@_) });
         $_->get("/$$", sub { $self->show_debugger_position(@_) });
         $_->get("/$$/stepin", sub { $self->stepin(@_) });
         $_->get("/$$/stepover", sub { $self->stepover(@_) });
         $_->get("/$$/stepout", sub { $self->steoput(@_) });
     }
 print "Router: ".Data::Dumper::Dumper($self->{router});
+}
+
+
+sub assets {
+    my($self, $env, $file) = @_;
+
+    $file =~ s/\.\.//g;  # Remove ..  They're unnecessary and a security risk
+    my $file_path = $INC{'Devel/hdb.pm'};
+    $file_path =~ s/\.pm$//;
+    $file_path .= '/html/'.$file;
+    my $fh = IO::File->new($file_path);
+    unless ($fh) {
+        return [ 404, ['Content-Type' => 'text/html'], ['Not found']];
+    }
+
+    my $type;
+    if ($file =~ m/\.js$/) {
+        $type = 'application/javascript';
+    } elsif ($file =~ m/\.html$/) {
+        $type = 'text/html';
+    } elsif ($file =~ m/\.css$/) {
+        $type = 'text/css';
+    } else {
+        $type = 'text/plain';
+    }
+
+    if ($env->{'psgi.streaming'}) {
+        return [ 200, ['Content-Type' => $type], $fh];
+    } else {
+        local $/;
+        my $buffer = <$fh>;
+        return [ 200, ['Content-Type' => $type], [$buffer]];
+    }
 }
 
 sub show_debugger_position {

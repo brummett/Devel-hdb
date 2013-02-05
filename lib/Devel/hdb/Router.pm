@@ -42,14 +42,14 @@ print "request method ".$env->{REQUEST_METHOD},"\n";
     my $matchlist = $self->{$env->{REQUEST_METHOD}};
 print "path ".$env->{PATH_INFO},"\n";
 
-    my $fire;
+    my($fire, @matches);
     foreach my $route ( @$matchlist ) {
         my($path,$cb) = @$route;
 print "route $path\n";
 
         if (my $ref = ref($path)) {
             if ($ref eq 'Regexp') {
-                $fire = 1 if ($env->{PATH_INFO} =~ $path);
+                $fire = 1 if (@matches = $env->{PATH_INFO} =~ $path);
             } elsif ($ref eq 'CODE') {
                 $fire = 1 if ($path->($self, $env));
             }
@@ -60,7 +60,7 @@ print "route $path\n";
 print "fire $fire\n";
         if ($fire) {
 print "firing callback\n";
-            return $cb->($env);
+            return $cb->($env, @matches);
         }
     }
 print "path $path not found\n";
