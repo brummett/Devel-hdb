@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>hdb</title>
+    <!-- Bootstrap -->
+    <link href="bootstrap.css" rel="stylesheet" media="screen">
+  </head>
+  <body>
+    <script src="jquery.js"></script>
+    <script src="bootstrap.js"></script>
+    <div id="controls" class="offset1">
+        <a class="btn" href="stepin">Step In</a>
+        <a class="btn" href="stepover">Step Over</a>
+        <a class="btn" href="stepout">Step Out</a>
+        <a class="btn btn-primary" href="run">Run</a>
+    </div>
+
+    <div class="row">
+        <div id="filewindow" class="tabbable span8">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#program" data-toggle="tab">Program Name</a></li>
+                <li><a href="#somefile" data-toggle="tab">somefile.pm</a></li>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane active" id="program">
+
+                    <div id="stack" class="well tabbable tabs-left">
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a href="#stack2" data-toggle="tab">foo()</a></li>
+                            <li><a href="#stack1" data-toggle="tab">bar()</a></li>
+                            <li><a href="#stack0"data-toggle="tab">MAIN</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="stack2">
+                                <h3>@_ : 1, 2, "Hi"</h3>
+                                <pre>001 program code
+002 next line
+003 more code</pre>
+                            </div>
+                            <div class="tab-pane" id="stack1">
+                                <h3>@_: "args", ARRAY</h3>
+                                <pre>001 some code here
+002 more code
+003 another line of code</pre>
+                            </div>
+                            <div class="tab-pane" id="stack0">
+                                <h3>@ARGV: "-p", 123</h3>
+                                <pre>001 # main program code
+002 use Module;
+003 call_a_sub()</pre>
+                            </div>
+                        </div>
+                    </div> <! stack>
+                </div>
+                <div id="somefile" class="tab-pane">
+                    <h3>/path/to/some/file/somefile.pm</h3>
+                    <pre>blah blah
+more lines
+stuff here
+o
+k
+wlrgjwkrjgerk
+gibberish</pre>
+                </div>
+
+            </div>
+        </div> <! filewindow>
+        <div class="span4">
+            <h3>Watch expressions</h3>
+        </div>
+    </div> <! row>
+            
+  </body>
+</html>
