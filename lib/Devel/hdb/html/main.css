@@ -1,0 +1,15 @@
+table.program-code tr {
+    border-top: 0px;
+}
+
+table.program-code tr.active td  {
+    background-color: rgba(0,100,0,1);
+}
+table.program-code td.lineno.breakpoint {
+    background-color: rgba(255,0,0,1);
+}
+
+.code {
+    font-family: monospace;
+}
+    
