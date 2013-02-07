@@ -3,9 +3,10 @@
   <head>
     <title>hdb</title>
     <!-- Bootstrap -->
-    <link href="bootstrap.css" rel="stylesheet" media="screen">
-    <script src="jquery.js"></script>
-    <script src="bootstrap.js"></script>
+    <link href="db/bootstrap.css" rel="stylesheet" media="screen">
+    <script src="db/jquery.js"></script>
+    <script src="db/bootstrap.js"></script>
+    <script src="db/handlebars.js"></script>
     <script src="debugger.js"></script>
     <script>
         $(document).ready(function() {
@@ -14,17 +15,28 @@
         });
     </script>
     <! template for Bootstrap nav tabs>
-    <script id="nav-tab" type="text/html">
+    <script id="nav-tab-template" type="text/x-handlebars-template">
         <li{{#id}} id="{{id}}"{{/id}} class="{{class}}{{#active}} active{{/active}}">
             <a href="#{{tabId}}" data-toggle="tab">{{label}}</a>
         </li>
     </script>
 
     <! template for Bootstrap nav panes>
-    <script id="nav-pane" type="text/html">
-        <div id="{{id}}" class="tab-pane{{#class}} {{class}}{{/class}}{{#active}} active{{/active}}">
+    <script id="nav-pane-template" type="text/x-handlebars-template">
+        <div id="{{tabId}}" class="tab-pane{{#class}} {{class}}{{/class}}{{#active}} active{{/active}}">
             {{html}}
         </div>
+    </script>
+
+    <! template for program file contents>
+    <script id="program-listing" type="text/x-handlebars-template">
+        <table class="table-hover table-condensed">
+            <tbody>
+                {{#rows}}
+                    <tr><td class="lineno">{{line}}</td><td class="code"><pre>{{code}}</td></tr>
+                {{/rows}}
+            </tbody>
+        </table>
     </script>
   </head>
   <body>
