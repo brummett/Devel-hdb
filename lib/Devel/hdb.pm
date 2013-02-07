@@ -65,7 +65,13 @@ sub sourcefile {
     my($self, $env) = @_;
     my $req = Plack::Request->new($env);
 
-    my $file = $self->source_file($req->param('f'));
+    #my $file = $self->source_file($req->param('f'));
+    my $filename = $req->param('f');
+    my $file;
+    {
+        no strict 'refs';
+        $file = $main::{'_<' . $filename};
+    }
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
@@ -189,14 +195,6 @@ sub app {
 sub run {
     my $self = shift;
     return $self->{server}->run($self->app);
-}
-
-# Return a ref to the list of file content data
-sub source_file {
-    my($self, $filename) = @_;
-
-    no strict 'refs';
-    return $main::{'_<' . $filename};
 }
 
 # methods to get vars of the same name out of the DB package
