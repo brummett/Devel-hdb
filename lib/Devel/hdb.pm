@@ -175,10 +175,11 @@ sub stepin {
     my $self = shift;
     my $env = shift;
 
+    $DB::single=1;
     $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
     return [    200,
                 [ 'Content-Type' => 'text/html' ],
-                [ '<head><meta http-equiv="REFRESH" content="0;url='.$self->{base_url}.'"></head>' ]
+                [ 'stepin' ],
             ];
 }
 
