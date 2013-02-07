@@ -4,8 +4,10 @@ use strict;
 package Devel::hdb;
 
 use HTTP::Server::PSGI;
+use Plack::Request;
 use Sub::Install;
 use IO::File;
+use JSON qw();
 use Data::Dumper;
 
 use Devel::hdb::Router;
@@ -18,6 +20,7 @@ sub new {
                         host => '127.0.0.1',
                         server_ready => sub { $self->init_debugger },
                     );
+    $self->{json} = JSON->new();
     return $self;
 }
 
@@ -39,15 +42,73 @@ sub init_debugger {
     for ($self->{router}) {
         # All the paths we listen for
         $_->get(qr(/db/(.*)), sub { $self->assets(@_) });
-        $_->get("/$$", sub { $self->show_debugger_position(@_) });
-        $_->get("/$$/stepin", sub { $self->stepin(@_) });
-        $_->get("/$$/stepover", sub { $self->stepover(@_) });
-        $_->get("/$$/stepout", sub { $self->steoput(@_) });
+        $_->get("/", sub { $self->assets(shift, 'debugger.html', @_) }); # load the debugger window
+        $_->get("/stepin", sub { $self->stepin(@_) });
+        $_->get("/stepover", sub { $self->stepover(@_) });
+        $_->get("/stepout", sub { $self->steoput(@_) });
+        $_->get("/run", sub { $self->run(@_) });
+        $_->get("/stack", sub { $self->stack(@_) });
+        $_->get("/sourcefile", sub { $self->sourcefile(@_) });
+        $_->get("/program_name", sub { $self->program_name(@_) });
     }
 print "Router: ".Data::Dumper::Dumper($self->{router});
 }
 
 
+# Return the name of the program, $o
+sub program_name {
+    return [200, ['Content-Type' => 'text/plain'], [ $0 ]];
+}
+
+
+# send back a list of program file lines
+sub sourcefile {
+    my($self, $env) = @_;
+    my $req = Plack::Request->new($env);
+
+    my $file = $self->source_file($req->param('f'));
+
+    return [ 200,
+            [ 'Content-Type' => 'application/json' ],
+            [ $self->{json}->encode(\@$file) ] ];
+}
+
+# Send back a data structure describing the call stack
+# stepin, stepover, stepout and run will call this to return
+# back to the debugger window the current state
+sub stack {
+    my($self, $env) = @_;
+
+    my $discard = 1;
+    my @stack;
+    for (my $i = 0; ; $i++) {
+        my %caller;
+        {
+            package DB;
+            @caller{qw( package filename line subroutine hasargs wantarray
+                        evaltext is_require )} = caller($i);
+        }
+        last unless defined ($caller{line});
+#        if ($caller{subroutine} eq 'DB::DB') {
+#            $discard = 0;
+#        }
+#        next if $discard;
+
+#        $caller{args} = \@DB::args;
+        $caller{level} = $i;
+print "Stack at $i is ",Data::Dumper::Dumper(\%caller);
+
+        push @stack, \%caller;
+    }
+    $stack[-1]->{subroutine} = 'MAIN';
+
+    return [ 200,
+            [ 'Content-Type' => 'application/json' ],
+            [ $self->{json}->encode(\@stack) ] ];
+}
+
+
+# send back a file located in the 'html' subdirectory
 sub assets {
     my($self, $env, $file) = @_;
 
