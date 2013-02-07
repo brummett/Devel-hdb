@@ -31,10 +31,13 @@
 
     <! template for program file contents>
     <script id="program-listing-template" type="text/x-handlebars-template">
-        <table class="table-hover table-condensed">
+        <table class="table table-hover table-condensed program-code">
             <tbody>
                 {{#rows}}
-                    <tr><td class="lineno">{{line}}</td><td class="code">{{code}}</td></tr>
+                    <tr {{#active}}class="active"{{/active}}>
+                        <td class="lineno">{{line}}</td>
+                        <td class="code">{{code}}</td>
+                    </tr>
                 {{/rows}}
             </tbody>
         </table>
@@ -58,7 +61,7 @@
                 <div class="tab-content">
                     <div class="tab-pane active" id="program">
 
-                        <div id="stack" class="well tabbable tabs-left">
+                        <div id="stack" class="tabbable tabs-left">
                             <ul class="nav nav-tabs">
                             </ul>
                             <div class="tab-content">
