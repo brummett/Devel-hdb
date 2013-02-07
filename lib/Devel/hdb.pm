@@ -94,6 +94,7 @@ sub stack {
 #        next if $discard;
 
 #        $caller{args} = \@DB::args;
+        $caller{subname} = $caller{subroutine} =~ m/\b(\w+$|__ANON__)/ ? $1 : $caller{subroutine};
         $caller{level} = $i;
 print "Stack at $i is ",Data::Dumper::Dumper(\%caller);
 
