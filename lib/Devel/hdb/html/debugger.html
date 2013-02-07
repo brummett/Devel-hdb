@@ -7,7 +7,7 @@
     <script src="db/jquery.js"></script>
     <script src="db/bootstrap.js"></script>
     <script src="db/handlebars.js"></script>
-    <script src="debugger.js"></script>
+    <script src="db/debugger.js"></script>
     <script>
         $(document).ready(function() {
             var d = new Debugger('div.debugger-window');
@@ -29,11 +29,11 @@
     </script>
 
     <! template for program file contents>
-    <script id="program-listing" type="text/x-handlebars-template">
+    <script id="program-listing-template" type="text/x-handlebars-template">
         <table class="table-hover table-condensed">
             <tbody>
                 {{#rows}}
-                    <tr><td class="lineno">{{line}}</td><td class="code"><pre>{{code}}</td></tr>
+                    <tr><td class="lineno">{{line}}</td><td class="code">{{code}}</td></tr>
                 {{/rows}}
             </tbody>
         </table>
@@ -49,7 +49,7 @@
         </div>
 
         <div class="row">
-            <div id="filewindow" class="tabbable span8">
+            <div id="filewindow" class="tabbable span10">
                 <ul class="nav nav-tabs">
                     <li id="program-name" class="active"><a href="#program" data-toggle="tab">Program Name</a></li>
                 </ul>
