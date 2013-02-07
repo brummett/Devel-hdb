@@ -1,5 +1,8 @@
 package Devel::hdb::Router;
 
+use strict;
+use warnings;
+
 sub new {
     my $class = shift;
     return bless {}, $class;
