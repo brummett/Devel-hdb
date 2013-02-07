@@ -13,6 +13,19 @@
             d.run();
         });
     </script>
+    <! template for Bootstrap nav tabs>
+    <script id="nav-tab" type="text/html">
+        <li{{#id}} id="{{id}}"{{/id}} class="{{class}}{{#active}} active{{/active}}">
+            <a href="#{{tabId}}" data-toggle="tab">{{label}}</a>
+        </li>
+    </script>
+
+    <! template for Bootstrap nav panes>
+    <script id="nav-pane" type="text/html">
+        <div id="{{id}}" class="tab-pane{{#class}} {{class}}{{/class}}{{#active}} active{{/active}}">
+            {{html}}
+        </div>
+    </script>
   </head>
   <body>
     <div class="debugger-window">
@@ -26,8 +39,7 @@
         <div class="row">
             <div id="filewindow" class="tabbable span8">
                 <ul class="nav nav-tabs">
-                    <li class="active"><a href="#program" data-toggle="tab">Program Name</a></li>
-                    <li><a href="#somefile" data-toggle="tab">somefile.pm</a></li>
+                    <li id="program-name" class="active"><a href="#program" data-toggle="tab">Program Name</a></li>
                 </ul>
 
                 <div class="tab-content">
@@ -35,43 +47,11 @@
 
                         <div id="stack" class="well tabbable tabs-left">
                             <ul class="nav nav-tabs">
-                                <li class="active"><a href="#stack2" data-toggle="tab">foo()</a></li>
-                                <li><a href="#stack1" data-toggle="tab">bar()</a></li>
-                                <li><a href="#stack0"data-toggle="tab">MAIN</a></li>
                             </ul>
                             <div class="tab-content">
-                                <div class="tab-pane active" id="stack2">
-                                    <h3>@_ : 1, 2, "Hi"</h3>
-                                    <pre>001 program code
-002 next line
-003 more code</pre>
-                                </div>
-                                <div class="tab-pane" id="stack1">
-                                    <h3>@_: "args", ARRAY</h3>
-                                    <pre>001 some code here
-002 more code
-003 another line of code</pre>
-                                </div>
-                                <div class="tab-pane" id="stack0">
-                                    <h3>@ARGV: "-p", 123</h3>
-                                    <pre>001 # main program code
-002 use Module;
-003 call_a_sub()</pre>
-                                </div>
                             </div>
                         </div> <! stack>
                     </div>
-                    <div id="somefile" class="tab-pane">
-                        <h3>/path/to/some/file/somefile.pm</h3>
-                        <pre>blah blah
-more lines
-stuff here
-o
-k
-wlrgjwkrjgerk
-gibberish</pre>
-                    </div>
-
                 </div>
             </div> <! filewindow>
             <div class="span4">
