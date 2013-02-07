@@ -246,6 +246,15 @@ sub restore {
     ( $@, $!, $^E, $,, $/, $\, $^W ) = @saved;
 }
 
+sub is_breakpoint {
+    my($package, $filename, $line) = @_;
+
+    print "single is $DB::single at $filename line $line\n";
+    my $rv = $DB::single;
+    $DB::single=0;
+    return $rv;
+}
+
 sub DB {
     return unless $ready;
     #return if (! $ready || $in_debugger);
@@ -254,6 +263,10 @@ sub DB {
 
     local($package, $filename, $line) = caller;
 print "pkg $package file $filename line $line\n";
+
+    if (! is_breakpoint($package, $filename, $line)) {
+        return;
+    }
 
     # set up the context for DB::eval, so it can properly execute
     # code on behalf of the user. We add the package in so that the
