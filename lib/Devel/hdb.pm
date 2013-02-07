@@ -98,7 +98,7 @@ sub stack {
         $caller{level} = $i;
 print "Stack at $i is ",Data::Dumper::Dumper(\%caller);
 
-        push @stack, \%caller;
+        unshift @stack, \%caller;
     }
     $stack[-1]->{subroutine} = 'MAIN';
 
