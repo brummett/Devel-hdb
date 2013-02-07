@@ -51,7 +51,6 @@ sub init_debugger {
         $_->get("/sourcefile", sub { $self->sourcefile(@_) });
         $_->get("/program_name", sub { $self->program_name(@_) });
     }
-print "Router: ".Data::Dumper::Dumper($self->{router});
 }
 
 
@@ -180,7 +179,8 @@ sub stepin {
 sub app {
     my $self = shift;
     unless ($self->{app}) {
-        $self->{app} =  sub { print "run route for ".Data::Dumper::Dumper($_[0]);$self->{router}->route(@_); };
+        #$self->{app} =  sub { print "run route for ".Data::Dumper::Dumper($_[0]);$self->{router}->route(@_); };
+        $self->{app} =  sub { $self->{router}->route(@_); };
     }
     return $self->{app};
 }
