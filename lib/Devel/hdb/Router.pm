@@ -37,7 +37,7 @@ sub route($$) {
     my $self = shift;
     my $env = shift;
 
-print "request method ".$env->{REQUEST_METHOD},"\n";
+#print "request method ".$env->{REQUEST_METHOD},"\n";
     return unless exists $self->{$env->{REQUEST_METHOD}};
     my $matchlist = $self->{$env->{REQUEST_METHOD}};
 print "path ".$env->{PATH_INFO},"\n";
@@ -57,7 +57,7 @@ print "route $path\n";
             $fire = 1;
         }
 
-print "fire $fire\n";
+#print "fire $fire\n";
         if ($fire) {
 print "firing callback\n";
             return $cb->($env, @matches);
