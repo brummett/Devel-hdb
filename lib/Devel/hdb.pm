@@ -46,7 +46,7 @@ sub init_debugger {
         $_->get("/stepin", sub { $self->stepin(@_) });
         $_->get("/stepover", sub { $self->stepover(@_) });
         $_->get("/stepout", sub { $self->steoput(@_) });
-        $_->get("/run", sub { $self->run(@_) });
+        $_->get("/continue", sub { $self->continue(@_) });
         $_->get("/stack", sub { $self->stack(@_) });
         $_->get("/sourcefile", sub { $self->sourcefile(@_) });
         $_->get("/program_name", sub { $self->program_name(@_) });
@@ -169,6 +169,18 @@ sub stepin {
     return [    200,
                 [ 'Content-Type' => 'text/html' ],
                 [ 'stepin' ],
+            ];
+}
+
+sub continue {
+    my $self = shift;
+    my $env = shift;
+
+    $DB::single=0;
+    $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
+    return [    200,
+                [ 'Content-Type' => 'text/html' ],
+                [ 'continue' ],
             ];
 }
 

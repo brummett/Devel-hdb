@@ -4,6 +4,11 @@ table.program-code td {
     padding-bottom: 0px;
 }
 
+/* the time after "run" is pressed, but before another breakpoint */
+.control-button[disabled] {
+    cursor: wait;
+}
+
 table.program-code tr.active td  {
     background-color: rgba(0,101,204,1);
 }
@@ -15,4 +20,4 @@ table.program-code td.lineno.breakpoint {
     font-family: monospace;
     white-space: pre;
 }
-    
+
