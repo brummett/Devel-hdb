@@ -13,5 +13,6 @@ table.program-code td.lineno.breakpoint {
 
 .code {
     font-family: monospace;
+    white-space: pre;
 }
     
