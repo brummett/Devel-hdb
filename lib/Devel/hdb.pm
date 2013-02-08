@@ -100,19 +100,27 @@ sub stack {
                         evaltext is_require )} = caller($i);
         }
         last unless defined ($caller{line});
-#        if ($caller{subroutine} eq 'DB::DB') {
-#            $discard = 0;
-#        }
-#        next if $discard;
+        if ($caller{subroutine} eq 'DB::DB') {
+            $discard = 0;
+        }
+        next if $discard;
 
 #        $caller{args} = \@DB::args;
         $caller{subname} = $caller{subroutine} =~ m/\b(\w+$|__ANON__)/ ? $1 : $caller{subroutine};
         $caller{level} = $i;
-print "Stack at $i is ",Data::Dumper::Dumper(\%caller);
+#print "Stack at $i is ",Data::Dumper::Dumper(\%caller);
 
-        unshift @stack, \%caller;
+        push @stack, \%caller;
+    }
+print "Before fixup: ",Data::Dumper::Dumper(\@stack);
+    # TODO: put this into the above loop
+    for (my $i = @stack-1; $i ; $i--) {
+print "i $i\n";
+        @{$stack[$i-1]}{'subroutine','subname'} = @{$stack[$i]}{'subroutine','subname'};
     }
     $stack[-1]->{subroutine} = 'MAIN';
+    $stack[-1]->{subname} = 'MAIN';
+print "Stack: ",Data::Dumper::Dumper(\@stack);
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
