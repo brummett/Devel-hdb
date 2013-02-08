@@ -73,6 +73,12 @@ sub sourcefile {
         $file = $main::{'_<' . $filename};
     }
 
+    if ($file->[0] =~ m/use\s+Devel::_?hdb;/) {
+        my @file = @$file;
+        shift @file;
+        $file = \@file;
+    }
+
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
             [ $self->{json}->encode(\@$file) ] ];
