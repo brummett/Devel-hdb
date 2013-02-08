@@ -43,12 +43,12 @@ sub route($$) {
 #print "request method ".$env->{REQUEST_METHOD},"\n";
     return unless exists $self->{$env->{REQUEST_METHOD}};
     my $matchlist = $self->{$env->{REQUEST_METHOD}};
-print "\npath >>".$env->{PATH_INFO},"<<\n";
+#print "\npath >>".$env->{PATH_INFO},"<<\n";
 
     my($fire, @matches);
     foreach my $route ( @$matchlist ) {
         my($path,$cb) = @$route;
-print "route $path\n";
+#print "route $path\n";
 
         if (my $ref = ref($path)) {
             if ($ref eq 'Regexp') {
@@ -62,11 +62,11 @@ print "route $path\n";
 
 #print "fire $fire\n";
         if ($fire) {
-print "firing callback\n";
+print "firing callback for $path\n";
             return $cb->($env, @matches);
         }
     }
-print "path not found\n";
+print "path ",$env->{PATH_INFO}," not matched\n";
     return [ 404, [ 'Content-Type' => 'text/html'], ['Not found']];
 }
 

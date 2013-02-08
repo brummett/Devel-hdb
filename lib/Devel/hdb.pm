@@ -65,7 +65,6 @@ sub sourcefile {
     my($self, $env) = @_;
     my $req = Plack::Request->new($env);
 
-    #my $file = $self->source_file($req->param('f'));
     my $filename = $req->param('f');
     my $file;
     {
@@ -159,30 +158,6 @@ sub assets {
         my $buffer = <$fh>;
         return [ 200, ['Content-Type' => $type], [$buffer]];
     }
-}
-
-sub show_debugger_position {
-    my $self = shift;
-    my $env = shift;
-
-print "Show debugger position\n";
-    my $string = '';
-    $string .= 'Env <pre>'.Data::Dumper::Dumper($env).'</pre>';
-    $string .= sprintf("<h2>Line %d of %s.  Depth %d</h2>",
-                        $self->line, $self->filename, $self->stack_depth);
-    $string .= '<a href="stepin">Step in</a>';
-    $string .= "<table>";
-    my $file = $self->source_file($self->filename);
-    for (my $lineno = 0; $lineno < @$file; $lineno++) {
-        $string .= sprintf("<tr><td>%s</td><td><pre>%s</pre></td></tr>",
-                            ($lineno + 1 == $self->line) ? $lineno+1 . ' ==>' : $lineno+1,
-                            $file->[$lineno]);
-    }
-    $string .= "</table>";
-    return [    200,
-                [ 'Content-Type' => 'text/html' ],
-                [ $string ]
-            ];
 }
 
 sub stepin {
