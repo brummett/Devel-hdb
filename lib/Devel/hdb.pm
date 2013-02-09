@@ -107,19 +107,15 @@ sub stack {
 #        $caller{args} = \@DB::args;
         $caller{subname} = $caller{subroutine} =~ m/\b(\w+$|__ANON__)/ ? $1 : $caller{subroutine};
         $caller{level} = $i;
-#print "Stack at $i is ",Data::Dumper::Dumper(\%caller);
 
         push @stack, \%caller;
     }
-print "Before fixup: ",Data::Dumper::Dumper(\@stack);
     # TODO: put this into the above loop
     for (my $i = @stack-1; $i ; $i--) {
-print "i $i\n";
         @{$stack[$i-1]}{'subroutine','subname'} = @{$stack[$i]}{'subroutine','subname'};
     }
     $stack[-1]->{subroutine} = 'MAIN';
     $stack[-1]->{subname} = 'MAIN';
-print "Stack: ",Data::Dumper::Dumper(\@stack);
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
@@ -281,7 +277,6 @@ print "pkg $package file $filename line $line\n";
 
     #$dbobj = Devel::hdb->new() unless $dbobj;
     unless ($dbobj) {
-        print "Creating new dbobj\n";
         $dbobj = Devel::hdb->new();
     }
     $dbobj->run();
