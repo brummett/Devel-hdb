@@ -7,7 +7,7 @@ BEGIN {
     our $PROGRAM_NAME = $0;
 }
 
-use HTTP::Server::PSGI;
+use Devel::hdb::Server;
 use Plack::Request;
 use Sub::Install;
 use IO::File;
@@ -20,7 +20,7 @@ sub new {
     my $class = shift;
     my $self = bless {}, $class;
 
-    $self->{server} = HTTP::Server::PSGI->new(
+    $self->{server} = Devel::hdb::Server->new(
                         host => '127.0.0.1',
                         server_ready => sub { $self->init_debugger },
                     );
