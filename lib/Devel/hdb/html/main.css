@@ -12,8 +12,11 @@ table.program-code td {
 table.program-code tr.active td  {
     background-color: rgba(0,101,204,1);
 }
-table.program-code td.lineno.breakpoint {
+table.program-code tr.breakpoint td.lineno {
     background-color: rgba(255,0,0,1);
+}
+table.program-code tr.unbreakable td.lineno {
+    text-decoration: line-through;
 }
 
 .code {

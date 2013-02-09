@@ -34,7 +34,7 @@
         <table class="table table-hover table-condensed program-code">
             <tbody>
                 {{#rows}}
-                    <tr {{#active}}class="active"{{/active}}>
+                    <tr class="{{#active}}active{{/active}} {{#unbreakable}}unbreakable{{/unbreakable}}" data-line="{{line}}">
                         <td class="lineno">{{line}}</td>
                         <td class="code">{{code}}</td>
                     </tr>

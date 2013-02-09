@@ -65,7 +65,9 @@ sub program_name {
 }
 
 
-# send back a list of program file lines
+# send back a list.  Each list elt is a list of 2 elements:
+# 0: the line of code
+# 1: whether that line is breakable
 sub sourcefile {
     my($self, $env) = @_;
     my $req = Plack::Request->new($env);
@@ -77,15 +79,16 @@ sub sourcefile {
         $file = $main::{'_<' . $filename};
     }
 
-    if ($file->[0] =~ m/use\s+Devel::_?hdb;/) {
-        my @file = @$file;
-        shift @file;
-        $file = \@file;
+    my $offset = $file->[0] =~ m/use\s+Devel::_?hdb;/ ? 1 : 0;
+
+    my @rv;
+    for (my $i = $offset; $i < scalar(@$file); $i++) {
+        push @rv, [ $file->[$i], $file->[$i] + 0 ];
     }
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
-            [ $self->{json}->encode(\@$file) ] ];
+            [ $self->{json}->encode(\@rv) ] ];
 }
 
 # Send back a data structure describing the call stack
