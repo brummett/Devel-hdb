@@ -143,8 +143,7 @@ sub sourcefile {
 # Send back a data structure describing the call stack
 # stepin, stepover, stepout and run will call this to return
 # back to the debugger window the current state
-sub stack {
-    my($self, $env) = @_;
+sub _stack {
 
     my $discard = 1;
     my @stack;
@@ -156,6 +155,7 @@ sub stack {
                         evaltext is_require )} = caller($i);
         }
         last unless defined ($caller{line});
+        # Don't include calls within the debugger
         if ($caller{subroutine} eq 'DB::DB') {
             $discard = 0;
         }
@@ -174,9 +174,15 @@ sub stack {
     $stack[-1]->{subroutine} = 'MAIN';
     $stack[-1]->{subname} = 'MAIN';
 
+    return \@stack;
+}
+
+sub stack {
+    my($self, $env) = @_;
+
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
-            [ $self->{json}->encode(\@stack) ] ];
+            [ $self->{json}->encode($self->_stack) ] ];
 }
 
 
@@ -215,28 +221,34 @@ sub assets {
 
 sub stepin {
     my $self = shift;
-    my $env = shift;
 
     $DB::single=1;
-    $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
-    return [    200,
-                [ 'Content-Type' => 'text/html' ],
-                [ 'stepin' ],
-            ];
+    return $self->_delay_stack_return_to_client(@_);
 }
 
 sub continue {
     my $self = shift;
-    my $env = shift;
 
     $DB::single=0;
-    $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
-    return [    200,
-                [ 'Content-Type' => 'text/html' ],
-                [ 'continue' ],
-            ];
+    return $self->_delay_stack_return_to_client(@_);
 }
 
+sub _delay_stack_return_to_client {
+    my $self = shift;
+    my $env = shift;
+
+    my $json = $self->{json};
+    return sub {
+        my $responder = shift;
+        my $writer = $responder->([ 200, [ 'Content-Type' => 'text/html' ]]);
+        $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
+
+        $DB::long_call = sub {
+            $writer->write($json->encode($self->_stack()));
+            $writer->close();
+        };
+    };
+}
 
 sub app {
     my $self = shift;
@@ -281,7 +293,8 @@ BEGIN {
     $DB::filename       = '';
     $DB::line           = '';
 
-    $DB::dbline         = ();
+    # Used to postpone some action between calls to DB::DB:
+    $DB::long_call      = undef;
 }
 
 sub save {
@@ -343,16 +356,14 @@ print "pkg $package file $filename line $line\n";
     local $usercontext =
         '($@, $!, $^E, $,, $/, $\, $^W) = @saved;' . "package $package;";
 
-    # Create an alias to the active file magical array to simplify
-    # the code here.
-    local (*dbline) = $main::{ '_<' . $filename };
-
-    #$dbobj = Devel::hdb->new() unless $dbobj;
+    if ($DB::long_call) {
+        $DB::long_call->();
+        undef $DB::long_call;
+    }
     unless ($dbobj) {
         $dbobj = Devel::hdb->new();
     }
     $dbobj->run();
-
 }
 
 sub sub {
