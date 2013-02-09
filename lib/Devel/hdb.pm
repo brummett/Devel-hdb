@@ -3,6 +3,10 @@ use strict;
 
 package Devel::hdb;
 
+BEGIN {
+    our $PROGRAM_NAME = $0;
+}
+
 use HTTP::Server::PSGI;
 use Plack::Request;
 use Sub::Install;
@@ -56,7 +60,8 @@ sub init_debugger {
 
 # Return the name of the program, $o
 sub program_name {
-    return [200, ['Content-Type' => 'text/plain'], [ $0 ]];
+    our $PROGRAM_NAME;
+    return [200, ['Content-Type' => 'text/plain'], [ $PROGRAM_NAME ]];
 }
 
 
