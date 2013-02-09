@@ -54,9 +54,58 @@ sub init_debugger {
         $_->get("/stack", sub { $self->stack(@_) });
         $_->get("/sourcefile", sub { $self->sourcefile(@_) });
         $_->get("/program_name", sub { $self->program_name(@_) });
+        $_->post("/breakpoint", sub { $self->set_breakpoint(@_) });
+        $_->get("/breakpoint", sub { $self->get_breakpoint(@_) });
     }
 }
 
+# sets a breakpoint on line l of file f with condition c
+# Make c=1 for an unconditional bp, c=0 to clear it
+sub set_breakpoint {
+    my($self, $env) = @_;
+    my $req = Plack::Request->new($env);
+    my $filename = $req->param('f');
+    my $line = $req->param('l');
+    my $condition = $req->param('c');
+
+    no strict 'refs';
+    my $breakpoints = $main::{'_<' . $filename};
+
+    no warnings 'uninitialized';
+    my(undef, $action) = split("\0", $breakpoints->{$line});
+    if ($action) {
+        $breakpoints->{$line} = "${condition}\0${action}";
+    } else {
+        $breakpoints->{$line} = $condition;
+    }
+
+    return [ 200,
+            [ 'Content-Type' => 'application/json' ],
+            [ $self->{json}->encode({ breakpoint =>
+                                {   filename => $filename,
+                                    lineno => $line,
+                                    condition => $condition,
+                                }}) ]];
+}
+
+sub get_breakpoint {
+    my($self, $env) = @_;
+    my $req = Plack::Request->new($env);
+    my $filename = $req->param('f');
+    my $line = $req->param('l');
+
+    no strict 'refs';
+    my $breakpoints = $main::{'_<' . $filename};
+    use strict 'refs';
+
+    my($condition, $action) = split("\0", $breakpoints->{$line});
+    return [ 200, ['Content-Type' => 'application/json'],
+            [ $self->{json}->encode({ breakpoint =>
+                                {   filename => $filename,
+                                    lineno => $line,
+                                    condition => $condition,
+                                }}) ]];
+}
 
 # Return the name of the program, $o
 sub program_name {
@@ -255,9 +304,24 @@ sub is_breakpoint {
     my($package, $filename, $line) = @_;
 
     print "single is $DB::single at $filename line $line\n";
-    my $rv = $DB::single;
+    my $db__single = $DB::single;
     $DB::single=0;
-    return $rv;
+
+    return 1 if $db__single;
+
+    no strict 'refs';
+    my $breakpoints = $main::{'_<' . $filename};
+    use strict 'refs';
+
+    if ($breakpoints->{$line}) {
+        my($is_break) = split("\0", $breakpoints->{$line});
+        if ($is_break eq '1') {
+            return 1
+        } else {
+            # eval $is_break in user's context here
+        }
+    }
+    return;
 }
 
 sub DB {
