@@ -171,8 +171,8 @@ sub _stack {
         push @stack, \%caller;
     }
     # TODO: put this into the above loop
-    for (my $i = @stack-1; $i ; $i--) {
-        @{$stack[$i-1]}{'subroutine','subname'} = @{$stack[$i]}{'subroutine','subname'};
+    for (my $i = 0; $i < @stack-1; $i++) {
+        @{$stack[$i]}{'subroutine','subname'} = @{$stack[$i+1]}{'subroutine','subname'};
     }
     $stack[-1]->{subroutine} = 'MAIN';
     $stack[-1]->{subname} = 'MAIN';
