@@ -49,7 +49,7 @@ sub init_debugger {
         $_->get("/", sub { $self->assets(shift, 'debugger.html', @_) }); # load the debugger window
         $_->get("/stepin", sub { $self->stepin(@_) });
         $_->get("/stepover", sub { $self->stepover(@_) });
-        $_->get("/stepout", sub { $self->steoput(@_) });
+        $_->get("/stepout", sub { $self->stepout(@_) });
         $_->get("/continue", sub { $self->continue(@_) });
         $_->get("/stack", sub { $self->stack(@_) });
         $_->get("/sourcefile", sub { $self->sourcefile(@_) });
@@ -219,6 +219,15 @@ sub assets {
     }
 }
 
+sub stepover {
+    my $self = shift;
+
+    $DB::single=1;
+    $DB::step_over_depth = $DB::saved_stack_depth;
+print "stepover: step_over_depth $DB::step_over_depth stack_depth $DB::stack_depth\n";
+    return $self->_delay_stack_return_to_client(@_);
+}
+
 sub stepin {
     my $self = shift;
 
@@ -281,6 +290,7 @@ no strict;
 BEGIN {
     $DB::stack_depth    = 0;
     $DB::single         = 0;
+    $DB::step_over_depth = -1;
     $DB::dbobj          = undef;
     $DB::ready          = 0;
     @DB::stack          = ();
@@ -296,6 +306,24 @@ BEGIN {
     # Used to postpone some action between calls to DB::DB:
     $DB::long_call      = undef;
 }
+
+#sub stack_depth {
+#    my $class = shift;
+#    $stack_depth = shift if (@_);
+#    return $stack_depth;
+#}
+#
+#sub step_over_depth {
+#    my $class = shift;
+#    $step_over_depth = shift if (@_);
+#    return $step_over_depth;
+#}
+#
+#sub single {
+#    my $class = shift;
+#    $single = shift if (@_);
+#    return $single;
+#}
 
 sub save {
     # Save eval failure, command failure, extended OS error, output field
@@ -316,11 +344,21 @@ sub restore {
 sub is_breakpoint {
     my($package, $filename, $line) = @_;
 
-    print "single is $DB::single at $filename line $line\n";
-    my $db__single = $DB::single;
-    $DB::single=0;
+print "is_bp: single is $DB::single at $filename line $line\n";
+print "is_bp: step_over_depth $step_over_depth stack depth $stack_depth\n";
 
-    return 1 if $db__single;
+    if ($single and $step_over_depth >= 0 and $step_over_depth < $stack_depth) {
+        # This is from a step-over
+print STDOUT "*** Setting single to 0 and continuing AA\n";
+        $single = 0;
+        return 0;
+    }
+
+    if ($single || $signal) {
+print STDOUT "*** Setting single to 0 and breaking BB\n";
+        $single = $signal = $tracking_step_over = 0;
+        return 1;
+    }
 
     no strict 'refs';
     my $breakpoints = $main::{'_<' . $filename};
@@ -339,16 +377,15 @@ sub is_breakpoint {
 
 sub DB {
     return unless $ready;
-    #return if (! $ready || $in_debugger);
-
-#    local $in_debugger = 1;
 
     local($package, $filename, $line) = caller;
-print "pkg $package file $filename line $line\n";
+print "*** DB::DB pkg $package file $filename line $line\n";
 
     if (! is_breakpoint($package, $filename, $line)) {
         return;
     }
+    $step_over_depth = -1;
+    $DB::saved_stack_depth = $stack_depth;
 
     # set up the context for DB::eval, so it can properly execute
     # code on behalf of the user. We add the package in so that the
@@ -363,49 +400,83 @@ print "pkg $package file $filename line $line\n";
     unless ($dbobj) {
         $dbobj = Devel::hdb->new();
     }
+print "Entering PSGI run\n";
+    local($in_debugger) = 1;
     $dbobj->run();
+print "*** leaving DB::DB single is $DB::single stack_depth $stack_depth\n";
 }
 
-sub sub {
-    &$sub unless $ready;
-    #&$sub if (! $ready || $in_debugger);
+sub Xsub {
+    goto &$sub if (! $ready or index($sub, 'hdbStackTracker') == 0);
 
-    # Using the same trick perl5db uses to preserve the single step flag
-    # even in the cse where multiple stack frames are unwound, as in an
-    # an eval that catches an exception thrown many sub calls down
-    local $stack_depth = $stack_depth;
+    $stack_depth++;
+print STDOUT " "x$stack_depth;
+print STDOUT "entering $sub\n";
+    if (wantarray) {
+        my @rv = &$sub;
+print STDOUT " "x$stack_depth;
+        print STDOUT "leaving $sub\n";
+        $stack_depth--;
+        return @rv;
+    } elsif (defined wantarray) {
+        my $rv = &$sub;
+print STDOUT " "x$stack_depth;
+        print STDOUT "leaving $sub\n";
+        $stack_depth--;
+        return $rv;
+    } else {
+        &$sub;
+print STDOUT " "x$stack_depth;
+        print STDOUT "leaving $sub\n";
+#        print "leaving $sub\n";
+        $stack_depth--;
+        return;
+    }
+}
+
+    
+sub sub {
+#print STDOUT "sub $sub\n";
+    goto &$sub if (! $ready or index($sub, 'hdbStackTracker') == 0);
+
+    #local($stack_depth) = $stack_depth + 1;
+#    my($tmp,$stack_tracker);
+#    if ($step_over_depth >= 0 and $stack_depth <= $step_over_depth and !$in_debugger) {
+    my $stack_tracker;
     unless ($in_debugger) {
         $stack_depth++;
-        $#stack = $stack_depth;
-        $stack[-1] = $single;
-    }
-
-    # Turn off all flags except single-stepping
-    $single &= 1;
-
-    # If we've gotten really deeply recursed, turn on the flag that will
-    # make us stop with the 'deep recursion' message.
-    $single |= 4 if $stack_depth == $deep;
-
-    my(@ret,$ret);
-    my $wantarray = wantarray;
-    {
-        no strict 'refs';
-        if ($wantarray) {
-            @ret = &$sub;
-        } elsif (defined $wantarray) {
-            $ret = &$sub;
-        } else {
-            &$sub;
-            undef $ret;
+#    if ($step_over_depth >= 0) {
+#print STDOUT "sub: stack depth $stack_depth\n";
+        if ($step_over_depth >= 0 and $step_over_depth < $stack_depth) {
+            my $tmp = $sub;
+            $stack_tracker = \$tmp;
+            bless $stack_tracker, 'hdbStackTracker';
+            print STDOUT (" "x$stack_depth) . "*** sub: Making a stack tracker at $stack_depth for $sub and setting single to 0\n";
         }
     }
 
-    unless ($in_debugger) {
-        $single |= $stack[ $stack_depth-- ];
-    }
+    return &$sub;
+#    if (wantarray) {
+#        my @rv = &$sub;
+##        print STDOUT "leaving $sub\n";
+#        return @rv;
+#    } elsif (defined wantarray) {
+#        my $rv = &$sub;
+##        print STDOUT "leaving $sub\n";
+#        return $rv;
+#    } else {
+#        &$sub;
+##        print "leaving $sub\n";
+#        return;
+#    }
+}
 
-    return $wantarray ? @ret : $ret;
+sub hdbStackTracker::DESTROY {
+print " "x$DB::stack_depth;
+    $DB::stack_depth--;
+#print STDOUT "DES: stack_depth $stack_depth\n";
+#    $DB::single = 1 if ($DB::step_over_depth > 0 and $DB::step_over_depth >= $stack_depth);
+    print "DESTROY single is $DB::single step_over_depth $step_over_depth stack_depth $stack_depth from ${$_[0]}\n";
 }
 
 BEGIN { $DB::ready = 1; }
