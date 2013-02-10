@@ -73,16 +73,7 @@ sub set_breakpoint {
     my $line = $req->param('l');
     my $condition = $req->param('c');
 
-    no strict 'refs';
-    my $breakpoints = $main::{'_<' . $filename};
-
-    no warnings 'uninitialized';
-    my(undef, $action) = split("\0", $breakpoints->{$line});
-    if ($action) {
-        $breakpoints->{$line} = "${condition}\0${action}";
-    } else {
-        $breakpoints->{$line} = $condition;
-    }
+    DB->set_breakpoint($filename, $line, $condition);
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
@@ -101,11 +92,7 @@ sub get_breakpoint {
     my $filename = $req->param('f');
     my $line = $req->param('l');
 
-    no strict 'refs';
-    my $breakpoints = $main::{'_<' . $filename};
-    use strict 'refs';
-
-    my($condition, $action) = split("\0", $breakpoints->{$line});
+    my $condition = DB->get_breakpoint($filename, $line);
     return [ 200, ['Content-Type' => 'application/json'],
             [ $self->encode({   type => 'breakpoint',
                                 data => {
@@ -304,6 +291,8 @@ foreach my $m ( qw( filename line stack_depth ) ) {
 package DB;
 no strict;
 
+use vars qw( %dbline @dbline );
+
 BEGIN {
     $DB::stack_depth    = 0;
     $DB::single         = 0;
@@ -372,12 +361,10 @@ sub is_breakpoint {
         return 1;
     }
 
-    no strict 'refs';
-    my $breakpoints = $main::{'_<' . $filename};
-    use strict 'refs';
+    local(*dbline) = $main::{'_<' . $filename};
 
-    if ($breakpoints->{$line}) {
-        my($is_break) = split("\0", $breakpoints->{$line});
+    if ($dbline{$line}) {
+        my($is_break) = split("\0", $dbline{$line});
         if ($is_break eq '1') {
             return 1
         } else {
@@ -391,6 +378,7 @@ sub DB {
     return unless $ready;
 
     local($package, $filename, $line) = caller;
+print "In DB $filename line $line\n";
 
     if (! is_breakpoint($package, $filename, $line)) {
         return;
@@ -435,6 +423,33 @@ sub hdbStackTracker::DESTROY {
     $DB::stack_depth--;
     $DB::single = 1 if ($DB::step_over_depth > 0 and $DB::step_over_depth >= $stack_depth);
 }
+
+sub set_breakpoint {
+    my($class, $filename, $line, $condition) = @_;
+
+    local(*dbline) = $main::{'_<' . $filename};
+
+    no warnings 'uninitialized';
+    my(undef, $action) = split("\0", $dbline{$line});
+    if ($action) {
+        $dbline{$line} = "${condition}\0${action}";
+    } else {
+        $dbline{$line} = $condition;
+    }
+
+    return 1;
+}
+
+sub get_breakpoint {
+    my($class, $filename, $line) = @_;
+
+    no strict 'refs';
+    local(*dbline) = $main::{'_<' . $filename};
+
+    my($condition, $action) = split("\0", $dbline{$line});
+    return $condition;
+}
+
 
 BEGIN { $DB::ready = 1; }
 END { $DB::ready = 0; }
