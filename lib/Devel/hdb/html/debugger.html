@@ -24,8 +24,8 @@
 
     <! template for Bootstrap nav panes>
     <script id="nav-pane-template" type="text/x-handlebars-template">
-        <div id="{{tabId}}" class="tab-pane{{#class}} {{class}}{{/class}}{{#active}} active{{/active}}" data-filename="{{filename}}">
-            {{html}}
+        <div id="{{tabId}}" class="tab-pane program-code-container{{#active}} active{{/active}}" data-filename="{{filename}}">
+            {{{html}}}
         </div>
     </script>
 
@@ -34,7 +34,7 @@
         <table class="table table-hover table-condensed program-code">
             <tbody>
                 {{#rows}}
-                    <tr class="{{#active}}active{{/active}} {{#unbreakable}}unbreakable{{/unbreakable}} {{#breakpoint}}breakpoint{{/breakpoint}} {{#inactivebreakpoint}}inactivebreakpoint{{/inactivebreakpoint}}" data-line="{{line}}">
+                    <tr class="{{#active}}active{{/active}} {{#unbreakable}}unbreakable{{/unbreakable}} {{#breakpoint}}breakpoint{{/breakpoint}} {{#inactivebreakpoint}}inactive-breakpoint{{/inactivebreakpoint}}" data-line="{{line}}">
                         <td class="lineno"><span>{{line}}</span></td>
                         <td class="code">{{code}}</td>
                     </tr>

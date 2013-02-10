@@ -59,6 +59,11 @@ sub init_debugger {
     }
 }
 
+sub encode {
+    my $self = shift;
+    return $self->{json}->encode(shift);
+}
+
 # sets a breakpoint on line l of file f with condition c
 # Make c=1 for an unconditional bp, c=0 to clear it
 sub set_breakpoint {
@@ -81,11 +86,13 @@ sub set_breakpoint {
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
-            [ $self->{json}->encode({ breakpoint =>
-                                {   filename => $filename,
+            [ $self->encode({   type => 'breakpoint',
+                                data => {
+                                    filename => $filename,
                                     lineno => $line,
                                     condition => $condition,
-                                }}) ]];
+                                }
+                            }) ]];
 }
 
 sub get_breakpoint {
@@ -100,17 +107,21 @@ sub get_breakpoint {
 
     my($condition, $action) = split("\0", $breakpoints->{$line});
     return [ 200, ['Content-Type' => 'application/json'],
-            [ $self->{json}->encode({ breakpoint =>
-                                {   filename => $filename,
+            [ $self->encode({   type => 'breakpoint',
+                                data => {
+                                    filename => $filename,
                                     lineno => $line,
                                     condition => $condition,
-                                }}) ]];
+                                }
+                            }) ]];
 }
 
 # Return the name of the program, $o
 sub program_name {
     our $PROGRAM_NAME;
-    return [200, ['Content-Type' => 'text/plain'], [ $PROGRAM_NAME ]];
+    return [200, ['Content-Type' => 'text/plain'],
+                [ shift->encode({   type => 'program_name',
+                                    data => $PROGRAM_NAME }) ]];
 }
 
 
@@ -137,7 +148,12 @@ sub sourcefile {
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
-            [ $self->{json}->encode(\@rv) ] ];
+            [ $self->encode({   type => 'sourcefile',
+                                data => {
+                                    filename => $filename,
+                                    lines => \@rv,
+                                }
+                            }) ]];
 }
 
 # Send back a data structure describing the call stack
@@ -182,7 +198,8 @@ sub stack {
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
-            [ $self->{json}->encode($self->_stack) ] ];
+            [ $self->encode({   type => 'stack',
+                                data => $self->_stack }) ]];
 }
 
 
@@ -252,7 +269,8 @@ sub _delay_stack_return_to_client {
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
 
         $DB::long_call = sub {
-            $writer->write($json->encode($self->_stack()));
+            $writer->write($json->encode({  type => 'stack',
+                                            data => $self->_stack }) );
             $writer->close();
         };
     };
