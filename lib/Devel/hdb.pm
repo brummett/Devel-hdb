@@ -411,6 +411,8 @@ sub DB {
     $step_over_depth = -1;
     $DB::saved_stack_depth = $stack_depth;
 
+    save();
+
     # set up the context for DB::eval, so it can properly execute
     # code on behalf of the user. We add the package in so that the
     # code is eval'ed in the proper package (not in the debugger!).
@@ -431,6 +433,7 @@ sub DB {
         local($in_debugger) = 1;
         $dbobj->run();
     } while ($finished);
+    restore();
 }
 
 sub sub {
