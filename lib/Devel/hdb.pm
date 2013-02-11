@@ -56,6 +56,7 @@ sub init_debugger {
         $_->get("/program_name", sub { $self->program_name(@_) });
         $_->post("/breakpoint", sub { $self->set_breakpoint(@_) });
         $_->get("/breakpoint", sub { $self->get_breakpoint(@_) });
+        $_->get("/exit", sub { $self->do_terminate(@_) });
     }
 }
 
@@ -63,6 +64,18 @@ sub encode {
     my $self = shift;
     return $self->{json}->encode(shift);
 }
+
+sub do_terminate {
+    my $json = shift->{json};
+    DB->user_requested_exit();
+    return sub {
+        my $responder = shift;
+        my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
+        $writer->write($json->encode({ type => 'hangup' }));
+        $writer->close();
+        exit();
+    };
+ }
 
 # sets a breakpoint on line l of file f with condition c
 # Make c=1 for an unconditional bp, c=0 to clear it
@@ -391,7 +404,6 @@ sub DB {
     return unless $ready;
 
     local($package, $filename, $line) = caller;
-print "In DB $filename line $line\n";
 
     if (! is_breakpoint($package, $filename, $line)) {
         return;
@@ -402,6 +414,9 @@ print "In DB $filename line $line\n";
     # set up the context for DB::eval, so it can properly execute
     # code on behalf of the user. We add the package in so that the
     # code is eval'ed in the proper package (not in the debugger!).
+    if ($package eq 'DB::fake') {
+        $package = 'main';
+    }
     local $usercontext =
         '($@, $!, $^E, $,, $/, $\, $^W) = @saved;' . "package $package;";
 
@@ -470,14 +485,24 @@ sub long_call {
     $DB::long_call = $cb;
 }
 
+sub user_requested_exit {
+    $user_requested_exit = 1;
+}
+
 END {
     $finished = 1;
-    if (!$user_requested_quit and $long_call) {
-        $long_call->({ type => 'termination', data => { exit_code => $? }});
-        $exit_code = $?;
-        # These two will trigger DB::DB and the event loop
-        $single=1;
-        DB::fake::at_exit();
+    print "Debugged program terminated with exit code $?\n";
+
+    if ($long_call) {
+        if ($user_requested_exit) {
+            $long_call->({ type => 'hangup'});
+        } else {
+            $long_call->({ type => 'termination', data => { exit_code => $? }});
+            $exit_code = $?;
+            # These two will trigger DB::DB and the event loop
+            $single=1;
+            DB::fake::at_exit();
+        }
     }
 }
 
