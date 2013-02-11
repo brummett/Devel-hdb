@@ -490,6 +490,7 @@ sub user_requested_exit {
 }
 
 END {
+    $single=0;
     $finished = 1;
     print "Debugged program terminated with exit code $?\n";
 
