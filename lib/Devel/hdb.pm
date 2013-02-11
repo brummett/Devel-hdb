@@ -126,11 +126,14 @@ sub sourcefile {
         $file = $main::{'_<' . $filename};
     }
 
-    my $offset = $file->[0] =~ m/use\s+Devel::_?hdb;/ ? 1 : 0;
-
     my @rv;
-    for (my $i = $offset; $i < scalar(@$file); $i++) {
-        push @rv, [ $file->[$i], $file->[$i] + 0 ];
+    {
+        no warnings 'uninitialized';  # at program termination, the loaded file data can be undef
+        my $offset = $file->[0] =~ m/use\s+Devel::_?hdb;/ ? 1 : 0;
+
+        for (my $i = $offset; $i < scalar(@$file); $i++) {
+            push @rv, [ $file->[$i], $file->[$i] + 0 ];
+        }
     }
 
     return [ 200,
@@ -255,11 +258,17 @@ sub _delay_stack_return_to_client {
         my $writer = $responder->([ 200, [ 'Content-Type' => 'text/html' ]]);
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
 
-        $DB::long_call = sub {
-            $writer->write($json->encode({  type => 'stack',
-                                            data => $self->_stack }) );
+        my @messages;
+        DB->long_call( sub {
+            if (@_) {
+                # They want to send additional messages
+                push @messages, shift;
+                return;
+            }
+            unshift @messages, { type => 'stack', data => $self->_stack };
+            $writer->write($json->encode(\@messages));
             $writer->close();
-        };
+        });
     };
 }
 
@@ -308,6 +317,10 @@ BEGIN {
     $DB::package        = '';
     $DB::filename       = '';
     $DB::line           = '';
+
+    # Controlling program end of life
+    $DB::finished       = 0;
+    $DB::user_requested_quit = 0;
 
     # Used to postpone some action between calls to DB::DB:
     $DB::long_call      = undef;
@@ -399,8 +412,10 @@ print "In DB $filename line $line\n";
     unless ($dbobj) {
         $dbobj = Devel::hdb->new();
     }
-    local($in_debugger) = 1;
-    $dbobj->run();
+    do {
+        local($in_debugger) = 1;
+        $dbobj->run();
+    } while ($finished);
 }
 
 sub sub {
@@ -450,8 +465,28 @@ sub get_breakpoint {
     return $condition;
 }
 
+sub long_call {
+    my($class, $cb) = @_;
+    $DB::long_call = $cb;
+}
 
+END {
+    $finished = 1;
+    if (!$user_requested_quit and $long_call) {
+        $long_call->({ type => 'termination', data => { exit_code => $? }});
+        $exit_code = $?;
+        # These two will trigger DB::DB and the event loop
+        $single=1;
+        DB::fake::at_exit();
+    }
+}
+
+package DB::fake;
+sub at_exit {
+    1;
+}
+
+package DB;
 BEGIN { $DB::ready = 1; }
-END { $DB::ready = 0; }
 
 1;
