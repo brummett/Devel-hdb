@@ -40,6 +40,9 @@ sub init_debugger {
     #        $s->sockhost, $s->sockport, $$);
     $self->{base_url} = sprintf('http://%s:%d/',
             $s->sockhost, $s->sockport);
+
+    select STDOUT;
+    local $| = 1;
     print "Debugger listening on ",$self->{base_url},"\n";
 
     $self->{router} = Devel::hdb::Router->new();
