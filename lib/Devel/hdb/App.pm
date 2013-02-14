@@ -16,6 +16,8 @@ use Data::Dumper;
 
 use Devel::hdb::Router;
 
+use vars qw( $parent_pid ); # when running in the test harness
+
 sub new {
     my $class = shift;
     my %server_params = (host => '127.0.0.1', @_);
@@ -29,11 +31,19 @@ sub new {
                         server_ready => sub { $self->init_debugger },
                     );
     $self->{json} = JSON->new();
+
+    $parent_pid = getppid() if ($Devel::hdb::TESTHARNESS);
     return $self;
 }
 
 sub init_debugger {
     my $self = shift;
+
+    if ($parent_pid and !kill(0, $parent_pid)) {
+        # The parent PID for testing is gone
+        exit();
+    }
+
     return if $self->{__init__};
 
     $self->{__init__} = 1;
