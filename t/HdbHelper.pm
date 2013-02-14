@@ -9,7 +9,7 @@ use File::Temp;
 use Time::HiRes qw(sleep);
 
 use Exporter 'import';
-our @EXPORT = qw( start_test_program );
+our @EXPORT = qw( start_test_program strip_stack );
 
 
 my $out_fh;
@@ -60,6 +60,22 @@ sub pick_unused_port {
     my $s = IO::Socket::INET->new(Listen => 1, LocalAddr => 'localhost', Proto => 'tcp');
     my $port = $s->sockport();
     return $port;
+}
+
+
+# given a list of stack frames, return a new list with only
+# line and subroutine.
+# FIXME: when we figure out how to encode/decode blessed vars through JSON
+# then we'll also want subroutine args
+sub strip_stack {
+    my $stack = shift;
+    if (ref $stack eq 'ARRAY') {
+        $stack = shift @$stack;  # If multiple messages passed in
+    }
+    if ($stack->{type} ne 'stack') {
+        return $stack;  # not was expected, return the whole thing
+    }
+    return [ map { { line => $_->{line}, subroutine => $_->{subroutine} } } @{$stack->{data}} ];
 }
 
 1;
