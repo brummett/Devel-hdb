@@ -18,10 +18,14 @@ use Devel::hdb::Router;
 
 sub new {
     my $class = shift;
+    my %server_params = (host => '127.0.0.1', @_);
+
     my $self = bless {}, $class;
 
+    $server_params{'port'} = $ENV{DEVEL_HDB_PORT} if exists $ENV{DEVEL_HDB_PORT};
+
     $self->{server} = Devel::hdb::Server->new(
-                        host => '127.0.0.1',
+                        %server_params,
                         server_ready => sub { $self->init_debugger },
                     );
     $self->{json} = JSON->new();
