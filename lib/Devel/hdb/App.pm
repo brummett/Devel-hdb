@@ -22,7 +22,7 @@ sub new {
 
     my $self = bless {}, $class;
 
-    $server_params{'port'} = $ENV{DEVEL_HDB_PORT} if exists $ENV{DEVEL_HDB_PORT};
+    $server_params{'port'} = $Devel::hdb::PORT if defined $Devel::hdb::PORT;
 
     $self->{server} = Devel::hdb::Server->new(
                         %server_params,
