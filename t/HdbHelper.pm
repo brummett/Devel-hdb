@@ -5,11 +5,12 @@ use warnings;
 
 use File::Basename;
 use IO::Socket;
+use File::Temp;
+use Time::HiRes qw(sleep);
 
 use Exporter 'import';
 our @EXPORT = qw( start_test_program );
 
-use File::Temp;
 
 my $out_fh;
 sub start_test_program {
@@ -32,12 +33,12 @@ sub start_test_program {
 
     my $port = $ENV{DEVEL_HDB_PORT} = pick_unused_port();
     Test::More::note("Using port $ENV{DEVEL_HDB_PORT}\n");
-    my $cmdline = $^X . " -I $libdir -d:hdb " . $out_fh->filename;
+    my $cmdline = $^X . " -I $libdir -d:hdb=port:$port,testharness " . $out_fh->filename;
     Test::More::note("running $cmdline");
     my $pid = fork();
     if ($pid) {
         Test::More::note("pid $pid");
-        sleep(0);
+        sleep(0.25);
     } elsif(defined $pid) {
         exec($cmdline);
         die "Running child process failed: $!";
@@ -45,7 +46,7 @@ sub start_test_program {
         die "fork failed: $!";
     }
 
-    eval "END { Test::More::note('Killing pid $pid'); kill $pid }";
+    eval "END { Test::More::note('Killing pid $pid'); kill 'TERM',$pid }";
     return ("http://localhost:${port}/");
 }
 

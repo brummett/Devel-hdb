@@ -2,14 +2,18 @@ use strict;
 use warnings;
 
 use lib 't';
-use Devel::hdb::TestBase;
+use HdbHelper;
 use WWW::Mechanize;
 
-my($url, $test_script, $test) = start_test_program();
+use Test::More tests => 3;
 
-print STDERR "Test program started\n";
-exit();
+my $url = start_test_program();
 
+my $mech = WWW::Mechanize->new();
+my $resp = $mech->get($url);
+ok($resp, "Request root URL $url");
+ok($resp->is_success, 'Response is success');
+is($mech->title, 'hdb', 'Page title is "hdb"');
 
 
 __DATA__
