@@ -6,6 +6,14 @@ package Devel::hdb::DB;
 package DB;
 no strict;
 
+# NOTE: Look into trapping $SIG{__DIE__} se we can report
+# untrapped exceptions back to the debugger.
+# inside the handler, note the value for $^S:
+# undef - died while parsing something
+# 1 - died while executing an eval
+# 0 - Died not inside an eval
+# We could re-throw the die if $^S is 1
+
 use vars qw( %dbline @dbline );
 
 BEGIN {
@@ -92,6 +100,15 @@ sub is_breakpoint {
         }
     }
     return;
+}
+
+# This gets called after a require'd file is compiled, but before it's executed
+# it's called as DB::postponed(*{"_<$filename"})
+# We can use this to break on module load, for example.
+# If $DB::postponed{$subname} exists, then this is called as
+# DB::postponed($subname)
+sub postponed {
+
 }
 
 sub DB {
