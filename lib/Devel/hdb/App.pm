@@ -302,7 +302,7 @@ sub _delay_stack_return_to_client {
     my $json = $self->{json};
     return sub {
         my $responder = shift;
-        my $writer = $responder->([ 200, [ 'Content-Type' => 'text/html' ]]);
+        my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
 
         my @messages;
