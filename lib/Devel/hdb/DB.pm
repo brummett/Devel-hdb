@@ -34,7 +34,7 @@ BEGIN {
 
     # Controlling program end of life
     $DB::finished       = 0;
-    $DB::user_requested_quit = 0;
+    $DB::user_requested_exit = 0;
 
     # Used to postpone some action between calls to DB::DB:
     $DB::long_call      = undef;
