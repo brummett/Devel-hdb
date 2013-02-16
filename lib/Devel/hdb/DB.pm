@@ -30,6 +30,7 @@ BEGIN {
 
     # Used to postpone some action between calls to DB::DB:
     $DB::long_call      = undef;
+    $DB::eval_string    = undef;
 }
 
 #sub stack_depth {
@@ -115,17 +116,26 @@ sub DB {
     local $usercontext =
         '($@, $!, $^E, $,, $/, $\, $^W) = @saved;' . "package $package;";
 
-    if ($DB::long_call) {
-        $DB::long_call->();
-        undef $DB::long_call;
-    }
     unless ($dbobj) {
         $dbobj = Devel::hdb::App->new();
     }
     do {
         local($in_debugger) = 1;
+        if ($DB::long_call) {
+            $DB::long_call->();
+            undef $DB::long_call;
+        }
+
+        undef $eval_string;
         $dbobj->run();
-    } while ($finished);
+
+        if (defined $eval_string) {
+            my $result = &eval;
+            $DB::long_call->($result);
+            undef ($DB::long_call)
+        }
+
+    } while ($finished || $eval_string);
     restore();
 }
 
@@ -200,9 +210,63 @@ sub long_call {
     $DB::long_call = $cb;
 }
 
+# FIXME: I think the keys for %DB::sub is fully qualified
+# sub names, like Package::Subpkg::subname
+# values are "filename:startline-endline"
+sub subroutines {
+
+}
+
 sub user_requested_exit {
     $user_requested_exit = 1;
 }
+
+    
+sub eval {
+
+    local($^W) = 0;  # no warnings
+
+    # This substitution is done so that we return HASH, as opposed to an ARRAY.
+    # An expression of %hash results in a list of key/value pairs.
+    $eval_string =~ s/^\s*%/\\%/o;
+
+    local @result;
+    {
+        # Try to keep the user code from messing  with us. Save these so that
+        # even if the eval'ed code changes them, we can put them back again.
+        # Needed because the user could refer directly to the debugger's
+        # package globals (and any 'my' variables in this containing scope)
+        # inside the eval(), and we want to try to stay safe.
+        local $orig_trace   = $trace;
+        local $orig_single  = $single;
+        local $orig_cd      = $^D;
+
+        # Untaint the incoming eval() argument.
+        { ($eval_string) = $eval_string =~ /(.*)/s; }
+
+        @result = eval "$usercontext $eval_string;\n";
+
+        # restore old values
+        $trace  = $orig_trace;
+        $single = $orig_single;
+        $^D     = $orig_cd;
+    }
+
+    my $exception = $@;  # exception from the eval
+    # Since we're only saving $@, we only have to localize the array element
+    # that it will be stored in.
+    local $saved[0];    # Preserve the old value of $@
+    eval { &DB::save };
+
+    if ($exception) {
+        return { exception => $exception };
+    } elsif (@result == 1) {
+        return { result => $result[0] };
+    } else {
+        return { result => \@result };
+    }
+}
+
 
 END {
     $single=0;

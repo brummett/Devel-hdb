@@ -75,6 +75,7 @@ sub init_debugger {
         $_->get("/breakpoint", sub { $self->get_breakpoint(@_) });
         $_->get("/loadedfiles", sub { $self->loaded_files(@_) });
         $_->get("/exit", sub { $self->do_terminate(@_) });
+        $_->post("/eval", sub { $self->do_eval(@_) });
     }
 }
 
@@ -92,6 +93,27 @@ sub do_terminate {
         $writer->write($json->encode({ type => 'hangup' }));
         $writer->close();
         exit();
+    };
+}
+
+sub do_eval {
+    my($self, $env) = @_;
+    my $req = Plack::Request->new($env);
+    my $eval_string = $DB::eval_string = $req->content();
+    my $json = $self->{json};
+
+    return sub {
+        my $responder = shift;
+        my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
+        $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
+
+        my @messages;
+        DB->long_call( sub {
+            my $data = shift;
+            $data->{expr} = $eval_string;
+            $writer->write($json->encode({ type => 'evalresult', data => $data }));
+            $writer->close();
+        });
     };
 }
 
