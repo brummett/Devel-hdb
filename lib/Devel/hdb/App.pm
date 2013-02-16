@@ -84,6 +84,9 @@ sub encode {
     return $self->{json}->encode(shift);
 }
 
+# Exit the running program
+# Sets up as a long_call so we can send the 'hangup' response
+# and then exit()
 sub do_terminate {
     my $json = shift->{json};
     DB->user_requested_exit();
@@ -96,6 +99,13 @@ sub do_terminate {
     };
 }
 
+# Evaluate some expression in the debugged program's context.
+# It works because when string-eval is used, and it's run from
+# inside package DB, then magic happens where it's evaluate in
+# the first non-DB-pacakge call frame.
+# We're setting up a long_call so we can return back from all the
+# web-handler code (which are non-DB packages) before actually
+# evaluating the string.
 sub do_eval {
     my($self, $env) = @_;
     my $req = Plack::Request->new($env);
@@ -107,13 +117,17 @@ sub do_eval {
         my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
 
-        my @messages;
-        DB->long_call( sub {
-            my $data = shift;
-            $data->{expr} = $eval_string;
-            $writer->write($json->encode({ type => 'evalresult', data => $data }));
-            $writer->close();
-        });
+        DB->long_call(
+            DB->prepare_eval(
+                $eval_string,
+                sub {
+                    my $data = shift;
+                    $data->{expr} = $eval_string;
+                    $writer->write($json->encode({ type => 'evalresult', data => $data }));
+                    $writer->close();
+                }
+            )
+        );
     };
 }
 

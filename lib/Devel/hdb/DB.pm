@@ -146,12 +146,6 @@ sub DB {
         undef $eval_string;
         $dbobj->run();
 
-        if (defined $eval_string) {
-            my $result = &eval;
-            $DB::long_call->($result);
-            undef ($DB::long_call)
-        }
-
     } while ($finished || $eval_string);
     restore();
 }
@@ -238,7 +232,18 @@ sub user_requested_exit {
     $user_requested_exit = 1;
 }
 
-    
+sub prepare_eval {
+    my($class, $string, $cb) = @_;
+
+    my @db_args = @DB::args;
+    return sub {
+        $eval_string = $string;
+        @_ = @db_args;
+        my $data = &eval;
+        $cb->($data);
+    }
+}
+
 sub eval {
 
     local($^W) = 0;  # no warnings
