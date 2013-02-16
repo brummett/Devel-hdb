@@ -176,6 +176,20 @@ sub get_breakpoint {
     return $condition;
 }
 
+sub is_breakable {
+    my($class, $filename, $line) = @_;
+
+    no strict 'refs';
+    local(*dbline) = $main::{'_<' . $filename};
+    return $dbline[$line] + 0;
+}
+
+sub is_loaded {
+    my($class, $filename) = @_;
+    no strict 'refs';
+    return $main::{'_<' . $filename};
+}
+
 sub long_call {
     my($class, $cb) = @_;
     $DB::long_call = $cb;
