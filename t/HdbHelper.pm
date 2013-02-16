@@ -29,7 +29,7 @@ sub start_test_program {
         $out_fh->close();
     }
 
-    my $libdir = File::Basename::dirname(__FILE__). '/../../../lib';
+    my $libdir = File::Basename::dirname(__FILE__). '/../lib';
 
     my $port = $ENV{DEVEL_HDB_PORT} = pick_unused_port();
     Test::More::note("Using port $ENV{DEVEL_HDB_PORT}\n");
