@@ -103,6 +103,12 @@ sub set_breakpoint {
     my $line = $req->param('l');
     my $condition = $req->param('c');
 
+    if (! DB->is_loaded($filename)) {
+        return [ 404, ['Content-Type' => 'text/html'], ["$filename is not loaded"]];
+    } elsif (! DB->is_breakable($filename, $line)) {
+        return [ 403, ['Content-Type' => 'text/html'], ["line $line of $filename is not breakable"]];
+    }
+
     DB->set_breakpoint($filename, $line, $condition);
 
     return [ 200,
