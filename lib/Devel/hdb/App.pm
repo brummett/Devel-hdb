@@ -92,7 +92,7 @@ sub do_terminate {
         $writer->close();
         exit();
     };
- }
+}
 
 # sets a breakpoint on line l of file f with condition c
 # Make c=1 for an unconditional bp, c=0 to clear it
