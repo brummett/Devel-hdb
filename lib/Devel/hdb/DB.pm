@@ -190,6 +190,11 @@ sub is_loaded {
     return $main::{'_<' . $filename};
 }
 
+sub loaded_files {
+    my @files = grep /^_</, keys(%main::);
+    return map { substr($_,2) } @files; # remove the <_
+}
+
 sub long_call {
     my($class, $cb) = @_;
     $DB::long_call = $cb;

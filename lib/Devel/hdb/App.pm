@@ -73,6 +73,7 @@ sub init_debugger {
         $_->get("/program_name", sub { $self->program_name(@_) });
         $_->post("/breakpoint", sub { $self->set_breakpoint(@_) });
         $_->get("/breakpoint", sub { $self->get_breakpoint(@_) });
+        $_->get("/loadedfiles", sub { $self->loaded_files(@_) });
         $_->get("/exit", sub { $self->do_terminate(@_) });
     }
 }
@@ -92,6 +93,16 @@ sub do_terminate {
         $writer->close();
         exit();
     };
+}
+
+sub loaded_files {
+    my($self, $env) = @_;
+
+    my @files = DB->loaded_files();
+    return [ 200,
+            [ 'Content-Type' => 'application/json' ],
+            [ $self->encode({   type => 'loadedfiles',
+                                data => \@files }) ]];
 }
 
 # sets a breakpoint on line l of file f with condition c
