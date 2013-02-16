@@ -38,7 +38,7 @@ sub start_test_program {
     my $pid = fork();
     if ($pid) {
         Test::More::note("pid $pid");
-        sleep(0.25);
+        wait_on_port($port);
     } elsif(defined $pid) {
         exec($cmdline);
         die "Running child process failed: $!";
@@ -60,6 +60,26 @@ sub pick_unused_port {
     my $s = IO::Socket::INET->new(Listen => 1, LocalAddr => 'localhost', Proto => 'tcp');
     my $port = $s->sockport();
     return $port;
+}
+
+# Waits until we can connect to the port
+sub wait_on_port {
+    my $port = shift;
+    my $tries = shift;
+    $tries = 100 unless defined $tries;
+
+    my $s;
+    while($tries--) {
+        sleep 0.01;
+        $s = IO::Socket::INET->new(PeerAddr => 'localhost',
+                                        PeerPort => $port,
+                                        Proto => 'tcp');
+        last if $s;
+        next if ($! eq 'Connection refused');
+        die $!;
+    }
+    $s->close if $s;
+    return $s;
 }
 
 
