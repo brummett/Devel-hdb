@@ -66,7 +66,7 @@ print "firing callback for $path\n";
             return $cb->($env, @matches);
         }
     }
-print "path ",$env->{PATH_INFO}," not matched\n";
+print $env->{REQUEST_METHOD}," ",$env->{PATH_INFO}," not matched\n";
     return [ 404, [ 'Content-Type' => 'text/html'], ['Not found']];
 }
 
