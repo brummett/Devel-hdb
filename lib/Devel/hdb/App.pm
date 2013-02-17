@@ -63,6 +63,7 @@ sub init_debugger {
     for ($self->{router}) {
         # All the paths we listen for
         $_->get(qr(/db/(.*)), sub { $self->assets(@_) });
+        $_->get(qr(/img/(.*)), sub { $self->assets(@_) });
         $_->get("/", sub { $self->assets(shift, 'debugger.html', @_) }); # load the debugger window
         $_->get("/stepin", sub { $self->stepin(@_) });
         $_->get("/stepover", sub { $self->stepover(@_) });
