@@ -13,6 +13,7 @@ use Sub::Install;
 use IO::File;
 use JSON qw();
 use Data::Dumper;
+use Scalar::Util;
 
 use Devel::hdb::Router;
 
@@ -131,6 +132,50 @@ sub do_eval {
         );
     };
 }
+
+#sub _encode_eval_data {
+#    my($self, $value) = @_;
+#
+#    if (ref $value) {
+#        my $reftype = Scalar::Util::reftype($value);
+#        my $blesstype = Scalar::Util::blessed($value);
+#
+#        my $new_value = { __blessed => $blesstype };
+#        given ($reftype) {
+#            when('HASH') {
+#                foreach my $k ( keys %$value )
+#                my %value = map { $_ => $self->_encode_eval_data($value->$_) } keys(%$value);
+#                $newvalue = \%value;
+#            }
+#            when('ARRAY') {
+#                $value = { __blessed => $type, __value => [ @$value ] };
+#            }
+#            when('SCALAR') {
+#                my $copy = $$value;
+#                $value = { __blessed => $type, __value => \$copy };
+#            }
+#            when('CODE') {
+#                $value = { __blessed => $type, __value => $value.'' };
+#            }
+#            when('GLOB') {
+#                %tmpvalue = map { $_ => *{$value}{$_} }
+#                            grep { *{$value}{$_} }
+#                            qw(HASH ARRAY SCALAR);
+#                if (*{$value}{CODE}) {
+#                    $tmpvalue{CODE} = *{$value}{CODE} . '';
+#                }
+#                if (*{$value}{IO}) {
+#                    $tmpvalue{IO} = 'fileno '.fileno(*{$value}{IO});
+#                }
+#                $value = { __blessed => $type, __value => \%tmpvalue };
+#            }
+#        }
+#    }
+#
+#        
+#
+#    return $value;
+#}
 
 sub loaded_files {
     my($self, $env) = @_;
