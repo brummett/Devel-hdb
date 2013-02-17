@@ -42,6 +42,26 @@
             </tbody>
         </table>
     </script>
+
+    <! template for watched expression>
+    <script id="watched-expr-template" type="text/x-handlebars-template">
+        <div class="watched-expression" data-expr="{{expr}}">
+            <span>
+                <button class="btn btn-mini btn-danger remove-watched-expression">
+                    <i class="icon-remove-sign icon-white"></i>
+                </button>
+            </span>
+            <span class="expr">{{expr}}</span>
+            <span class="value">{{value}}</span>
+        </div>
+    </script>
+
+    <! template for watch expr values>
+    <script id="watched-value-template" type="text/x-handlebars-template">
+        {{#if result}}{{result}}{{/if}}
+        {{#if undef}}<span class="label"><i>undef</i></span>{{/if}}
+        {{#if exception}}<span class="label label-important">{{exception}}</span>{{/if}}
+    </script>
   </head>
   <body>
     <div class="debugger-window">
@@ -75,7 +95,9 @@
                 </div>
             </div> <! filewindow>
             <div class="span4">
-                <h3>Watch expressions</h3>
+                <strong>Watch expressions</strong><button id="add-watch-expr" class="btn btn-small"><i class="icon-plus"></i></button>
+                <div id="watch-expressions">
+                </div>
             </div>
         </div> <! row>
     </div> <! debugger>
