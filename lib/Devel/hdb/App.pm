@@ -369,15 +369,5 @@ sub run {
     return $self->{server}->run($self->app);
 }
 
-# methods to get vars of the same name out of the DB package
-# scalars
-foreach my $m ( qw( filename line stack_depth ) ) {
-    no strict 'refs';
-    Sub::Install::install_sub({
-        as => $m,
-        code => sub { return ${ 'DB::'. $m} }
-    });
-}
-
 
 1;
