@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <title>hdb</title>
     <!-- Bootstrap -->
     <link href="db/bootstrap.css" rel="stylesheet" media="screen">
@@ -62,8 +62,9 @@
         {{#if undef}}<span class="label"><i>undef</i></span>{{/if}}
         {{#if exception}}<span class="label label-important">{{exception}}</span>{{/if}}
     </script>
-  </head>
-  <body>
+
+</head>
+<body>
     <div class="debugger-window">
         <div class="row">
             <div id="controls" class="span6 offset1">
@@ -79,27 +80,21 @@
         <div class="row">
             <div id="filewindow" class="tabbable span10">
                 <ul class="nav nav-tabs">
-                    <li id="program-name" class="active"><a href="#program" data-toggle="tab">Program Name</a></li>
+                    <li id="program-name" class="active"><a href="#stack" data-toggle="tab">Program Name</a></li>
                 </ul>
-
                 <div class="tab-content">
-                    <div class="tab-pane active" id="program">
-
-                        <div id="stack" class="tabbable tabs-left">
-                            <ul class="nav nav-tabs">
-                            </ul>
-                            <div class="tab-content">
-                            </div>
-                        </div> <! stack>
+                    <div id="stack" class="tab-pane active tabbable tabs-left">
+                        <ul class="nav nav-tabs"></ul>
+                        <div class="tab-content"></div>
                     </div>
                 </div>
-            </div> <! filewindow>
-            <div class="span4">
-                <strong>Watch expressions</strong><button id="add-watch-expr" class="btn btn-small"><i class="icon-plus"></i></button>
-                <div id="watch-expressions">
-                </div>
             </div>
-        </div> <! row>
-    </div> <! debugger>
-  </body>
+            <div class="span4">
+                <strong>Watch Expressions</strong>
+                <button id="add-watch-expr" class="btn btn-small"><i class="icon-plus"></i></button>
+                <div id="watch-expressions"></div>
+            </div>
+        </div>
+    </div>
+</body>
 </html>
