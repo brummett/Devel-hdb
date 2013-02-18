@@ -13,6 +13,12 @@
         $(document).ready(function() {
             var d = new Debugger('div.debugger-window');
             d.run();
+
+            // Keep the height of program-text windows set so their scroll bars work
+            $('#stack-content').css({'height':((document.height)-$('#stack-content').offset().top)+'px'});
+            $(window).resize(function(){
+                $('#stack-content').css({'height':((document.height)-$('#stack-content').offset().top)+'px'});
+            });
         });
     </script>
     <! template for Bootstrap nav tabs>
@@ -82,7 +88,7 @@
                 <ul class="nav nav-tabs">
                     <li id="program-name" class="active"><a href="#stack" data-toggle="tab">Program Name</a></li>
                 </ul>
-                <div class="tab-content">
+                <div id="stack-content" class="tab-content">
                     <div id="stack" class="tab-pane active tabbable tabs-left">
                         <ul class="nav nav-tabs"></ul>
                         <div class="tab-content"></div>
