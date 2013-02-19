@@ -13,12 +13,6 @@
         $(document).ready(function() {
             var d = new Debugger('div.debugger-window');
             d.run();
-
-            // Keep the height of program-text windows set so their scroll bars work
-            $('#stack-content').css({'height':((document.height)-$('#stack-content').offset().top)+'px'});
-            $(window).resize(function(){
-                $('#stack-content').css({'height':((document.height)-$('#stack-content').offset().top)+'px'});
-            });
         });
     </script>
     <! template for Bootstrap nav tabs>
@@ -30,7 +24,7 @@
 
     <! template for Bootstrap nav panes>
     <script id="nav-pane-template" type="text/x-handlebars-template">
-        <div id="{{tabId}}" class="tab-pane program-code-container{{#active}} active{{/active}}" data-filename="{{filename}}">
+        <div id="{{tabId}}" class="tab-pane program-code-container managed-height{{#active}} active{{/active}}" data-filename="{{filename}}">
             {{{html}}}
         </div>
     </script>
@@ -88,9 +82,9 @@
                 <ul class="nav nav-tabs">
                     <li id="program-name" class="active"><a href="#stack" data-toggle="tab">Program Name</a></li>
                 </ul>
-                <div id="stack-content" class="tab-content">
+                <div id="file-content" class="tab-content">
                     <div id="stack" class="tab-pane active tabbable tabs-left">
-                        <ul class="nav nav-tabs"></ul>
+                        <ul class="nav nav-tabs managed-height"></ul>
                         <div class="tab-content"></div>
                     </div>
                 </div>
@@ -98,7 +92,7 @@
             <div class="span4">
                 <strong>Watch Expressions</strong>
                 <button id="add-watch-expr" class="btn btn-small"><i class="icon-plus"></i></button>
-                <div id="watch-expressions"></div>
+                <div id="watch-expressions" class="managed-height"></div>
             </div>
         </div>
     </div>
