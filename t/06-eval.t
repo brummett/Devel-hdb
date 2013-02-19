@@ -6,7 +6,7 @@ use HdbHelper;
 use WWW::Mechanize;
 use JSON;
 
-use Test::More tests => 9;
+use Test::More tests => 11;
 
 my $url = start_test_program();
 
@@ -29,18 +29,28 @@ is_deeply($answer,
 $resp = $mech->post("${url}eval", content => '@Other::global');
 ok($resp->is_success, 'Get value of a global list in another package');
 $answer = $json->decode($resp->content);
+ok(delete $answer->{data}->{result}->{__refaddr}, 'Encoded value has a refaddr');
 is_deeply($answer,
     {   type => 'evalresult',
-        data => { expr => '@Other::global', result => [1,2] }
+        data => { expr => '@Other::global',
+                  result => {
+                      __reftype => 'ARRAY',
+                      __value => [1,2] },
+                }
     },
     'Value is correct');
 
 $resp = $mech->post("${url}eval", content => '%lexical');
 ok($resp->is_success, 'Get value of a lexical hash');
 $answer = $json->decode($resp->content);
+ok(delete $answer->{data}->{result}->{__refaddr}, 'Encoded value has a refaddr');
 is_deeply($answer,
     {   type => 'evalresult',
-        data => { expr => '%lexical', result => {key => 3} }
+        data => { expr => '%lexical',
+                  result => {
+                      __reftype => 'HASH',
+                      __value => { key => 3} }
+                }
     },
     'Value is correct');
 

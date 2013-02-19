@@ -124,6 +124,7 @@ sub do_eval {
                 $eval_string,
                 sub {
                     my $data = shift;
+                    $data->{result} = $self->_encode_eval_data($data->{result}) if ($data->{result});
                     $data->{expr} = $eval_string;
                     $writer->write($json->encode({ type => 'evalresult', data => $data }));
                     $writer->close();
@@ -133,49 +134,44 @@ sub do_eval {
     };
 }
 
-#sub _encode_eval_data {
-#    my($self, $value) = @_;
-#
-#    if (ref $value) {
-#        my $reftype = Scalar::Util::reftype($value);
-#        my $blesstype = Scalar::Util::blessed($value);
-#
-#        my $new_value = { __blessed => $blesstype };
-#        given ($reftype) {
-#            when('HASH') {
-#                foreach my $k ( keys %$value )
-#                my %value = map { $_ => $self->_encode_eval_data($value->$_) } keys(%$value);
-#                $newvalue = \%value;
-#            }
-#            when('ARRAY') {
-#                $value = { __blessed => $type, __value => [ @$value ] };
-#            }
-#            when('SCALAR') {
-#                my $copy = $$value;
-#                $value = { __blessed => $type, __value => \$copy };
-#            }
-#            when('CODE') {
-#                $value = { __blessed => $type, __value => $value.'' };
-#            }
-#            when('GLOB') {
-#                %tmpvalue = map { $_ => *{$value}{$_} }
-#                            grep { *{$value}{$_} }
-#                            qw(HASH ARRAY SCALAR);
-#                if (*{$value}{CODE}) {
-#                    $tmpvalue{CODE} = *{$value}{CODE} . '';
-#                }
-#                if (*{$value}{IO}) {
-#                    $tmpvalue{IO} = 'fileno '.fileno(*{$value}{IO});
-#                }
-#                $value = { __blessed => $type, __value => \%tmpvalue };
-#            }
-#        }
-#    }
-#
-#        
-#
-#    return $value;
-#}
+sub _encode_eval_data {
+    my($self, $value) = @_;
+
+    if (ref $value) {
+        my $reftype     = Scalar::Util::reftype($value);
+        my $refaddr     = Scalar::Util::refaddr($value);
+        my $blesstype   = Scalar::Util::blessed($value);
+
+        if ($reftype eq 'HASH') {
+            $value = { map { $_ => $self->_encode_eval_data($value->{$_}) } keys(%$value) };
+
+        } elsif ($reftype eq 'ARRAY') {
+            $value = [ map { $self->_encode_eval_data($_) } @$value ];
+
+        } elsif ($reftype eq 'GLOB') {
+            my %tmpvalue = map { $_ => $self->_encode_eval_data(*{$value}{$_}) }
+                           grep { *{$value}{$_} }
+                           qw(HASH ARRAY SCALAR);
+            if (*{$value}{CODE}) {
+                $tmpvalue{CODE} = *{$value}{CODE};
+            }
+            if (*{$value}{IO}) {
+                $tmpvalue{IO} = 'fileno '.fileno(*{$value}{IO});
+            }
+            $value = \%tmpvalue;
+        } elsif ($reftype eq 'SCALAR') {
+            $value = $self->_encode_eval_data($$value);
+        } elsif ($reftype eq 'CODE') {
+            (my $copy = $value.'') =~ s/^(\w+)\=//;  # Hack to change CodeClass=CODE(0x123) to CODE=(0x123)
+            $value = $copy;
+        }
+
+        $value = { __reftype => $reftype, __refaddr => $refaddr, __value => $value };
+        $value->{__blessed} = $blesstype if $blesstype;
+    }
+
+    return $value;
+}
 
 sub loaded_files {
     my($self, $env) = @_;
