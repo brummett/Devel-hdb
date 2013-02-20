@@ -45,6 +45,19 @@ div#controls {
     border-radius: 50%;
     vertical-align: middle;
 }
+
+.close-button {
+    height: 18px;
+    width: 18px;
+    display: inline-block;
+    background-color: red;
+    border-radius: 50%;
+    text-align: center;
+}
+.close-button > i {
+    margin: 0;
+    vertical-align: center;
+}
 #file-content {
     /*clear:both;*/
 }
