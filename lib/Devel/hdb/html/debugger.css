@@ -33,6 +33,63 @@ table.program-code tr.unbreakable td.lineno {
     white-space: pre;
 }
 
-div.program-code-container {
+div#controls {
+    /* leave space above and below the control buttons */
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+
+#add-file  {
+    float: left;
+}
+#file-content {
+    /*clear:both;*/
+}
+
+
+
+/* These make the tabs across the top wider and darker than
+   in the basic Bootstrap stuff */
+#filewindow > ul {
+    border-bottom: 2px solid rgb(170, 170, 170);
+    margin-bottom: 0;
+    /* float: left; */
+}
+#filewindow > ul > li {
+    margin-bottom: -2px;
+}
+#filewindow > ul a {
+    background-color: white;
+    border-top: 2px solid rgb(170, 170, 170);
+    border-left: 2px solid rgb(170, 170, 170);
+    border-right: 2px solid rgb(170, 170, 170);
+}
+
+
+#filewindow {
+    border-top: 1px solid black;
+    border-right: 1px solid black;
+    border-top-right-radius: 1%;
+    background-color: rgb(240, 240, 240);
+}
+#file-content {
+    background-color: white;
+}
+
+div.managed-height {
     overflow: scroll;
+}
+
+div.program-code-container {
+    /* border: 1px solid black; */
+    /* overflow: scroll; */
+}
+
+div#watch-expressions {
+/*    border-left: 1px solid black; */
+}
+
+.watched-expression {
+    border-bottom: 1px solid black;
 }
