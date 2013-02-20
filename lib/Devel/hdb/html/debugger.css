@@ -41,7 +41,9 @@ div#controls {
 
 
 #add-file  {
-    float: left;
+    padding: 0.2em;
+    border-radius: 50%;
+    vertical-align: middle;
 }
 #file-content {
     /*clear:both;*/
@@ -54,7 +56,6 @@ div#controls {
 #filewindow > ul {
     border-bottom: 2px solid rgb(170, 170, 170);
     margin-bottom: 0;
-    /* float: left; */
 }
 #filewindow > ul > li {
     margin-bottom: -2px;
