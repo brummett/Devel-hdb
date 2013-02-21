@@ -1,5 +1,7 @@
 package HdbHelper;
 
+BEGIN { delete $ENV{'http_proxy'} }
+
 use strict;
 use warnings;
 
