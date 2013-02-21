@@ -157,10 +157,10 @@ sub sub {
     unless ($in_debugger) {
         my $tmp = $sub;
         $stack_depth++;
-        if ($step_over_depth >= 0 and $step_over_depth < $stack_depth) {
+        #if ($step_over_depth >= 0 and $step_over_depth < $stack_depth) {
             $stack_tracker = \$tmp;
             bless $stack_tracker, 'hdbStackTracker';
-        }
+        #}
     }
 
     return &$sub;

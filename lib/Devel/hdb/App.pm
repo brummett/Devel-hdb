@@ -366,6 +366,15 @@ sub stepin {
     return $self->_delay_stack_return_to_client(@_);
 }
 
+sub stepout {
+    my $self = shift;
+
+    $DB::single=0;
+    $DB::step_over_depth = $DB::stack_depth - 1;
+    return $self->_delay_stack_return_to_client(@_);
+}
+    
+
 sub continue {
     my $self = shift;
 
