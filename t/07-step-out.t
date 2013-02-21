@@ -6,7 +6,7 @@ use HdbHelper;
 use WWW::Mechanize;
 use JSON;
 
-use Test::More tests => 9;
+use Test::More tests => 10;
 
 my $url = start_test_program();
 
@@ -32,16 +32,16 @@ $resp = $mech->get($url.'continue');
 ok($resp->is_success, 'Run to next breakpoint');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack->[0],
-    { line => 14, subroutine => 'main::subtwo' },
-    'Stopped on line 14');
+    { line => 16, subroutine => 'main::subtwo' },
+    'Stopped on line 16');
 
 
 $resp = $mech->get($url.'stepout');
 ok($resp->is_success, 'step out');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack->[0],
-  { line => 10, subroutine => 'main::two' },
-    'Stopped on line 10');
+  { line => 11, subroutine => 'main::two' },
+    'Stopped on line 11');
 
 $resp = $mech->get($url.'stepout');
 ok($resp->is_success, 'step out');
@@ -63,11 +63,11 @@ sub one {
 }
 sub two {
     subtwo();
-    10;
     11;
+    12;
 }
 sub subtwo {
     $DB::single=1;
-    14;
-    15;
+    16;
+    17;
 }

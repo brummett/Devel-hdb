@@ -19,7 +19,7 @@ use vars qw( %dbline @dbline );
 BEGIN {
     $DB::stack_depth    = 0;
     $DB::single         = 0;
-    $DB::step_over_depth = -1;
+    $DB::step_over_depth = undef;
     $DB::dbobj          = undef;
     $DB::ready          = 0;
     @DB::stack          = ();
@@ -78,7 +78,7 @@ sub restore {
 sub is_breakpoint {
     my($package, $filename, $line) = @_;
 
-    if ($single and $step_over_depth >= 0 and $step_over_depth < $stack_depth) {
+    if ($single and defined($step_over_depth) and $step_over_depth < $stack_depth) {
         # This is from a step-over
         $single = 0;
         return 0;
@@ -119,7 +119,7 @@ sub DB {
     if (! is_breakpoint($package, $filename, $line)) {
         return;
     }
-    $step_over_depth = -1;
+    $step_over_depth = undef;
     $DB::saved_stack_depth = $stack_depth;
 
     save();
@@ -157,10 +157,8 @@ sub sub {
     unless ($in_debugger) {
         my $tmp = $sub;
         $stack_depth++;
-        #if ($step_over_depth >= 0 and $step_over_depth < $stack_depth) {
-            $stack_tracker = \$tmp;
-            bless $stack_tracker, 'hdbStackTracker';
-        #}
+        $stack_tracker = \$tmp;
+        bless $stack_tracker, 'hdbStackTracker';
     }
 
     return &$sub;
@@ -168,7 +166,7 @@ sub sub {
 
 sub hdbStackTracker::DESTROY {
     $DB::stack_depth--;
-    $DB::single = 1 if ($DB::step_over_depth > 0 and $DB::step_over_depth >= $stack_depth);
+    $DB::single = 1 if (defined($DB::step_over_depth) and $DB::step_over_depth >= $stack_depth);
 }
 
 sub set_breakpoint {
