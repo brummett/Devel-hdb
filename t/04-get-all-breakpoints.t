@@ -6,7 +6,7 @@ use HdbHelper;
 use WWW::Mechanize;
 use JSON;
 
-use Test::More tests => 8;
+use Test::More tests => 10;
 
 my $url = start_test_program();
 
