@@ -186,13 +186,28 @@ sub set_breakpoint {
 }
 
 sub get_breakpoint {
-    my($class, $filename, $line) = @_;
+    my $class = shift;
+
+    my $filename = shift;
+    unless ($filename) {
+        return map { $class->get_breakpoint($_) } $class->loaded_files;
+    }
 
     no strict 'refs';
     local(*dbline) = $main::{'_<' . $filename};
 
-    my($condition, $action) = split("\0", $dbline{$line});
-    return $condition;
+    my $line = shift;
+    if ($line) {
+        my($condition, $action) = split("\0", $dbline{$line});
+        return { filename => $filename, lineno => $line, condition => $condition };
+
+    } else {
+        my @bps;
+        while( my($line, $str) = each( %dbline ) ) {
+            push @bps, { filename => $filename, lineno => $line, condition => (split("\0", $dbline{$line}))[0] };
+        }
+        return @bps;
+    }
 }
 
 sub is_breakable {

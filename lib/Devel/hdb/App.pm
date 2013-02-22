@@ -75,6 +75,7 @@ sub init_debugger {
         $_->get("/program_name", sub { $self->program_name(@_) });
         $_->post("/breakpoint", sub { $self->set_breakpoint(@_) });
         $_->get("/breakpoint", sub { $self->get_breakpoint(@_) });
+        $_->get("/breakpoints", sub { $self->get_all_breakpoints(@_) });
         $_->get("/loadedfiles", sub { $self->loaded_files(@_) });
         $_->get("/exit", sub { $self->do_terminate(@_) });
         $_->post("/eval", sub { $self->do_eval(@_) });
@@ -217,15 +218,22 @@ sub get_breakpoint {
     my $filename = $req->param('f');
     my $line = $req->param('l');
 
-    my $condition = DB->get_breakpoint($filename, $line);
     return [ 200, ['Content-Type' => 'application/json'],
             [ $self->encode({   type => 'breakpoint',
-                                data => {
-                                    filename => $filename,
-                                    lineno => $line,
-                                    condition => $condition,
-                                }
-                            }) ]];
+                                data => DB->get_breakpoint($filename, $line) })
+            ]];
+}
+
+sub get_all_breakpoints {
+    my($self, $env) = @_;
+    my $req = Plack::Request->new($env);
+    my $filename = $req->param('f');
+    my $line = $req->param('l');
+
+    my @bp = map {  { type => 'breakpoint', data => $_ } } DB->get_breakpoint($filename, $line);
+    return [ 200, ['Content-Type' => 'application/json'],
+            [ $self->encode( \@bp ) ]
+        ];
 }
 
 # Return the name of the program, $o
