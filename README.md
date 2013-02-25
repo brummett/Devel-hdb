@@ -6,13 +6,13 @@ A Perl graphical debugger that uses an HTTP REST interface
 
 Start a program with the debugger
 
-> shell> perl -d:hdb yourprogram.pl
-> Debugger listening on http://127.0.0.1:8080/
+    shell> perl -d:hdb yourprogram.pl
+    Debugger listening on http://127.0.0.1:8080/
 
 Tell the debugger to use a different port
 
-> shell> perl -d:hdb=port:9876 yourprogram.pl
-> Debugger listening on http://127.0.0.1:9876
+    shell> perl -d:hdb=port:9876 yourprogram.pl
+    Debugger listening on http://127.0.0.1:9876
 
 ## Features
 
