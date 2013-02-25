@@ -9,6 +9,7 @@
     <script src="db/bootstrap.js"></script>
     <script src="db/handlebars.js"></script>
     <script src="db/perlvalue.js"></script>
+    <script src="db/filemanager.js"></script>
     <script src="db/debugger.js"></script>
     <script>
         $(document).ready(function() {
@@ -32,7 +33,7 @@
 
     <! template for program file contents>
     <script id="program-listing-template" type="text/x-handlebars-template">
-        <table class="table table-hover table-condensed program-code">
+        <table class="table table-hover table-condensed program-code" data-filename="{{filename}}">
             <tbody>
                 {{#rows}}
                     <tr class="{{#active}}active{{/active}} {{#unbreakable}}unbreakable{{/unbreakable}} {{#breakpoint}}breakpoint{{/breakpoint}} {{#inactivebreakpoint}}inactive-breakpoint{{/inactivebreakpoint}}" data-line="{{line}}">
