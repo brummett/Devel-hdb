@@ -65,6 +65,16 @@
         {{#if exception}}<span class="label label-important">{{exception}}</span>{{/if}}
     </script>
 
+    <! template for the breakpoint right-click menu>
+    <script id="breakpoint-right-click-template" type="text/x-handlebars-template">
+        <div>
+            <i class="icon-stop"></i> <span class="breakpoint-condition" data-filename="{{filename}}" data-lineno="{{lineno}}">{{#if bp}}<span>{{bp}}{{else}}<span class="label">none{{/if}}</span></span>
+        </div>
+        <div>
+            <i class="icon-tasks"></i> <span class="action" data-filename="{{filename}}" data-lineno="{{lineno}}">{{#if action}}<span>{{action}}{{else}}<span class="label">none{{/if}}</span></span>
+        </div>
+    </script>
+
 </head>
 <body>
     <div class="debugger-window">

@@ -115,6 +115,26 @@ div#watch-expressions {
     border-bottom: 1px solid black;
 }
 
-.breakpoint-condition,.action {
+/* The right-click breakpoint menu */
+.breakpoint-condition {
     display: inline-block;
+    height: 2em;
+}
+.breakpoint-condition form {
+    display: inline-block;
+    margin-bottom: 0;
+}
+.breakpoint-condition input {
+    margin-bottom: 0;
+}
+.action {
+    display: inline-block;
+    height: 2em;
+}
+.action form {
+    display: inline-block;
+    margin-bottom: 0;
+}
+.action input {
+    margin-bottom: 0;
 }
