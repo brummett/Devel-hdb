@@ -85,7 +85,7 @@ sub is_breakpoint {
     }
 
     if ($single || $signal) {
-        $single = $signal = $tracking_step_over = 0;
+        $single = $signal = 0;
         return 1;
     }
 
