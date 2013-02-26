@@ -96,7 +96,12 @@ sub is_breakpoint {
         if ($is_break eq '1') {
             return 1
         } else {
-            # eval $is_break in user's context here
+            $eval_string = $is_break;
+            my $result = &eval;
+            if ($result->{result}) {
+                $single = $signal = 0;
+                return 1;
+            }
         }
     }
     return;
@@ -116,6 +121,9 @@ sub DB {
 
     local($package, $filename, $line) = caller;
 
+    local $usercontext =
+        '($@, $!, $^E, $,, $/, $\, $^W) = @saved;' . "package $package;";
+
     if (! is_breakpoint($package, $filename, $line)) {
         return;
     }
@@ -130,8 +138,6 @@ sub DB {
     if ($package eq 'DB::fake') {
         $package = 'main';
     }
-    local $usercontext =
-        '($@, $!, $^E, $,, $/, $\, $^W) = @saved;' . "package $package;";
 
     unless ($dbobj) {
         $dbobj = Devel::hdb::App->new();
