@@ -4,6 +4,7 @@ use warnings;
 use lib 't';
 use HdbHelper;
 use WWW::Mechanize;
+use File::Basename;
 use JSON;
 
 use Test::More tests => 12;
@@ -23,27 +24,33 @@ is_deeply($stack,
     [ { line => 3, subroutine => 'MAIN' } ],
     'Stopped on line 3');
 
-$resp = $mech->get('sourcefile?f=HdbHelper.pm');
-ok($resp->is_success, 'Get source of HdbHelper.pm');
+# Find out where HdbHelper was loaded from
+$resp = $resp = $mech->get('loadedfiles');
 my $answer = $json->decode($resp->content);
-is( $answer->{data}->{filename}, 'HdbHelper.pm', 'Answered with the correct filename');
+my($hdb_helper) = grep { m/HdbHelper.pm$/ } @{$answer->{data}};
+my $subdir = index($hdb_helper, '/') == -1 ? '' : File::Basename::dirname($hdb_helper) . '/';
+
+$resp = $mech->get("sourcefile?f=${subdir}HdbHelper.pm");
+ok($resp->is_success, 'Get source of HdbHelper.pm');
+$answer = $json->decode($resp->content);
+is( $answer->{data}->{filename}, "${subdir}HdbHelper.pm", 'Answered with the correct filename');
 is($answer->{data}->{lines}->[1]->[0], "package HdbHelper;\n", 'File contents looks ok');
 
 
-$resp = $mech->get('sourcefile?f=TestNothing.pm');
+$resp = $mech->get("sourcefile?f=${subdir}TestNothing.pm");
 ok($resp->is_success, 'Request source of TestNothing.pm');
 $answer = $json->decode($resp->content);
-is( $answer->{data}->{filename}, 'TestNothing.pm', 'Answered with the correct filename');
+is( $answer->{data}->{filename}, "${subdir}TestNothing.pm", 'Answered with the correct filename');
 is_deeply($answer->{data}->{lines}, [], 'Response is an empty file');
 
 
 $resp = $mech->get('stepover');
 ok($resp->is_success, 'step over the require');
 
-$resp = $mech->get('sourcefile?f=TestNothing.pm');
+$resp = $mech->get("sourcefile?f=${subdir}TestNothing.pm");
 ok($resp->is_success, 'Request source of TestNothing.pm again');
 $answer = $json->decode($resp->content);
-is( $answer->{data}->{filename}, 'TestNothing.pm', 'Answered with the correct filename');
+is( $answer->{data}->{filename}, "${subdir}TestNothing.pm", 'Answered with the correct filename');
 is($answer->{data}->{lines}->[1]->[0], "package TestNothing;\n", 'File contents looks ok');
 
 
