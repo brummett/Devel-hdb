@@ -114,3 +114,7 @@ div#watch-expressions {
 .watched-expression {
     border-bottom: 1px solid black;
 }
+
+.breakpoint-condition,.action {
+    display: inline-block;
+}
