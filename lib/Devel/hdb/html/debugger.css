@@ -16,9 +16,9 @@ table.program-code tr.breakpoint td.lineno {
     border-radius: 9px;
     background-color: rgba(255,0,0,1);
 }
-table.program-code tr.conditional-breakpoint td.lineno span {
+table.program-code tr.conditional-breakpoint td.lineno {
     border-radius: 9px;
-    background-color: rgba(255,0,0,1);
+    background-color: rgba(0,0,255,1);
 }
 table.program-code tr.inactive-breakpoint td.lineno {
     border-radius: 50%;
