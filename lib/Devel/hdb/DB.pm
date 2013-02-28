@@ -139,6 +139,16 @@ sub DB {
         $package = 'main';
     }
 
+    local(*dbline) = $main::{'_<' . $filename};
+    my $action;
+    if ($dbline{$line}
+        && ($action = (split( /\0/, $dbline{$line}))[1])
+        && $action
+    ) {
+        $eval_string = $action;
+        &eval;
+    }
+
     unless ($dbobj) {
         $dbobj = Devel::hdb::App->new();
     }
@@ -174,6 +184,41 @@ sub hdbStackTracker::DESTROY {
     $DB::stack_depth--;
     $DB::single = 1 if (defined($DB::step_over_depth) and $DB::step_over_depth >= $stack_depth);
 }
+
+sub set_action {
+    my($class, $filename, $line, $action) = @_;
+
+    local(*dbline) = $main::{'_<' . $filename};
+    no warnings 'uninitialized';
+    my($bp, undef) = split("\0", $dbline{$line});
+    $dbline{$line} = "${bp}\0${action}";
+}
+
+sub get_action {
+    my $class = shift;
+
+    my $filename = shift;
+    unless ($filename) {
+        return map { $class->get_action($_) } $class->loaded_files;
+    }
+
+    no strict 'refs';
+    local(*dbline) = $main::{'_<' . $filename};
+
+    my $line = shift;
+    if ($line) {
+        my($condition, $action) = split("\0", $dbline{$line});
+        return { filename => $filename, lineno => $line, action => $action };
+
+    } else {
+        my @actions;
+        while( my($line, $str) = each( %dbline ) ) {
+            push @actions, { filename => $filename, lineno => $line, action => (split("\0", $dbline{$line}))[1] };
+        }
+        return @actions;
+    }
+}
+
 
 sub set_breakpoint {
     my($class, $filename, $line, $condition) = @_;
