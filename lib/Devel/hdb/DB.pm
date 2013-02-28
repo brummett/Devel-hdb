@@ -186,17 +186,20 @@ sub hdbStackTracker::DESTROY {
 }
 
 sub set_breakpoint {
-    my($class, $filename, $line, $condition, $action) = @_;
+    my $class = shift;
+    my $filename = shift;
+    my $line = shift;
+    my %params = @_;
 
     local(*dbline) = $main::{'_<' . $filename};
 
     no warnings 'uninitialized';
     my @bp = split("\0", $dbline{$line});
-    if (defined $condition) {
-        $bp[0] = $condition;
+    if (exists $params{condition}) {
+        $bp[0] = $params{condition};
     }
-    if (defined $action) {
-        $bp[1] = $action;
+    if (exists $params{action}) {
+        $bp[1] = $params{action};
     }
 
     $dbline{$line} = join("\0", @bp);

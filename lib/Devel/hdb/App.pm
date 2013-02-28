@@ -201,17 +201,18 @@ sub set_breakpoint {
         return [ 403, ['Content-Type' => 'text/html'], ["line $line of $filename is not breakable"]];
     }
 
-    DB->set_breakpoint($filename, $line, $condition, $action);
+    my $params = $req->parameters;
+    my %req;
+    $req{condition} = $condition if (exists $params->{'c'});
+    $req{action} = $action if (exists $params->{'a'});
+
+
+    DB->set_breakpoint($filename, $line, %req);
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
             [ $self->encode({   type => 'breakpoint',
-                                data => {
-                                    filename => $filename,
-                                    lineno => $line,
-                                    condition => $condition,
-                                    action => $action,
-                                }
+                                data => DB->get_breakpoint($filename, $line)
                             }) ]];
 }
 
