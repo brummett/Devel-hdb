@@ -76,9 +76,6 @@ sub init_debugger {
         $_->post("/breakpoint", sub { $self->set_breakpoint(@_) });
         $_->get("/breakpoint", sub { $self->get_breakpoint(@_) });
         $_->get("/breakpoints", sub { $self->get_all_breakpoints(@_) });
-        $_->post("/action", sub { $self->set_action(@_) });
-        $_->get('/action', sub { $self->get_action(@_) });
-        $_->get('/actions', sub { $self->get_all_actions(@_) });
         $_->get("/loadedfiles", sub { $self->loaded_files(@_) });
         $_->get("/exit", sub { $self->do_terminate(@_) });
         $_->post("/eval", sub { $self->do_eval(@_) });
@@ -187,57 +184,6 @@ sub loaded_files {
                                 data => \@files }) ]];
 }
 
-# Set an action on line l of file f with action a
-sub set_action {
-    my($self, $env) = @_;
-    my $req = Plack::Request->new($env);
-    my $filename = $req->param('f');
-    my $line = $req->param('l');
-    my $action = $req->param('a');
-
-    if (! DB->is_loaded($filename)) {
-        return [ 404, ['Content-Type' => 'text/html'], ["$filename is not loaded"]];
-    } elsif (! DB->is_breakable($filename, $line)) {
-        return [ 403, ['Content-Type' => 'text/html'], ["line $line of $filename is not breakable"]];
-    }
-
-    DB->set_action($filename, $line, $action);
-
-    return [ 200,
-            [ 'Content-Type' => 'application/json' ],
-            [ $self->encode({   type => 'action',
-                                data => {
-                                    filename => $filename,
-                                    lineno => $line,
-                                    action => $action,
-                                }
-                            }) ]];
-}
-
-sub get_action {
-    my($self, $env) = @_;
-    my $req = Plack::Request->new($env);
-    my $filename = $req->param('f');
-    my $line = $req->param('l');
-
-    return [ 200, ['Content-Type' => 'application/json'],
-            [ $self->encode({   type => 'action',
-                                data => DB->get_action($filename, $line) })
-            ]];
-}
-
-sub get_all_actions {
-    my($self, $env) = @_;
-    my $req = Plack::Request->new($env);
-    my $filename = $req->param('f');
-    my $line = $req->param('l');
-
-    my @actions = map {  { type => 'action', data => $_ } } DB->get_action($filename, $line);
-    return [ 200, ['Content-Type' => 'application/json'],
-            [ $self->encode( \@actions ) ]
-        ];
-}
-
 
 # sets a breakpoint on line l of file f with condition c
 # Make c=1 for an unconditional bp, c=0 to clear it
@@ -247,6 +193,7 @@ sub set_breakpoint {
     my $filename = $req->param('f');
     my $line = $req->param('l');
     my $condition = $req->param('c');
+    my $action = $req->param('a');
 
     if (! DB->is_loaded($filename)) {
         return [ 404, ['Content-Type' => 'text/html'], ["$filename is not loaded"]];
@@ -254,7 +201,7 @@ sub set_breakpoint {
         return [ 403, ['Content-Type' => 'text/html'], ["line $line of $filename is not breakable"]];
     }
 
-    DB->set_breakpoint($filename, $line, $condition);
+    DB->set_breakpoint($filename, $line, $condition, $action);
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
@@ -263,6 +210,7 @@ sub set_breakpoint {
                                     filename => $filename,
                                     lineno => $line,
                                     condition => $condition,
+                                    action => $action,
                                 }
                             }) ]];
 }

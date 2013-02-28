@@ -23,15 +23,15 @@ is_deeply($stack,
     [ { line => 1, subroutine => 'MAIN' } ],
     'Stopped on line 1');
 
-$resp = $mech->post("${url}action", { f => $filename, l => 6, a => '$a++'});
+$resp = $mech->post("${url}breakpoint", { f => $filename, l => 6, a => '$a++'});
 ok($resp->is_error, 'Cannot set action on unbreakable line');
 is($resp->code, 403, 'Error was Forbidden');
 
-$resp = $mech->post("${url}action", { f => 'garbage', l=> 123, a => '$a++'});
+$resp = $mech->post("${url}breakpoint", { f => 'garbage', l=> 123, a => '$a++'});
 ok($resp->is_error, 'Cannot set action on unknown file');
 is($resp->code, 404, 'Error was Not Found');
 
-$resp = $mech->post("${url}action", { f => $filename, l => 5, a => '$a++'});
+$resp = $mech->post("${url}breakpoint", { f => $filename, l => 5, a => '$a++'});
 ok($resp->is_success, 'Set action for line 5');
 
 

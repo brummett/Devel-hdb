@@ -185,54 +185,21 @@ sub hdbStackTracker::DESTROY {
     $DB::single = 1 if (defined($DB::step_over_depth) and $DB::step_over_depth >= $stack_depth);
 }
 
-sub set_action {
-    my($class, $filename, $line, $action) = @_;
-
-    local(*dbline) = $main::{'_<' . $filename};
-    no warnings 'uninitialized';
-    my($bp, undef) = split("\0", $dbline{$line});
-    $dbline{$line} = "${bp}\0${action}";
-}
-
-sub get_action {
-    my $class = shift;
-
-    my $filename = shift;
-    unless ($filename) {
-        return map { $class->get_action($_) } $class->loaded_files;
-    }
-
-    no strict 'refs';
-    local(*dbline) = $main::{'_<' . $filename};
-
-    my $line = shift;
-    if ($line) {
-        my($condition, $action) = split("\0", $dbline{$line});
-        return { filename => $filename, lineno => $line, action => $action };
-
-    } else {
-        my @actions;
-        while( my($line, $str) = each( %dbline ) ) {
-            push @actions, { filename => $filename, lineno => $line, action => (split("\0", $dbline{$line}))[1] };
-        }
-        return @actions;
-    }
-}
-
-
 sub set_breakpoint {
-    my($class, $filename, $line, $condition) = @_;
+    my($class, $filename, $line, $condition, $action) = @_;
 
     local(*dbline) = $main::{'_<' . $filename};
 
     no warnings 'uninitialized';
-    my(undef, $action) = split("\0", $dbline{$line});
-    if ($action) {
-        $dbline{$line} = "${condition}\0${action}";
-    } else {
-        $dbline{$line} = $condition;
+    my @bp = split("\0", $dbline{$line});
+    if (defined $condition) {
+        $bp[0] = $condition;
+    }
+    if (defined $action) {
+        $bp[1] = $action;
     }
 
+    $dbline{$line} = join("\0", @bp);
     return 1;
 }
 
@@ -250,12 +217,17 @@ sub get_breakpoint {
     my $line = shift;
     if ($line) {
         my($condition, $action) = split("\0", $dbline{$line});
-        return { filename => $filename, lineno => $line, condition => $condition };
+        my %bp = ( condition => $condition );
+        $bp{action} = $action if defined $action;
+        return { filename => $filename, lineno => $line, %bp };
 
     } else {
         my @bps;
         while( my($line, $str) = each( %dbline ) ) {
-            push @bps, { filename => $filename, lineno => $line, condition => (split("\0", $dbline{$line}))[0] };
+            my($condition, $action) = split("\0", $str);
+            my %bp = ( condition => $condition );
+            $bp{action} = $action if defined $action;
+            push @bps, { filename => $filename, lineno => $line, %bp };
         }
         return @bps;
     }
