@@ -36,7 +36,7 @@
         <table class="table table-hover table-condensed program-code" data-filename="{{filename}}">
             <tbody>
                 {{#rows}}
-                    <tr class="{{#active}}active{{/active}} {{#unbreakable}}unbreakable{{/unbreakable}} {{#breakpoint}}breakpoint{{/breakpoint}} {{#inactivebreakpoint}}inactive-breakpoint{{/inactivebreakpoint}}" data-line="{{line}}">
+                    <tr class="{{#active}}active{{/active}}{{#unbreakable}} unbreakable{{/unbreakable}}{{#breakpoint}} breakpoint{{/breakpoint}}{{#inactivebreakpoint}} inactive-breakpoint{{/inactivebreakpoint}}{{#action}} bpaction{{/action}}" data-line="{{line}}">
                         <td class="lineno"><span>{{line}}</span></td>
                         <td class="code">{{code}}</td>
                     </tr>
@@ -68,10 +68,16 @@
     <! template for the breakpoint right-click menu>
     <script id="breakpoint-right-click-template" type="text/x-handlebars-template">
         <div>
-            <i class="icon-stop"></i> <span class="breakpoint-condition" data-filename="{{filename}}" data-lineno="{{lineno}}">{{#if bp}}<span>{{bp}}{{else}}<span class="label">none{{/if}}</span></span>
+            <i class="icon-stop"></i> <span class="breakpoint-condition" data-filename="{{filename}}" data-lineno="{{lineno}}">
+                {{#ifDefined condition}}<span>{{condition}}</span>
+                {{else}}<span class="label">none</span>{{/ifDefined}}
+                </span>
         </div>
         <div>
-            <i class="icon-tasks"></i> <span class="action" data-filename="{{filename}}" data-lineno="{{lineno}}">{{#if action}}<span>{{action}}{{else}}<span class="label">none{{/if}}</span></span>
+            <i class="icon-tasks"></i> <span class="action" data-filename="{{filename}}" data-lineno="{{lineno}}">
+                {{#ifDefined action}}<span>{{action}}</span>
+                {{else}}<span class="label">none</span>{{/ifDefined}}
+                </span>
         </div>
     </script>
 
