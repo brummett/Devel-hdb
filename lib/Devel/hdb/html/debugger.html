@@ -26,7 +26,7 @@
 
     <! template for Bootstrap nav panes>
     <script id="nav-pane-template" type="text/x-handlebars-template">
-        <div id="{{tabId}}" class="tab-pane program-code-container managed-height{{#active}} active{{/active}}" data-filename="{{filename}}">
+        <div id="{{tabId}}" class="tab-pane program-code-container{{#active}} active{{/active}}" data-filename="{{filename}}">
             {{{html}}}
         </div>
     </script>
@@ -101,9 +101,9 @@
                     <li id="program-name" class="active"><a href="#stack" data-toggle="tab">Program Name</a></li>
                     <li><span id="add-file"><i class="icon-plus"></i></span></li>
                 </ul>
-                <div id="file-content" class="tab-content">
+                <div id="file-content" class="tab-content managed-height">
                     <div id="stack" class="tab-pane active tabbable tabs-left">
-                        <ul id="stack-tabs" class="nav nav-tabs managed-height"></ul>
+                        <ul id="stack-tabs" class="nav nav-tabs"></ul>
                         <div class="tab-content"></div>
                     </div>
                 </div>
