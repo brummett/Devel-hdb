@@ -28,7 +28,7 @@
 
     <! template for Bootstrap nav panes>
     <script id="nav-pane-template" type="text/x-handlebars-template">
-        <div id="{{tabId}}" class="tab-pane program-code-container{{#active}} active{{/active}}" data-filename="{{filename}}">
+        <div id="{{tabId}}" class="tab-pane managed-height program-code-container{{#active}} active{{/active}}" data-filename="{{filename}}">
             {{{html}}}
         </div>
     </script>
@@ -58,13 +58,6 @@
             <span class="expr">{{expr}}</span>
             <span class="value">{{value}}</span>
         </div>
-    </script>
-
-    <! template for watch expr values>
-    <script id="watched-value-template" type="text/x-handlebars-template">
-        {{#if result}}{{result}}{{/if}}
-        {{#if undef}}<span class="label"><i>undef</i></span>{{/if}}
-        {{#if exception}}<span class="label label-important">{{exception}}</span>{{/if}}
     </script>
 
     <! template for the breakpoint right-click menu>
@@ -103,9 +96,9 @@
                     <li id="program-name" class="active"><a href="#stack" data-toggle="tab">Program Name</a></li>
                     <li><span id="add-file"><i class="icon-plus"></i></span></li>
                 </ul>
-                <div id="file-content" class="tab-content managed-height">
+                <div id="file-content" class="tab-content">
                     <div id="stack" class="tab-pane active tabbable tabs-left">
-                        <ul id="stack-tabs" class="nav nav-tabs"></ul>
+                        <ul id="stack-tabs" class="nav nav-tabs managed-height"></ul>
                         <div class="tab-content"></div>
                     </div>
                 </div>
