@@ -109,7 +109,6 @@ div#controls {
 
 div.managed-height {
     overflow: scroll;
-    border: 1px solid red;
 }
 div#stack-tab-container {
     display: inline-block;
