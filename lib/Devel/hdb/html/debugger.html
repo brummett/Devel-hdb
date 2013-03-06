@@ -22,8 +22,12 @@
     <! template for Bootstrap nav tabs>
     <script id="nav-tab-template" type="text/x-handlebars-template">
         <li{{#id}} id="{{id}}"{{/id}} class="{{class}}{{#active}} active{{/active}}">
-            <a href="#{{tabId}}" data-toggle="tab" rel="tooltip" data-html="true" data-placement="right" title="{{longlabel}}<br>{{filename}}:{{lineno}}">{{label}}</a>
         </li>
+    </script>
+
+    <! template for Bootstrap nav tabs contents>
+    <script id="nav-tab-content-template" type="text/x-handlebars-template">
+            <a href="#{{tabId}}" data-toggle="tab" rel="tooltip" data-html="true" data-placement="right" title="{{longlabel}}<br>{{filename}}:{{lineno}}">{{label}}</a>
     </script>
 
     <! template for Bootstrap nav panes>
