@@ -268,7 +268,8 @@ sub sourcefile {
     my @rv;
     {
         no warnings 'uninitialized';  # at program termination, the loaded file data can be undef
-        my $offset = $file->[0] =~ m/use\s+Devel::_?hdb;/ ? 1 : 0;
+        #my $offset = $file->[0] =~ m/use\s+Devel::_?hdb;/ ? 1 : 0;
+        my $offset = 1;
 
         for (my $i = $offset; $i < scalar(@$file); $i++) {
             push @rv, [ $file->[$i], $file->[$i] + 0 ];
