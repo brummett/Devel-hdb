@@ -122,6 +122,11 @@ div.program-code-container {
 div#watch-expressions {
 /*    border-left: 1px solid black; */
 }
+div#watch-expressions-title {
+    margin-bottom: 0.5em;
+    padding-bottom: 0.25em;
+    border-bottom: 1px solid black;
+}
 
 .watched-expression {
     border-bottom: 1px solid black;
