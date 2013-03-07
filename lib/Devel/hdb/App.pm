@@ -266,7 +266,7 @@ sub sourcefile {
     }
 
     my @rv;
-    {
+    if ($file) {
         no warnings 'uninitialized';  # at program termination, the loaded file data can be undef
         #my $offset = $file->[0] =~ m/use\s+Devel::_?hdb;/ ? 1 : 0;
         my $offset = 1;

@@ -34,7 +34,7 @@ $resp = $mech->get("sourcefile?f=${subdir}HdbHelper.pm");
 ok($resp->is_success, 'Get source of HdbHelper.pm');
 $answer = $json->decode($resp->content);
 is( $answer->{data}->{filename}, "${subdir}HdbHelper.pm", 'Answered with the correct filename');
-is($answer->{data}->{lines}->[1]->[0], "package HdbHelper;\n", 'File contents looks ok');
+is($answer->{data}->{lines}->[0]->[0], "package HdbHelper;\n", 'File contents looks ok');
 
 
 $resp = $mech->get("sourcefile?f=${subdir}TestNothing.pm");
@@ -51,7 +51,7 @@ $resp = $mech->get("sourcefile?f=${subdir}TestNothing.pm");
 ok($resp->is_success, 'Request source of TestNothing.pm again');
 $answer = $json->decode($resp->content);
 is( $answer->{data}->{filename}, "${subdir}TestNothing.pm", 'Answered with the correct filename');
-is($answer->{data}->{lines}->[1]->[0], "package TestNothing;\n", 'File contents looks ok');
+is($answer->{data}->{lines}->[0]->[0], "package TestNothing;\n", 'File contents looks ok');
 
 
 __DATA__
