@@ -95,7 +95,7 @@ sub is_breakpoint {
         my($is_break) = split("\0", $dbline{$line});
         if ($is_break eq '1') {
             return 1
-        } else {
+        } elsif (length($is_break)) {
             $eval_string = $is_break;
             my $result = &eval;
             if ($result->{result}) {
@@ -124,6 +124,16 @@ sub DB {
     local $usercontext =
         '($@, $!, $^E, $,, $/, $\, $^W) = @saved;' . "package $package;";
 
+    local(*dbline) = $main::{'_<' . $filename};
+    my $action;
+    if ($dbline{$line}
+        && ($action = (split( /\0/, $dbline{$line}))[1])
+        && $action
+    ) {
+        $eval_string = $action;
+        &eval;
+    }
+
     if (! is_breakpoint($package, $filename, $line)) {
         return;
     }
@@ -137,16 +147,6 @@ sub DB {
     # code is eval'ed in the proper package (not in the debugger!).
     if ($package eq 'DB::fake') {
         $package = 'main';
-    }
-
-    local(*dbline) = $main::{'_<' . $filename};
-    my $action;
-    if ($dbline{$line}
-        && ($action = (split( /\0/, $dbline{$line}))[1])
-        && $action
-    ) {
-        $eval_string = $action;
-        &eval;
     }
 
     unless ($dbobj) {
