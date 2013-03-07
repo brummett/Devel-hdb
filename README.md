@@ -14,6 +14,26 @@ Tell the debugger to use a different port
     shell> perl -d:hdb=port:9876 yourprogram.pl
     Debugger listening on http://127.0.0.1:9876
 
+## How to use it
+
+Operation of the interface should be straightforward, though there are a few
+controls that may not be obvious.
+
+### Breakpoints and actions
+
+Clicking on a line number will toggle an unconditional breakpoint for that line.
+Right-clicking on a line number will bring up a form to enter a breakpoint
+expression and action.  When the expression evaluates true, the debugger will
+stop on that line.
+
+### Watch Expressions
+
+Click on the "+" to add a new watch expression.
+
+Double-click on an existing expression to edit the expression.
+
+For arrays, hashes and globs, click on the blue circle to collapse/expand it
+
 ## Features
 
 * Single step, step over, step out, continue and exit the debugged program
