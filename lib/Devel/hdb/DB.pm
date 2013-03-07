@@ -39,8 +39,10 @@ BEGIN {
     # Used to postpone some action between calls to DB::DB:
     $DB::long_call      = undef;
     $DB::eval_string    = undef;
-}
 
+    # Remember AUTOLOAD sub names
+    @DB::AUTOLOAD_names = ();
+}
 
 sub save {
     # Save eval failure, command failure, extended OS error, output field
@@ -76,6 +78,8 @@ sub is_breakpoint {
 
     if ($dbline{$line}) {
         my($is_break) = split("\0", $dbline{$line});
+        # TODO - allow user to set 1-time unconditional BP for run-to
+        # see perl5db.pl and search for ";9"
         if ($is_break eq '1') {
             return 1
         } elsif (length($is_break)) {
@@ -152,6 +156,12 @@ sub DB {
 sub sub {
     goto &$sub if (! $ready or index($sub, 'hdbStackTracker') == 0);
 
+    local @AUTOLOAD_names = @AUTOLOAD_names;
+    if (index($sub, '::AUTOLOAD', -10) >= 0) {
+        my $caller_pkg = substr($sub, 0, length($sub)-8);
+        $caller_AUTOLOAD = ${ $caller_pkg . 'AUTOLOAD'};
+        push @AUTOLOAD_names, $caller_AUTOLOAD;
+    }
     my $stack_tracker;
     unless ($in_debugger) {
         my $tmp = $sub;

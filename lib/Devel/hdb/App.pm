@@ -295,6 +295,8 @@ sub _stack {
 
     my $discard = 1;
     my @stack;
+    my $next_AUTOLOAD_name = $#DB::AUTOLOAD_names;
+
     for (my $i = 0; ; $i++) {
         my %caller;
         {
@@ -311,6 +313,9 @@ sub _stack {
 
 #        $caller{args} = \@DB::args;
         $caller{subname} = $caller{subroutine} =~ m/\b(\w+$|__ANON__)/ ? $1 : $caller{subroutine};
+        if ($caller{subname} eq 'AUTOLOAD') {
+            $caller{subname} .= '(' . ($DB::AUTOLOAD_names[ $next_AUTOLOAD_name-- ] =~ m/::(\w+)$/)[0] . ')';
+        }
         $caller{level} = $i;
 
         push @stack, \%caller;
