@@ -41,23 +41,6 @@ BEGIN {
     $DB::eval_string    = undef;
 }
 
-#sub stack_depth {
-#    my $class = shift;
-#    $stack_depth = shift if (@_);
-#    return $stack_depth;
-#}
-#
-#sub step_over_depth {
-#    my $class = shift;
-#    $step_over_depth = shift if (@_);
-#    return $step_over_depth;
-#}
-#
-#sub single {
-#    my $class = shift;
-#    $single = shift if (@_);
-#    return $single;
-#}
 
 sub save {
     # Save eval failure, command failure, extended OS error, output field
