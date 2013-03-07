@@ -289,7 +289,8 @@ sub eval {
 
     # This substitution is done so that we return HASH, as opposed to an ARRAY.
     # An expression of %hash results in a list of key/value pairs.
-    $eval_string =~ s/^\s*%/\\%/o;
+    # A glob gets replaced by a glob ref
+    $eval_string =~ s/^\s*([%*])/\\$1/o;
 
     local @result;
     {
