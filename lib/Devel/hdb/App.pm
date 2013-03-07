@@ -165,6 +165,8 @@ sub _encode_eval_data {
         } elsif ($reftype eq 'CODE') {
             (my $copy = $value.'') =~ s/^(\w+)\=//;  # Hack to change CodeClass=CODE(0x123) to CODE=(0x123)
             $value = $copy;
+        } elsif ($reftype eq 'REF') {
+            $value = $self->_encode_eval_data($$value);
         }
 
         $value = { __reftype => $reftype, __refaddr => $refaddr, __value => $value };

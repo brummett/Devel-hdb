@@ -6,7 +6,7 @@ use HdbHelper;
 use WWW::Mechanize;
 use JSON;
 
-use Test::More tests => 11;
+use Test::More tests => 15;
 
 my $url = start_test_program();
 
@@ -62,6 +62,27 @@ is_deeply($answer,
         data => { expr => 'do_die()', exception => "in do_die\n" } },
     'caught exception');
 
+$resp = $mech->post("${url}eval", content => '$refref');
+ok($resp->is_success, 'Get value of a reference to a reference');
+$answer = $json->decode($resp->content);
+ok(delete $answer->{data}->{result}->{__refaddr}, 'Encoded value has a refaddr');
+ok(delete $answer->{data}->{result}->{__value}->{__refaddr}, 'Reference value has a refaddr');
+is_deeply($answer,
+    {   type => 'evalresult',
+        data => { expr => '$refref',
+                  result => {
+                      __reftype => 'REF',
+                      __value => {
+                          __reftype => 'SCALAR',
+                          __value => 1
+                        }
+                    }
+                }
+    },
+    'Value is correct');
+
+
+
 
 
 
@@ -71,6 +92,8 @@ __DATA__
 $global = 1;                # package global
 @Other::global = (1,2);     # different package
 my %lexical = (key => 3);   # lexical
+my $ref = \$global;
+my $refref = \$ref;
 $DB::single=1;
 1;
 sub do_die {
