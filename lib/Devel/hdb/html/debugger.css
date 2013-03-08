@@ -98,8 +98,6 @@ div#controls {
 
 
 #filewindow {
-    float: left;
-    width: 100%;
     border-top: 1px solid black;
     border-right: 1px solid black;
     border-top-right-radius: 1%;
@@ -124,9 +122,13 @@ div.program-code-container {
 body {
     min-width: 550px;
 }
-#container {
+#columnator {
     padding-left: 0;
     padding-right: 250px;
+}
+#columnator > :first-child {
+    float: left;
+    width: 100%;
 }
 .container-column {
     position: relative;
