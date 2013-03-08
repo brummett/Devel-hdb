@@ -99,7 +99,7 @@ div#controls {
 
 #filewindow {
     float: left;
-    width: 75%;
+    width: 100%;
     border-top: 1px solid black;
     border-right: 1px solid black;
     border-top-right-radius: 1%;
@@ -121,11 +121,23 @@ div.program-code-container {
     /* overflow: scroll; */
 }
 
-div#watch-expressions {
+body {
+    min-width: 550px;
+}
+#container {
+    padding-left: 0;
+    padding-right: 250px;
+}
+.container-column {
+    position: relative;
     float: left;
-    width: 24%;
+}
+#watch-expressions {
+    float: left;
+    width: 249px;  /* leave 1px for the #filewindow border */
+    margin-right: -250px;
     overflow: scroll;
-    margin-left: 0.5em;
+/*    margin-left: 0.5em;*/
 }
 div#watch-expressions-title {
     margin-bottom: 0.25em;
@@ -136,6 +148,8 @@ div#watch-expressions-title {
 
 .watched-expression {
     border-bottom: 1px solid black;
+    padding-left: 0.25em;
+    padding-bottom: 0.25em;
 }
 
 /* The right-click breakpoint menu */
