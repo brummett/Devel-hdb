@@ -132,6 +132,15 @@ body {
     position: relative;
     float: left;
 }
+#drag-divider {
+    width: 3px;
+    float: left;
+    background: transparent;
+    cursor: move;
+    margin-right: -4px;
+    display: inline-block;
+    z-index: 10;
+}
 #watch-expressions {
     float: left;
     width: 249px;  /* leave 1px for the #filewindow border */
