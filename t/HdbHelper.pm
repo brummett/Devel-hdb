@@ -21,7 +21,7 @@ sub start_test_program {
     {   no strict 'refs';
         $in_fh = *{ $pkg . '::DATA' };
     }
-    $out_fh = File::Temp->new('devel-hdb-test-XXXX');
+    $out_fh = File::Temp->new(TEMPLATE => 'devel-hdb-test-XXXX');
 
     {
         # Localize $/ for slurp mode
