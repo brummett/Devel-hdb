@@ -5,6 +5,7 @@ package Devel::hdb;
 
 use Devel::hdb::App;
 use Devel::hdb::DB;
+use IO::Socket::INET;
 
 sub import {
     my $class = shift;
@@ -13,6 +14,10 @@ sub import {
         my $param = shift;
         if ($param =~ m/port:(\d+)/) {
             our $PORT = $1;
+        } elsif ($param =~ m/host:([\w.]+)/) {
+            our $HOST = $1;
+        } elsif ($param eq 'a') {
+            our $HOST = inet_ntoa(INADDR_ANY);
         } elsif ($param eq 'testharness') {
             our $TESTHARNESS = 1;
         }
@@ -41,10 +46,18 @@ To debug a Perl program, start it like this:
 
 It will print a message on STDERR with the URL the debugger is listening to.
 Point you web browser at this URL and it will being up the debugger GUI.
-It defaults to listening on port 8080; to use a different port, start it
-like this:
+It defaults to listening on localhost port 8080; to use a different port,
+start it like this:
 
     perl -d:hdb=port:9876 yourprogram.pl
+
+To specify a particular IP address to listen on:
+
+    perl -d:hdb=host:192.168.0.123 yourprogram.pm
+
+And to listen on any interface:
+
+    perl -d:hdb=a yourprogram.pm
 
 =head2 Interface
 

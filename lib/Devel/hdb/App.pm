@@ -21,7 +21,7 @@ use vars qw( $parent_pid ); # when running in the test harness
 
 sub new {
     my $class = shift;
-    my %server_params = (host => '127.0.0.1', @_);
+    my %server_params = (host => $Devel::hdb::HOST || '127.0.0.1', @_);
 
     my $self = bless {}, $class;
 
