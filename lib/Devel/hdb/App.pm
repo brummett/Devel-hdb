@@ -33,7 +33,7 @@ sub new {
                     );
     $self->{json} = JSON->new();
 
-    $parent_pid = getppid() if ($Devel::hdb::TESTHARNESS);
+    $parent_pid = eval { getppid() } if ($Devel::hdb::TESTHARNESS);
     return $self;
 }
 
