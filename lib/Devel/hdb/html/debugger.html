@@ -96,19 +96,19 @@
 
 </head>
 <body>
-    <div class="debugger-window">
-        <div class="row">
-            <div id="controls" class="span6 offset1">
-                <a class="btn control-button" id="stepin" href="stepin">Step In</a>
-                <a class="btn control-button" id="stepover" href="stepover">Step Over</a>
-                <a class="btn control-button" id="stepout" href="stepout">Step Out</a>
-                <a class="btn btn-primary control-button" id="continue" href="continue">Run</a>
+    <div id="columnator" class="debugger-window">
+        <div class="container-column">
+            <div class="row">
+                <div id="controls" class="span6 offset1">
+                    <a class="btn control-button" id="stepin" href="stepin">Step In</a>
+                    <a class="btn control-button" id="stepover" href="stepover">Step Over</a>
+                    <a class="btn control-button" id="stepout" href="stepout">Step Out</a>
+                    <a class="btn btn-primary control-button" id="continue" href="continue">Run</a>
 
-                <a class="btn btn-danger control-button pull-right" id="exit" href="exit">Exit</a>
+                    <a class="btn btn-danger control-button pull-right" id="exit" href="exit">Exit</a>
+                </div>
             </div>
-        </div>
 
-        <div>
             <div id="filewindow" class="tabbable">
                 <ul class="nav nav-tabs">
                     <li id="program-name" class="active"><a href="#stack" data-toggle="tab">Program Name</a></li>
@@ -121,13 +121,14 @@
                     </div>
                 </div>
             </div>
-            <div id="watch-expressions">
-                <div id="watch-expressions-title">
-                    <strong>Watch Expressions</strong>
-                    <span id="add-watch-expr"><i class="icon-plus"></i></span>
-                </div>
-                <div id="watch-expressions-container" class="managed-height"></div>
+        </div>
+        <div id="drag-divider" class="container-column managed-height"></div>
+        <div id="watch-expressions" class="container-column">
+            <div id="watch-expressions-title">
+            <strong>Watch Expressions</strong>
+                <span id="add-watch-expr"><i class="icon-plus"></i></span>
             </div>
+            <div id="watch-expressions-container" class="managed-height"></div>
         </div>
     </div>
 </body>

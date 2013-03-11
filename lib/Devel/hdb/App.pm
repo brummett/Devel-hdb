@@ -21,7 +21,7 @@ use vars qw( $parent_pid ); # when running in the test harness
 
 sub new {
     my $class = shift;
-    my %server_params = (host => '127.0.0.1', @_);
+    my %server_params = (host => $Devel::hdb::HOST || '127.0.0.1', @_);
 
     my $self = bless {}, $class;
 
@@ -33,7 +33,7 @@ sub new {
                     );
     $self->{json} = JSON->new();
 
-    $parent_pid = getppid() if ($Devel::hdb::TESTHARNESS);
+    $parent_pid = eval { getppid() } if ($Devel::hdb::TESTHARNESS);
     return $self;
 }
 
