@@ -11,28 +11,28 @@ sub new {
 sub get($$&) {
     my($self, $path, $sub) = @_;
 
-    $self->{GET} //= [];
+    $self->{GET} ||= [];
     push @{ $self->{GET}}, [$path, $sub];
 }
 
 sub post($$&) {
     my($self, $path, $sub) = @_;
 
-    $self->{POST} //= [];
+    $self->{POST} ||= [];
     push @{ $self->{POST}}, [$path, $sub];
 }
 
 sub put($$&) {
     my($self, $path, $sub) = @_;
 
-    $self->{PUT} //= [];
+    $self->{PUT} ||= [];
     push @{ $self->{PUT}}, [$path, $sub];
 }
 
 sub delete($$&) {
     my($self, $path, $sub) = @_;
 
-    $self->{DELETE} //= [];
+    $self->{DELETE} ||= [];
     push @{ $self->{DELETE}}, [$path, $sub];
 }
 
