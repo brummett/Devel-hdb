@@ -294,6 +294,7 @@ sub sourcefile {
 # stepin, stepover, stepout and run will call this to return
 # back to the debugger window the current state
 sub _stack {
+    my $self = shift;
 
     my $discard = 1;
     my @stack;
@@ -313,7 +314,7 @@ sub _stack {
         }
         next if $discard;
 
-#        $caller{args} = \@DB::args;
+        $caller{args} = [ map { $self->_encode_eval_data($_) } @DB::args ]; # unless @stack;
         $caller{subname} = $caller{subroutine} =~ m/\b(\w+$|__ANON__)/ ? $1 : $caller{subroutine};
         if ($caller{subname} eq 'AUTOLOAD') {
             $caller{subname} .= '(' . ($DB::AUTOLOAD_names[ $next_AUTOLOAD_name-- ] =~ m/::(\w+)$/)[0] . ')';
