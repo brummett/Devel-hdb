@@ -58,11 +58,11 @@
     <script id="current-sub-and-args-template" type="text/x-handlebars-template">
         <span class="current-subroutine">{{subroutine}}</span>
         (
-        <span class="sub-arg-list">
+        <ul class="sub-arg-list">
             {{#each subArgs}}
-                <span class="sub-arg">{{this}}</span>
+                <li class="sub-arg">{{{this}}}</li>
             {{/each}}
-        <span>
+        </ul>
         )
     </script>
 
