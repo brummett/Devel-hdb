@@ -32,26 +32,16 @@
 
     <! template for Bootstrap nav panes>
     <script id="nav-pane-template" type="text/x-handlebars-template">
-        <div id="{{tabId}}" class="tab-pane managed-height program-code-container{{#active}} active{{/active}}" data-filename="{{filename}}">
-            {{{html}}}
+        <div class="tab-pane{{#active}} active{{/active}}">
+            <div class="current-sub-and-args alert"></div>
+            <div id="{{tabId}}" class="managed-height program-code-container" data-filename="{{filename}}">
+                {{{html}}}
+            </div>
         </div>
     </script>
 
     <! template for program file contents>
     <script id="program-listing-template" type="text/x-handlebars-template">
-        <div>
-            <span class="current-subroutine">{{subroutine}}</span>
-            :&nbsp;
-            <span class="current-line">{{lineno}}</span>
-            (
-            <span class="sub-arg-list">
-                {{#each subArgs}}
-                    <span class="sub-arg">{{this}}</span>
-                {{/each}}
-            <span>
-            )
-        <div>
-
         <table class="table table-hover table-condensed program-code" data-filename="{{filename}}">
             <tbody>
                 {{#rows}}
@@ -62,6 +52,20 @@
                 {{/rows}}
             </tbody>
         </table>
+    </script>
+
+    <! template for the top bar of the program stack windows - show the current sub & args>
+    <script id="current-sub-and-args-template" type="text/x-handlebars-template">
+        <span class="current-subroutine">{{subroutine}}</span>
+        :&nbsp;
+        <span class="current-line">{{lineno}}</span>
+        (
+        <span class="sub-arg-list">
+            {{#each subArgs}}
+                <span class="sub-arg">{{this}}</span>
+            {{/each}}
+        <span>
+        )
     </script>
 
     <! template for watched expression>
