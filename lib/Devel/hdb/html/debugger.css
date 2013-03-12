@@ -114,7 +114,7 @@ div#controls {
 }
 
 div.managed-height {
-    overflow: scroll;
+    overflow: auto;
 }
 div#stack-tab-container {
     display: inline-block;
@@ -162,7 +162,6 @@ body {
     float: left;
     width: 249px;  /* leave 1px for the #filewindow border */
     margin-right: -250px;
-    overflow: scroll;
 /*    margin-left: 0.5em;*/
 }
 div#watch-expressions-title {
