@@ -3,6 +3,12 @@
     cursor: wait;
 }
 
+.PerlValue {
+    zoom: 80%;
+}
+.program-code {
+    zoom: 80%;
+}
 table.program-code td {
     border-top: 0px;
     padding-top: 0px;
