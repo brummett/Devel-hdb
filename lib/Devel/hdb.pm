@@ -115,6 +115,10 @@ Right-clicking on a breakable line number will bring up a menu where a
 breakpoint condition and action can be set.  Lines with conditional breakpoints
 are blue.  Lines with actions habe a circle outline.
 
+The banner at the top of the Code Pane shows the current function and its
+arguments.  Clicking on the banner will scoll the Code Pane to show the
+currently executing line.
+
 =item Watch Expressions
 
 The right side of the GUI shows watch expressions.  To add a new expression to
