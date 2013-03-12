@@ -7,7 +7,7 @@ use WWW::Mechanize;
 use JSON;
 use Devel::hdb::App;
 
-use Test::More tests => 29;
+use Test::More tests => 32;
 
 my $encoded = Devel::hdb::App->_encode_eval_data(bless { a => [1,2,3]}, 'Foo');
 ok($encoded, 'Encode a blessed hashref directly');
