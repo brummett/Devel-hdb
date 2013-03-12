@@ -95,6 +95,9 @@ div#controls {
     border-left: 2px solid rgb(170, 170, 170);
     border-right: 2px solid rgb(170, 170, 170);
 }
+.current-sub-and-args {
+    margin-bottom: 0;
+}
 
 
 #filewindow {

@@ -32,9 +32,9 @@
 
     <! template for Bootstrap nav panes>
     <script id="nav-pane-template" type="text/x-handlebars-template">
-        <div class="tab-pane{{#active}} active{{/active}}">
-            <div class="current-sub-and-args alert"></div>
-            <div id="{{tabId}}" class="managed-height program-code-container" data-filename="{{filename}}">
+        <div id="{{tabId}}" class="tab-pane{{#active}} active{{/active}}">
+            <div class="current-sub-and-args alert">&nbsp;</div>
+            <div class="managed-height program-code-container" data-filename="{{filename}}">
                 {{{html}}}
             </div>
         </div>
