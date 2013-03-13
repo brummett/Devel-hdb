@@ -10,10 +10,8 @@ BEGIN {
 
 use Devel::hdb::Server;
 use Plack::Request;
-use Sub::Install;
 use IO::File;
 use JSON qw();
-use Data::Dumper;
 use Scalar::Util;
 
 use Devel::hdb::Router;
@@ -437,7 +435,6 @@ sub _delay_stack_return_to_client {
 sub app {
     my $self = shift;
     unless ($self->{app}) {
-        #$self->{app} =  sub { print "run route for ".Data::Dumper::Dumper($_[0]);$self->{router}->route(@_); };
         $self->{app} =  sub { $self->{router}->route(@_); };
     }
     return $self->{app};
