@@ -11,11 +11,13 @@ use File::Temp;
 use Time::HiRes qw(sleep);
 
 use Exporter 'import';
-our @EXPORT = qw( start_test_program strip_stack );
+our @EXPORT = qw( start_test_program strip_stack strip_stack_inc_args );
 
 
 my $out_fh;
 sub start_test_program {
+    my @argv = @_;
+
     my $pkg = caller;
     my $in_fh;
     {   no strict 'refs';
@@ -35,7 +37,10 @@ sub start_test_program {
 
     my $port = $ENV{DEVEL_HDB_PORT} = pick_unused_port();
     Test::More::note("Using port $ENV{DEVEL_HDB_PORT}\n");
-    my $cmdline = $^X . " -I $libdir -d:hdb=port:$port,testharness " . $out_fh->filename;
+    my $cmdline = join(' ', $^X, "-I $libdir -d:hdb=port:$port,testharness",
+                               $out_fh->filename,
+                               @argv);
+
     Test::More::note("running $cmdline");
     my $pid = fork();
     if ($pid) {
@@ -99,5 +104,17 @@ sub strip_stack {
     }
     return [ map { { line => $_->{line}, subroutine => $_->{subroutine} } } @{$stack->{data}} ];
 }
+
+sub strip_stack_inc_args {
+    my $stack = shift;
+    if (ref $stack eq 'ARRAY') {
+        $stack = shift @$stack;  # If multiple messages passed in
+    }
+    if ($stack->{type} ne 'stack') {
+        return $stack;  # not was expected, return the whole thing
+    }
+    return [ map { { line => $_->{line}, subroutine => $_->{subroutine}, args => $_->{args} } } @{$stack->{data}} ];
+}
+
 
 1;
