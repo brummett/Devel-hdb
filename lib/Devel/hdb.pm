@@ -123,8 +123,8 @@ currently executing line.
 
 The right side of the GUI shows watch expressions.  To add a new expression to
 the watch window, click on the "+".  To remove a watched expression, click on
-the "x" next to its name.  Hashes and arrays have a blue circled number
-indicating how many elements belong to it.  To collapse them, click the blue
-cicle.
+the "x" next to its name.  Composite types like Hashes and arrays have a blue
+circled number indicating how many elements belong to it.  To collapse/expand
+them, click the blue cicle.
 
 =back
