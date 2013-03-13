@@ -32,8 +32,11 @@
 
     <! template for Bootstrap nav panes>
     <script id="nav-pane-template" type="text/x-handlebars-template">
-        <div id="{{tabId}}" class="tab-pane managed-height program-code-container{{#active}} active{{/active}}" data-filename="{{filename}}">
-            {{{html}}}
+        <div id="{{tabId}}" class="tab-pane{{#active}} active{{/active}}">
+            <div class="current-sub-and-args alert">&nbsp;</div>
+            <div class="managed-height program-code-container" data-filename="{{filename}}">
+                {{{html}}}
+            </div>
         </div>
     </script>
 
@@ -49,6 +52,18 @@
                 {{/rows}}
             </tbody>
         </table>
+    </script>
+
+    <! template for the top bar of the program stack windows - show the current sub & args>
+    <script id="current-sub-and-args-template" type="text/x-handlebars-template">
+        <span class="current-subroutine">{{subroutine}}</span>
+        (
+        <ul class="sub-arg-list">
+            {{#each subArgs}}
+                <li class="sub-arg">{{{this}}}</li>
+            {{/each}}
+        </ul>
+        )
     </script>
 
     <! template for watched expression>

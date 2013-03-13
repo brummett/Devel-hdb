@@ -5,6 +5,7 @@ package Devel::hdb::App;
 
 BEGIN {
     our $PROGRAM_NAME = $0;
+    our @saved_ARGV = @ARGV;
 }
 
 use Devel::hdb::Server;
@@ -167,6 +168,8 @@ sub _encode_eval_data {
             $value = $copy;
         } elsif ($reftype eq 'REF') {
             $value = $self->_encode_eval_data($$value);
+        } elsif ($reftype eq 'REGEXP') {
+            $value = $value . '';
         }
 
         $value = { __reftype => $reftype, __refaddr => $refaddr, __value => $value };
@@ -292,10 +295,12 @@ sub sourcefile {
 # stepin, stepover, stepout and run will call this to return
 # back to the debugger window the current state
 sub _stack {
+    my $self = shift;
 
     my $discard = 1;
     my @stack;
     my $next_AUTOLOAD_name = $#DB::AUTOLOAD_names;
+    our @saved_ARGV;
 
     for (my $i = 0; ; $i++) {
         my %caller;
@@ -311,7 +316,7 @@ sub _stack {
         }
         next if $discard;
 
-#        $caller{args} = \@DB::args;
+        $caller{args} = [ map { $self->_encode_eval_data($_) } @DB::args ]; # unless @stack;
         $caller{subname} = $caller{subroutine} =~ m/\b(\w+$|__ANON__)/ ? $1 : $caller{subroutine};
         if ($caller{subname} eq 'AUTOLOAD') {
             $caller{subname} .= '(' . ($DB::AUTOLOAD_names[ $next_AUTOLOAD_name-- ] =~ m/::(\w+)$/)[0] . ')';
@@ -322,10 +327,11 @@ sub _stack {
     }
     # TODO: put this into the above loop
     for (my $i = 0; $i < @stack-1; $i++) {
-        @{$stack[$i]}{'subroutine','subname'} = @{$stack[$i+1]}{'subroutine','subname'};
+        @{$stack[$i]}{'subroutine','subname','args'} = @{$stack[$i+1]}{'subroutine','subname','args'};
     }
     $stack[-1]->{subroutine} = 'MAIN';
     $stack[-1]->{subname} = 'MAIN';
+    $stack[-1]->{args} = \@saved_ARGV; # These are guaranteed to be simple scalars, no need to encode
 
     return \@stack;
 }

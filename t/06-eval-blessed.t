@@ -7,7 +7,7 @@ use WWW::Mechanize;
 use JSON;
 use Devel::hdb::App;
 
-use Test::More tests => 29;
+use Test::More tests => 32;
 
 my $encoded = Devel::hdb::App->_encode_eval_data(bless { a => [1,2,3]}, 'Foo');
 ok($encoded, 'Encode a blessed hashref directly');
@@ -101,6 +101,20 @@ is_deeply($answer->{data},
     },
     'value is correct');
 
+$resp = $mech->post("${url}eval", content => '$re');
+ok($resp->is_success, 'Get value of a Regex instance');
+$answer = $json->decode($resp->content);
+ok(delete $answer->{data}->{result}->{__refaddr}, 'encoded has a refaddr');
+is_deeply($answer->{data},
+    { expr => '$re',
+      result => { __blessed => 'Regexp',
+                  __reftype => 'REGEXP',
+                  __value => '(?-xism:abc)',
+                }
+    },
+    'value is correct');
+
+
 $resp = $mech->post("${url}eval", content => '$complex');
 ok($resp->is_success, 'Get value of a complex structure');
 $answer = $json->decode($resp->content);
@@ -139,6 +153,7 @@ my $string = "a string";
 my $scalar = bless \$string, 'ScalarThing';
 my $code = bless sub { 1; }, 'CodeThing';
 my $file = IO::File->new(__FILE__);
+my $re = qr(abc);
 my $complex = bless [ $hash, $array, $scalar ], 'ComplexThing';
 $DB::single=1;
 1;
