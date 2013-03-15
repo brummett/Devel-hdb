@@ -195,14 +195,35 @@ sub _first_program_frame {
 }
 
 
-sub get_var {
+sub get_var_at_level {
     my($class, $varname, $level) = @_;
 
-    eval { require PadWalker; };
-    if ($@ and $@ =~ m/locate/) {
-        die "PadWalker module not found";
+    require PadWalker;
+
+    my $h = PadWalker::peek_my( $level || 1);
+
+    unless (exists $h->{$varname}) {
+        # not a lexical, try our()
+        $h = PadWalker::peek_our( $level || 1);
     }
-    my $h = eval { PadWalker::peek_my( ($level || 1)) };
+
+    unless (exists $h->{$varname}) {
+        # last chance, see if it's a package var
+
+        if (my($sigil, $bare_varname) = ($varname =~ m/^([\$\@\%\*])(\w+)$/)) {
+            # a varname without a pacakge, try in the package at
+            # that caller level
+            my($package) = caller($level+1);
+            $package ||= 'main';
+            my @value = eval( $sigil . $package . '::' . $bare_varname);
+            return @value < 2 ? $value[0] : \@value;
+
+        } elsif ($varname =~ m/^[\$\@\%\*]\w+(::\w+)*(::)?$/) {
+            my @value = eval($varname);
+            return @value < 2 ? $value[0] : \@value;
+        }
+    }
+
     return unless exists($h->{$varname});
     return ${ $h->{$varname} };
 }

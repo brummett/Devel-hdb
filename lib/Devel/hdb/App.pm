@@ -207,11 +207,18 @@ sub do_getvar {
 
     my $resp = $self->_resp('getvar', $env);
     my $adjust = DB->_first_program_frame();
-    my $value = eval { DB->get_var($varname, $level + $adjust) };
+    my $value = eval { DB->get_var_at_level($varname, $level + $adjust) };
 
-    if ($@ =~ m/PadWalker module not found/) {
-        $resp->{type} = 'error';
-        $resp->data('Not implemented - PadWalker module is not available');
+    if ($@) {
+        if ($@ =~ m/Can't locate PadWalker/) {
+            $resp->{type} = 'error';
+            $resp->data('Not implemented - PadWalker module is not available');
+
+        } elsif ($@ =m/Not nested deeply enough/) {
+            $resp->data( { expr => $varname, level => $level, result => undef } );
+        } else {
+            die $@;
+        }
     } else {
         $value = $self->_encode_eval_data($value);
         $resp->data( { expr => $varname, level => $level, result => $value } );

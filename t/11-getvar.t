@@ -8,7 +8,7 @@ use JSON;
 
 use Devel::hdb::App;  # for _encode_eval_data
 
-use Test::More tests => 25;
+use Test::More tests => 49;
 
 my $url = start_test_program();
 
@@ -38,6 +38,28 @@ check_resp($resp,
         },
         'Get value of $z at level 0');
 
+$resp = $mech->post($url.'getvar', {l => 0, v => '$our_var'});
+check_resp($resp,
+        { expr => '$our_var', level => 0, result => 'ourvar' },
+        'Get value of our var $our_var at level 0');
+
+$resp = $mech->post($url.'getvar', {l => 0, v => '@bare_var'});
+check_resp($resp,
+        { expr => '@bare_var', level => 0,
+            result => { __reftype => 'ARRAY',
+                        __value => ['barevar', 'barevar']
+                    },
+        },
+        'Get value of bare pkg var $bare_var at level 0');
+
+$resp = $mech->post($url.'getvar', {l => 0, v => '$Other::Package::variable'});
+check_resp($resp,
+        { expr => '$Other::Package::variable', level => 0, result => 'pkgvar' },
+        'Get value of pkg global $X at level 0');
+
+
+
+
 $resp = $mech->post($url.'getvar', {l => 1, v => '$x'});
 check_resp($resp,
         { expr => '$x', level => 1, result => 1 },
@@ -52,6 +74,27 @@ $resp = $mech->post($url.'getvar', {l => 1, v => '$z'});
 check_resp($resp,
         { expr => '$z', level => 1, result => undef },
         'Get value of $z at level 1');
+
+$resp = $mech->post($url.'getvar', {l => 1, v => '$our_var'});
+check_resp($resp,
+        { expr => '$our_var', level => 1, result => 'ourvar' },
+        'Get value of our var $our_var at level 1');
+
+$resp = $mech->post($url.'getvar', {l => 1, v => '@bare_var'});
+check_resp($resp,
+        { expr => '@bare_var', level => 1,
+            result => { __reftype => 'ARRAY',
+                        __value => ['barevar', 'barevar']
+                    },
+        },
+        'Get value of bare package var $our_var at level 1');
+
+$resp = $mech->post($url.'getvar', {l => 1, v => '$Other::Package::variable'});
+check_resp($resp,
+        { expr => '$Other::Package::variable', level => 1, result => 'pkgvar' },
+        'Get value of pkg global $Other::Package::variable at level 1');
+
+
 
 
 sub check_resp {
@@ -74,6 +117,9 @@ sub check_resp {
 }
 
 __DATA__
+our $our_var = 'ourvar';
+@bare_var = ('barevar', 'barevar');
+$Other::Package::variable = 'pkgvar';
 my $x = 1;
 my $y = 2;
 foo();
