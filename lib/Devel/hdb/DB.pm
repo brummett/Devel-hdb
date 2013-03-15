@@ -3,6 +3,8 @@ use strict;
 
 package Devel::hdb::DB;
 
+use Scalar::Util;
+
 package DB;
 no strict;
 
@@ -176,6 +178,33 @@ sub sub {
 sub hdbStackTracker::DESTROY {
     $DB::stack_depth--;
     $DB::single = 1 if (defined($DB::step_over_depth) and $DB::step_over_depth >= $stack_depth);
+}
+
+# Count how many stack frames we should discard when we're
+# interested in the debugged program's stack frames
+sub _first_program_frame {
+    for(my $level = 1;
+        my ($package, $filename, $line, $subroutine) = caller($level);
+        $level++
+    ) {
+        if ($subroutine eq 'DB::DB') {
+            return $level;
+        }
+    }
+    return;
+}
+
+
+sub get_var {
+    my($class, $varname, $level) = @_;
+
+    eval { require PadWalker; };
+    if ($@ and $@ =~ m/locate/) {
+        die "PadWalker module not found";
+    }
+    my $h = eval { PadWalker::peek_my( ($level || 1)) };
+    return unless exists($h->{$varname});
+    return ${ $h->{$varname} };
 }
 
 sub set_breakpoint {

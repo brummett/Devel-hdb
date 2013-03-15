@@ -78,6 +78,7 @@ sub init_debugger {
         $_->get("/loadedfiles", sub { $self->loaded_files(@_) });
         $_->get("/exit", sub { $self->do_terminate(@_) });
         $_->post("/eval", sub { $self->do_eval(@_) });
+        $_->post("/getvar", sub { $self->do_getvar(@_) });
     }
 }
 
@@ -191,6 +192,29 @@ sub loaded_files {
 
     my @files = DB->loaded_files();
     $resp->data(\@files);
+    return [ 200,
+            [ 'Content-Type' => 'application/json' ],
+            [ $resp->encode() ]
+        ];
+}
+
+# Get the value of a variable, possibly in an upper stack frame
+sub do_getvar {
+    my($self, $env) = @_;
+    my $req = Plack::Request->new($env);
+    my $level = $req->param('l');
+    my $varname = $req->param('v');
+
+    my $resp = $self->_resp('getvar', $env);
+    my $adjust = DB->_first_program_frame();
+    my $value = eval { DB->get_var($varname, $level + $adjust) };
+
+    if ($@ =~ m/PadWalker module not found/) {
+        $resp->{type} = 'error';
+        $resp->data('Not implemented - PadWalker module is not available');
+    } else {
+        $resp->data( { expr => $varname, level => $level, result => $value } );
+    }
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
             [ $resp->encode() ]
