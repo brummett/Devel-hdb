@@ -211,3 +211,7 @@ div#watch-expressions-title {
 .action input {
     margin-bottom: 0;
 }
+
+.hovered-perl-var {
+    background-color: rgba(255,255,0,0.3);
+}
