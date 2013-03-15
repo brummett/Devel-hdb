@@ -6,6 +6,8 @@ use HdbHelper;
 use WWW::Mechanize;
 use JSON;
 
+use Devel::hdb::App;  # for _encode_eval_data
+
 use Test::More tests => 25;
 
 my $url = start_test_program();
@@ -29,7 +31,11 @@ check_resp($resp,
 
 $resp = $mech->post($url.'getvar', {l => 0, v => '$z'});
 check_resp($resp,
-        { expr => '$z', level => 0, result => { one => 1, two => 2 }},
+        { expr => '$z', level => 0,
+            result => { __reftype => 'HASH',
+                        __value => { one => 1, two => 2 }
+                    },
+        },
         'Get value of $z at level 0');
 
 $resp = $mech->post($url.'getvar', {l => 1, v => '$x'});
@@ -58,6 +64,11 @@ sub check_resp {
     ok($resp->is_success, $msg);
     is($got->{expr}, $expected->{expr}, 'Response expr matches');
     is($got->{level}, $expected->{level}, 'Level matches');
+
+    if (ref $got->{result}) {
+        delete ($got->{result}->{__refaddr});
+    }
+
     is_deeply($got->{result}, $expected->{result},
         'Result is '.(defined($expected->{result}) ? '"'.$expected->{result}.'"' : 'undef'));
 }

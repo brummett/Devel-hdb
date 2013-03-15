@@ -213,6 +213,7 @@ sub do_getvar {
         $resp->{type} = 'error';
         $resp->data('Not implemented - PadWalker module is not available');
     } else {
+        $value = $self->_encode_eval_data($value);
         $resp->data( { expr => $varname, level => $level, result => $value } );
     }
     return [ 200,
