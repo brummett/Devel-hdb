@@ -215,10 +215,14 @@ sub get_var_at_level {
             # that caller level
             my($package) = caller($level+1);
             $package ||= 'main';
-            my @value = eval( $sigil . $package . '::' . $bare_varname);
+
+            my $expanded_varname = $sigil . $package . '::' . $bare_varname;
+            $expanded_varname = _fixup_expr_for_eval($expanded_varname);
+            my @value = eval( $expanded_varname );
             return @value < 2 ? $value[0] : \@value;
 
         } elsif ($varname =~ m/^[\$\@\%\*]\w+(::\w+)*(::)?$/) {
+            $varname = _fixup_expr_for_eval($varname);
             my @value = eval($varname);
             return @value < 2 ? $value[0] : \@value;
         }
