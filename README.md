@@ -44,6 +44,7 @@ For arrays, hashes and globs, click on the blue circle to collapse/expand it
 * Inspect the current position at any level in the call stack
 * Watch variables/expressions
 * Get control when the process exits
+* Hover over a variable to see its value.  Works for all stack frames.
 
 Pretty much what you would expect from any debugger.
 
@@ -52,7 +53,6 @@ Pretty much what you would expect from any debugger.
 * Get notification when the debugged process forks, with options to debug the
     child process, or allow it to continue
 * Get notification of untrapped exceptions, and stop at the exception point
-* Inspect lexical variables in higher stack frames
 * Step into an arbitrary expression
 * Restart execution at some prior execution point
 

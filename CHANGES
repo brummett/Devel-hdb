@@ -1,6 +1,9 @@
-  Mar 2013 - v0.02
+15 Mar 2013 - v0.02
+    * Hover over a variable to see its value.  Works for all stack frames.
     * Currently executing sub and its args are shown at the top of the code
     * The PerlValue serializer can now handle Regexp refs
 
 9 Mar 2013 - v0.01
     * First Release
+    * Single step, step over, step out, continue
+    * Watch expressions

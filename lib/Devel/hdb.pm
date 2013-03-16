@@ -119,6 +119,10 @@ The banner at the top of the Code Pane shows the current function and its
 arguments.  Clicking on the banner will scoll the Code Pane to show the
 currently executing line.
 
+Hover the mouse over a variable to see its value.  It shows the value in
+whichever stack frame is being displayed.  To see the values for variables
+in higher frames, select the appropriate frame from the tab on the left.
+
 =item Watch Expressions
 
 The right side of the GUI shows watch expressions.  To add a new expression to
@@ -128,3 +132,33 @@ circled number indicating how many elements belong to it.  To collapse/expand
 them, click the blue cicle.
 
 =back
+
+=head2 Included Code
+
+This package includes a these third party libraries:
+
+=over
+
+=item *
+jQuery version 1.7.2 L<http://jquery.com/>
+
+=item *
+scrollTo jQuery plugin version 1.4.3.1 L<http://flesler.blogspot.com/2007/10/jqueryscrollto.html>
+
+=item *
+Twitter Bootstrap version 2.3.0 L<http://twitter.github.com/bootstrap/index.html>
+
+=item *
+Handlebars version 1.0rc2 L<http://handlebarsjs.com/>
+
+=back
+
+=head1 AUTHOR
+
+Anthony Brummett <brummett@cpan.org>
+
+=head1 COPYRIGHT
+
+Copyright 2013, Anthony Brummett.  This module is free software. It may
+be used, redistributed and/or modified under the same terms as Perl itself.
+
