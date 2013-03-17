@@ -12,29 +12,31 @@
 .program-code .code-line:hover .code {
     background-color: rgba(0,0,0,0.05);
 }
-.program-code .breakpoint .lineno {
+.program-code .breakpoint .lineno span {
     background-color: rgba(255,0,0,1);
 }
-.program-code .conditional-breakpoint .lineno {
+.program-code .conditional-breakpoint .lineno span {
     background-color: rgba(0,0,255,1);
 }
-.program-code .inactive-breakpoint .lineno {
+.program-code .inactive-breakpoint .lineno span {
     background-color: rgba(255,0,0,0.4);
 }
-.program-code .bpaction .lineno {
+.program-code .bpaction .lineno span {
     border-color: black;
 }
-.program-code .unbreakable .lineno {
+.program-code .unbreakable .lineno span {
     text-decoration: line-through;
 }
 .program-code .lineno {
     width: 5%;
+    display: inline-block;
+    text-align: center;
+}
+.program-code .lineno span {
     padding-bottom: 1px;
     border-radius: 50% 50%;
     border: 1px solid transparent;
-    padding: 1px;
-    display: inline-block;
-    text-align: center;
+    padding: 2px;
 }
 .program-code .code {
     width: 94%;

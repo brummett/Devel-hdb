@@ -45,7 +45,7 @@
         <div class="program-code" data-filename="{{filename}}">
             {{#rows}}
                 <div class="{{#active}}active{{/active}}{{#unbreakable}} unbreakable{{/unbreakable}}{{#breakpoint}} breakpoint{{/breakpoint}}{{#inactivebreakpoint}} inactive-breakpoint{{/inactivebreakpoint}}{{#action}} bpaction{{/action}} code-line" data-line="{{line}}">
-                    <span class="lineno">{{line}}</span>
+                    <span class="lineno"><span>{{line}}</span></span>
                     <span class="code">{{code}}</span>
                 </div>
             {{/rows}}
