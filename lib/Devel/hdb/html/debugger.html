@@ -42,16 +42,14 @@
 
     <! template for program file contents>
     <script id="program-listing-template" type="text/x-handlebars-template">
-        <table class="table table-hover table-condensed program-code" data-filename="{{filename}}">
-            <tbody>
-                {{#rows}}
-                    <tr class="{{#active}}active{{/active}}{{#unbreakable}} unbreakable{{/unbreakable}}{{#breakpoint}} breakpoint{{/breakpoint}}{{#inactivebreakpoint}} inactive-breakpoint{{/inactivebreakpoint}}{{#action}} bpaction{{/action}}" data-line="{{line}}">
-                        <td class="lineno"><span>{{line}}</span></td>
-                        <td class="code">{{code}}</td>
-                    </tr>
-                {{/rows}}
-            </tbody>
-        </table>
+        <div class="program-code" data-filename="{{filename}}">
+            {{#rows}}
+                <div class="{{#active}}active{{/active}}{{#unbreakable}} unbreakable{{/unbreakable}}{{#breakpoint}} breakpoint{{/breakpoint}}{{#inactivebreakpoint}} inactive-breakpoint{{/inactivebreakpoint}}{{#action}} bpaction{{/action}} code-line" data-line="{{line}}">
+                    <span class="lineno">{{line}}</span>
+                    <span class="code">{{code}}</span>
+                </div>
+            {{/rows}}
+        </div>
     </script>
 
     <! template for the top bar of the program stack windows - show the current sub & args>

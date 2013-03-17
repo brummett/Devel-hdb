@@ -6,39 +6,40 @@
 .PerlValue {
     zoom: 80%;
 }
-.program-code {
-    /* zoom: 80%; */
+.program-code .active .code  {
+    background-color: rgba(0,101,204,0.7) !important;
 }
-table.program-code td {
-    border-top: 0px;
-    padding-top: 0px;
+.program-code .code-line:hover .code {
+    background-color: rgba(0,0,0,0.05);
+}
+.program-code .breakpoint .lineno {
+    background-color: rgba(255,0,0,1);
+}
+.program-code .conditional-breakpoint .lineno {
+    background-color: rgba(0,0,255,1);
+}
+.program-code .inactive-breakpoint .lineno {
+    background-color: rgba(255,0,0,0.4);
+}
+.program-code .bpaction .lineno {
+    border-color: black;
+}
+.program-code .unbreakable .lineno {
+    text-decoration: line-through;
+}
+.program-code .lineno {
+    width: 5%;
     padding-bottom: 1px;
-}
-table.program-code tr.active td.code  {
-    background-color: rgba(0,101,204,1);
-}
-table.program-code td.lineno span {
-    width: 2em;
     border-radius: 50% 50%;
     border: 1px solid transparent;
     padding: 1px;
     display: inline-block;
     text-align: center;
 }
-table.program-code tr.breakpoint td.lineno span {
-    background-color: rgba(255,0,0,1);
-}
-table.program-code tr.conditional-breakpoint td.lineno span {
-    background-color: rgba(0,0,255,1);
-}
-table.program-code tr.inactive-breakpoint td.lineno span  {
-    background-color: rgba(255,0,0,0.4);
-}
-table.program-code tr.bpaction td.lineno span {
-    border-color: black;
-}
-table.program-code tr.unbreakable td.lineno {
-    text-decoration: line-through;
+.program-code .code {
+    width: 94%;
+    padding-bottom: 1px;
+    display: inline-block;
 }
 
 .code {
