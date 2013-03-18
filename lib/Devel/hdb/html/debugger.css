@@ -173,7 +173,6 @@ body {
 }
 
 #watch-expressions {
-    float: left;
     width: 249px;  /* leave 1px for the #filewindow border */
     margin-right: -250px;
 /*    margin-left: 0.5em;*/
