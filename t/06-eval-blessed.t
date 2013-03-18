@@ -105,11 +105,12 @@ $resp = $mech->post("${url}eval", content => '$re');
 ok($resp->is_success, 'Get value of a Regex instance');
 $answer = $json->decode($resp->content);
 ok(delete $answer->{data}->{result}->{__refaddr}, 'encoded has a refaddr');
+my $expected_re = qr(abc) . '';
 is_deeply($answer->{data},
     { expr => '$re',
       result => { __blessed => 'Regexp',
                   __reftype => 'REGEXP',
-                  __value => '(?-xism:abc)',
+                  __value => $expected_re,
                 }
     },
     'value is correct');
