@@ -176,14 +176,15 @@ body {
     z-index: 9;  /* higher than watch-expressions, lower than drag-divider */
     position: absolute;
     width: 15px;
-    margin-right: -16px
 }
 #breakpoints {
-    width: 0;
+    width: 100%;
     background-color: purple;
     float: left;
+    margin-right: -15px;
 }
 #breakpoint-container-handle {
+    width: 15px;
     background-color: lightgray;
     float: left;
 }
