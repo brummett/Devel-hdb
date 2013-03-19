@@ -81,17 +81,32 @@
     <! template for the breakpoint right-click menu>
     <script id="breakpoint-right-click-template" type="text/x-handlebars-template">
         <div>
-            <i class="icon-stop"></i> <span class="breakpoint-condition" data-filename="{{filename}}" data-lineno="{{lineno}}">
+            <i class="icon-stop"></i>&nbsp;<span class="breakpoint-condition" data-filename="{{filename}}" data-lineno="{{lineno}}">
                 {{#ifDefined condition}}<span>{{condition}}</span>
                 {{else}}<span class="label">none</span>{{/ifDefined}}
                 </span>
         </div>
         <div>
-            <i class="icon-tasks"></i> <span class="action" data-filename="{{filename}}" data-lineno="{{lineno}}">
+            <i class="icon-tasks"></i>&nbsp;<span class="action" data-filename="{{filename}}" data-lineno="{{lineno}}">
                 {{#ifDefined action}}<span>{{action}}</span>
                 {{else}}<span class="label">none</span>{{/ifDefined}}
                 </span>
         </div>
+    </script>
+
+    <! template for an item in the breakpoints pane list>
+    <script id="breakpoint-list-item-template" type="text/x-handlebars-template">
+        <li data-filename="{{filename}}" data-lineno="{{lineno}}">
+            <div>
+            <span class="remove-watched-expression close-button">
+                <i class="icon-remove-sign icon-white"></i>
+            </span>
+                <input type="checkbox" {{#if enabled}}checked="checked"{{/if}}>
+                <small>{{filename}}: {{lineno}}</small>
+                <i class="icon-share-alt"></i>
+            </div>
+            {{> breakpoint-right-click-template}}
+        </li>
     </script>
 
 </head>
@@ -127,6 +142,7 @@
             <div id="breakpoint-container" class="container-column">
                 <div id="breakpoints" class="container-column managed-height">
                     <strong>Breakpoints</strong>
+                    <ol id="breakpoints-list"></ul>
                 </div>
                 <div id="breakpoint-container-handle" class="container-column managed-height">
                     <div style="height: 50%"></div>
