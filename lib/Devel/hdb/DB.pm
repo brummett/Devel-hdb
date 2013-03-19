@@ -6,7 +6,6 @@ package Devel::hdb::DB;
 use Scalar::Util;
 
 package DB;
-no strict;
 
 # NOTE: Look into trapping $SIG{__DIE__} se we can report
 # untrapped exceptions back to the debugger.
@@ -18,32 +17,44 @@ no strict;
 
 use vars qw( %dbline @dbline );
 
+our($stack_depth,
+    $single,
+    $signal,
+    $trace,
+    $step_over_depth,
+    $dbobj,
+    $ready,
+    @saved,
+    $usercontext,
+    $in_debugger,
+    $finished,
+    $user_requested_exit,
+    $long_call,
+    $eval_string,
+    @AUTOLOAD_names,
+    $sub,
+);
+
 BEGIN {
-    $DB::stack_depth    = 0;
-    $DB::single         = 0;
-    $DB::step_over_depth = undef;
-    $DB::dbobj          = undef;
-    $DB::ready          = 0;
-    @DB::stack          = ();
-    $DB::deep           = 100;
-    @DB::saved          = ();
-    $DB::usercontext    = '';
-    $DB::in_debugger    = 0;
-    # These are set from caller inside DB::DB()
-    $DB::package        = '';
-    $DB::filename       = '';
-    $DB::line           = '';
+    $stack_depth    = 0;
+    $single         = 0;
+    $step_over_depth = undef;
+    $dbobj          = undef;
+    $ready          = 0;
+    @saved          = ();
+    $usercontext    = '';
+    $in_debugger    = 0;
 
     # Controlling program end of life
-    $DB::finished       = 0;
-    $DB::user_requested_exit = 0;
+    $finished       = 0;
+    $user_requested_exit = 0;
 
     # Used to postpone some action between calls to DB::DB:
-    $DB::long_call      = undef;
-    $DB::eval_string    = undef;
+    $long_call      = undef;
+    $eval_string    = undef;
 
     # Remember AUTOLOAD sub names
-    @DB::AUTOLOAD_names = ();
+    @AUTOLOAD_names = ();
 }
 
 sub save {
@@ -76,10 +87,10 @@ sub is_breakpoint {
         return 1;
     }
 
-    local(*dbline) = $main::{'_<' . $filename};
+    my $dbline = $main::{'_<' . $filename};
 
-    if ($dbline{$line}) {
-        my($is_break) = split("\0", $dbline{$line});
+    if ($dbline->{$line}) {
+        my($is_break) = split("\0", $dbline->{$line});
         # TODO - allow user to set 1-time unconditional BP for run-to
         # see perl5db.pl and search for ";9"
         if ($is_break eq '1') {
@@ -108,15 +119,15 @@ sub postponed {
 sub DB {
     return unless $ready;
 
-    local($package, $filename, $line) = caller;
+    my($package, $filename, $line) = caller;
 
     local $usercontext =
-        '($@, $!, $^E, $,, $/, $\, $^W) = @saved;' . "package $package;";
+        'no strict; no warnings; ($@, $!, $^E, $,, $/, $\, $^W) = @DB::saved;' . "package $package;";
 
-    local(*dbline) = $main::{'_<' . $filename};
+    my $dbline = $main::{'_<' . $filename};
     my $action;
-    if ($dbline{$line}
-        && ($action = (split( /\0/, $dbline{$line}))[1])
+    if ($dbline->{$line}
+        && ($action = (split( /\0/, $dbline->{$line}))[1])
         && $action
     ) {
         $eval_string = $action;
@@ -127,7 +138,7 @@ sub DB {
         return;
     }
     $step_over_depth = undef;
-    $DB::saved_stack_depth = $stack_depth;
+#    $DB::saved_stack_depth = $stack_depth;
 
     save();
 
@@ -156,12 +167,13 @@ sub DB {
 }
 
 sub sub {
+    no strict 'refs';
     goto &$sub if (! $ready or index($sub, 'hdbStackTracker') == 0);
 
     local @AUTOLOAD_names = @AUTOLOAD_names;
     if (index($sub, '::AUTOLOAD', -10) >= 0) {
         my $caller_pkg = substr($sub, 0, length($sub)-8);
-        $caller_AUTOLOAD = ${ $caller_pkg . 'AUTOLOAD'};
+        my $caller_AUTOLOAD = ${ $caller_pkg . 'AUTOLOAD'};
         push @AUTOLOAD_names, $caller_AUTOLOAD;
     }
     my $stack_tracker;
@@ -176,8 +188,8 @@ sub sub {
 }
 
 sub hdbStackTracker::DESTROY {
-    $DB::stack_depth--;
-    $DB::single = 1 if (defined($DB::step_over_depth) and $DB::step_over_depth >= $stack_depth);
+    $stack_depth--;
+    $single = 1 if (defined($step_over_depth) and $step_over_depth >= $stack_depth);
 }
 
 # Count how many stack frames we should discard when we're
@@ -238,10 +250,11 @@ sub set_breakpoint {
     my $line = shift;
     my %params = @_;
 
+    #no strict 'refs';
     local(*dbline) = $main::{'_<' . $filename};
 
-    no warnings 'uninitialized';
-    my @bp = split("\0", $dbline{$line});
+    my @bp;
+    @bp = split("\0", $dbline{$line}) if ($dbline{$line});
     if (exists $params{condition}) {
         $bp[0] = $params{condition};
     }
@@ -261,7 +274,7 @@ sub get_breakpoint {
         return map { $class->get_breakpoint($_) } $class->loaded_files;
     }
 
-    no strict 'refs';
+    #no strict 'refs';
     local(*dbline) = $main::{'_<' . $filename};
 
     my $line = shift;
@@ -286,7 +299,7 @@ sub get_breakpoint {
 sub is_breakable {
     my($class, $filename, $line) = @_;
 
-    no strict 'refs';
+    #no strict 'refs';
     local(*dbline) = $main::{'_<' . $filename};
     return $dbline[$line] + 0;
 }
@@ -346,16 +359,16 @@ sub eval {
 
     $eval_string = _fixup_expr_for_eval($eval_string);
 
-    local @result;
+    my @result;
     {
         # Try to keep the user code from messing  with us. Save these so that
         # even if the eval'ed code changes them, we can put them back again.
         # Needed because the user could refer directly to the debugger's
         # package globals (and any 'my' variables in this containing scope)
         # inside the eval(), and we want to try to stay safe.
-        local $orig_trace   = $trace;
-        local $orig_single  = $single;
-        local $orig_cd      = $^D;
+        my $orig_trace   = $trace;
+        my $orig_single  = $single;
+        my $orig_cd      = $^D;
 
         # Untaint the incoming eval() argument.
         { ($eval_string) = $eval_string =~ /(.*)/s; }
@@ -394,7 +407,7 @@ END {
             $long_call->({ type => 'hangup'});
         } else {
             $long_call->({ type => 'termination', data => { exit_code => $? }});
-            $exit_code = $?;
+            #$exit_code = $?;
             # These two will trigger DB::DB and the event loop
             $single=1;
             DB::fake::at_exit();
