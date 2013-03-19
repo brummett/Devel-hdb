@@ -172,10 +172,30 @@ body {
     z-index: 99;
 }
 
-#watch-expressions {
-    width: 249px;  /* leave 1px for the #filewindow border */
-    margin-right: -250px;
+#breakpoint-container {
+    z-index: 9;  /* higher than watch-expressions, lower than drag-divider */
+    position: absolute;
+    width: 15px;
+    margin-right: -16px
+}
+#breakpoints {
+    width: 0;
+    background-color: purple;
+    float: left;
+}
+#breakpoint-container-handle {
+    background-color: lightgray;
+    float: left;
+}
+
+#side-tray {
+    width: 234px;  /* leave 1px for the #filewindow border */
+    margin-right: -234px;
 /*    margin-left: 0.5em;*/
+}
+#watch-expressions {
+    width: 100%;
+    margin-left: 15px;  /* should be the same as the #breakpoint-container-handle width */
 }
 div#watch-expressions-title {
     margin-bottom: 0.25em;
