@@ -177,6 +177,9 @@ body {
     position: absolute;
     width: 15px;
 }
+#breakpoint-container.extended {
+    box-shadow: 10px 10px 10px;
+}
 #breakpoints {
     width: 100%;
     background-color: purple;
