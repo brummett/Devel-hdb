@@ -87,16 +87,17 @@ sub is_breakpoint {
         return 1;
     }
 
-    my $dbline = $main::{'_<' . $filename};
+    local(*dbline)= $main::{'_<' . $filename};
 
-    if ($dbline->{$line}) {
-        my($is_break) = split("\0", $dbline->{$line});
+    if ($dbline{$line}) {
+        my($condition) = $dbline{$line}->{condition};
+        return unless $condition;
         # TODO - allow user to set 1-time unconditional BP for run-to
         # see perl5db.pl and search for ";9"
-        if ($is_break eq '1') {
+        if ($condition eq '1') {
             return 1
-        } elsif (length($is_break)) {
-            $eval_string = $is_break;
+        } elsif (length($condition)) {
+            $eval_string = $condition;
             my $result = &eval;
             if ($result->{result}) {
                 $single = $signal = 0;
@@ -124,10 +125,10 @@ sub DB {
     local $usercontext =
         'no strict; no warnings; ($@, $!, $^E, $,, $/, $\, $^W) = @DB::saved;' . "package $package;";
 
-    my $dbline = $main::{'_<' . $filename};
+    local(*dbline) = $main::{'_<' . $filename};
     my $action;
-    if ($dbline->{$line}
-        && ($action = (split( /\0/, $dbline->{$line}))[1])
+    if ($dbline{$line}
+        && ($action = $dbline{$line}->{action})
         && $action
     ) {
         $eval_string = $action;
@@ -253,16 +254,13 @@ sub set_breakpoint {
     #no strict 'refs';
     local(*dbline) = $main::{'_<' . $filename};
 
-    my @bp;
-    @bp = split("\0", $dbline{$line}) if ($dbline{$line});
     if (exists $params{condition}) {
-        $bp[0] = $params{condition};
+        $dbline{$line}->{condition} = $params{condition};
     }
     if (exists $params{action}) {
-        $bp[1] = $params{action};
+        $dbline{$line}->{action} = $params{action};
     }
 
-    $dbline{$line} = join("\0", @bp);
     return 1;
 }
 
@@ -279,17 +277,15 @@ sub get_breakpoint {
 
     my $line = shift;
     if ($line) {
-        my($condition, $action) = split("\0", $dbline{$line});
-        my %bp = ( condition => $condition );
-        $bp{action} = $action if defined $action;
+        my %bp = map { exists $dbline{$line}->{$_} ? ( $_ => $dbline{$line}->{$_} ) : () }
+                    qw(condition action);
         return { filename => $filename, lineno => $line, %bp };
 
     } else {
         my @bps;
         while( my($line, $str) = each( %dbline ) ) {
-            my($condition, $action) = split("\0", $str);
-            my %bp = ( condition => $condition );
-            $bp{action} = $action if defined $action;
+            my %bp = map { exists $dbline{$line}->{$_} ? ( $_ => $dbline{$line}->{$_} ) : () }
+                        qw(condition action);
             push @bps, { filename => $filename, lineno => $line, %bp };
         }
         return @bps;
