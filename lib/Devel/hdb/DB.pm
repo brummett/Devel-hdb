@@ -259,7 +259,11 @@ sub set_breakpoint {
     local(*dbline) = $main::{'_<' . $filename};
 
     if (exists $params{condition}) {
-        $dbline{$line}->{condition} = $params{condition};
+        if ($params{condition}) {
+            $dbline{$line}->{condition} = $params{condition};
+        } else {
+            delete $dbline{$line}->{condition};
+        }
     }
     if (exists $params{condition_inactive}) {
         if ($params{condition_inactive}) {
@@ -269,7 +273,11 @@ sub set_breakpoint {
         }
     }
     if (exists $params{action}) {
-        $dbline{$line}->{action} = $params{action};
+        if ($params{action}) {
+            $dbline{$line}->{action} = $params{action};
+        } else {
+            delete $dbline{$line}->{action};
+        }
     }
     if (exists $params{action_inactive}) {
         if ($params{action_inactive}) {
@@ -277,6 +285,10 @@ sub set_breakpoint {
         } else {
             delete $dbline{$line}->{action_inactive}
         }
+    }
+
+    unless (keys %{ $dbline{$line} }) {
+        $dbline{$line} = undef;
     }
 
     return 1;
