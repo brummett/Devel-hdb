@@ -127,10 +127,12 @@ sub DB {
     local $usercontext =
         'no strict; no warnings; ($@, $!, $^E, $,, $/, $\, $^W) = @DB::saved;' . "package $package;";
 
+    # Run any action associated with this line
     local(*dbline) = $main::{'_<' . $filename};
     my $action;
     if ($dbline{$line}
         && ($action = $dbline{$line}->{action})
+        && (! $dbline{$line}->{action_inactive})
         && $action
     ) {
         $eval_string = $action;
