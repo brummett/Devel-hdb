@@ -44,7 +44,7 @@
     <script id="program-listing-template" type="text/x-handlebars-template">
         <div class="program-code" data-filename="{{filename}}">
             {{#rows}}
-                <div class="{{#active}}active{{/active}}{{#unbreakable}} unbreakable{{/unbreakable}}{{#breakpoint}} breakpoint{{/breakpoint}}{{#inactivebreakpoint}} inactive-breakpoint{{/inactivebreakpoint}}{{#action}} bpaction{{/action}} code-line" data-line="{{line}}">
+                <div class="{{#active}}active{{/active}}{{#unbreakable}} unbreakable{{/unbreakable}}{{#breakpoint}} breakpoint{{/breakpoint}}{{#inactivebreakpoint}} inactive-breakpoint{{/inactivebreakpoint}}{{#action}} bpaction{{/action}} code-line" data-lineno="{{line}}">
                     <span class="lineno"><span>{{line}}</span></span>
                     <span class="code">{{code}}</span>
                 </div>
@@ -78,21 +78,31 @@
         </div>
     </script>
 
+    <! template for a breakpoint condition in the breakpoint menu/list>
+    <script id="breakpoint-condition-template" type="text/x-handlebars-template">
+        {{#ifDefined condition}}<span>{{condition}}</span>
+        {{else}}<span class="label">none</span>{{/ifDefined}}
+    </script>
+    <! template for a breakpoint action in the breakpoint menu/list>
+    <script id="breakpoint-action-template" type="text/x-handlebars-template">
+        {{#ifDefined action}}<span>{{action}}</span>
+        {{else}}<span class="label">none</span>{{/ifDefined}}
+    </script>
     <! template for the breakpoint right-click menu>
     <script id="breakpoint-right-click-template" type="text/x-handlebars-template">
-        <div>
+        <div class="breakpoint-marker" data-filename="{{filename}}" data-lineno="{{lineno}}">
             <input type="checkbox" class="toggle-breakpoint" {{#if conditionEnabled}}checked="checked"{{/if}}>
-            <i class="icon-stop"></i>&nbsp;<span class="breakpoint-condition" data-filename="{{filename}}" data-lineno="{{lineno}}">
-                {{#ifDefined condition}}<span>{{condition}}</span>
-                {{else}}<span class="label">none</span>{{/ifDefined}}
-                </span>
+            <i class="icon-stop"></i>&nbsp;
+            <span class="breakpoint-condition">
+                {{>breakpoint-condition-template}}
+            </span>
         </div>
         <div>
             <input type="checkbox" class="toggle-action" {{#if actionEnabled}}checked="checked"{{/if}}>
-            <i class="icon-tasks"></i>&nbsp;<span class="action" data-filename="{{filename}}" data-lineno="{{lineno}}">
-                {{#ifDefined action}}<span>{{action}}</span>
-                {{else}}<span class="label">none</span>{{/ifDefined}}
-                </span>
+            <i class="icon-tasks"></i>&nbsp;
+            <span class="action">
+                {{>breakpoint-action-template}}
+            </span>
         </div>
     </script>
 
