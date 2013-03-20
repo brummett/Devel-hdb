@@ -81,12 +81,14 @@
     <! template for the breakpoint right-click menu>
     <script id="breakpoint-right-click-template" type="text/x-handlebars-template">
         <div>
+            <input type="checkbox" class="toggle-breakpoint" {{#if conditionEnabled}}checked="checked"{{/if}}>
             <i class="icon-stop"></i>&nbsp;<span class="breakpoint-condition" data-filename="{{filename}}" data-lineno="{{lineno}}">
                 {{#ifDefined condition}}<span>{{condition}}</span>
                 {{else}}<span class="label">none</span>{{/ifDefined}}
                 </span>
         </div>
         <div>
+            <input type="checkbox" class="toggle-action" {{#if actionEnabled}}checked="checked"{{/if}}>
             <i class="icon-tasks"></i>&nbsp;<span class="action" data-filename="{{filename}}" data-lineno="{{lineno}}">
                 {{#ifDefined action}}<span>{{action}}</span>
                 {{else}}<span class="label">none</span>{{/ifDefined}}
@@ -101,7 +103,6 @@
             <span class="remove-watched-expression close-button">
                 <i class="icon-remove-sign icon-white"></i>
             </span>
-                <input type="checkbox" {{#if enabled}}checked="checked"{{/if}}>
                 <small>{{filename}}: {{lineno}}</small>
                 <i class="icon-share-alt"></i>
             </div>

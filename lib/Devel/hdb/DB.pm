@@ -308,14 +308,14 @@ sub get_breakpoint {
     my $line = shift;
     if ($line) {
         my %bp = map { exists $dbline{$line}->{$_} ? ( $_ => $dbline{$line}->{$_} ) : () }
-                    qw(condition action);
+                    qw(condition action condition_inactive action_inactive);
         return { filename => $filename, lineno => $line, %bp };
 
     } else {
         my @bps;
         while( my($line, $str) = each( %dbline ) ) {
             my %bp = map { exists $dbline{$line}->{$_} ? ( $_ => $dbline{$line}->{$_} ) : () }
-                        qw(condition action);
+                        qw(condition action condition_inactive action_inactive);
             push @bps, { filename => $filename, lineno => $line, %bp };
         }
         return @bps;
