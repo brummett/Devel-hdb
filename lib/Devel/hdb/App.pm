@@ -259,7 +259,12 @@ sub set_breakpoint {
 
     DB->set_breakpoint($filename, $line, %req);
 
-    $resp->data( DB->get_breakpoint($filename, $line) );
+    my $resp_data = DB->get_breakpoint($filename, $line);
+    unless ($resp_data) {
+        # This breakpoint was deleted
+        $resp_data = { filename => $filename, lineno => $line };
+    }
+    $resp->data( $resp_data );
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
