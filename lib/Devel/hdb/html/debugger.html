@@ -108,12 +108,12 @@
 
     <! template for an item in the breakpoints pane list>
     <script id="breakpoint-list-item-template" type="text/x-handlebars-template">
-        <li data-filename="{{filename}}" data-lineno="{{lineno}}">
+        <li class="breakpoint-list-item" data-filename="{{filename}}" data-lineno="{{lineno}}">
             <div>
-            <span class="remove-watched-expression close-button">
-                <i class="icon-remove-sign icon-white"></i>
-            </span>
-                <small>{{filename}}: {{lineno}}</small>
+                <span class="remove-breakpoint close-button">
+                    <i class="icon-remove-sign icon-white"></i>
+                </span>
+                <small>line {{lineno}}</small>
                 <i class="icon-share-alt"></i>
             </div>
             {{> breakpoint-right-click-template}}

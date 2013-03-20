@@ -13,13 +13,13 @@
     background-color: rgba(0,0,0,0.05);
 }
 .program-code .breakpoint .lineno span {
-    background-color: rgba(255,0,0,1);
+    background-color: rgb(255,0,0);
 }
 .program-code .conditional-breakpoint .lineno span {
-    background-color: rgba(0,0,255,1);
+    background-color: rgb(0,0,255);
 }
 .program-code .inactive-breakpoint .lineno span {
-    background-color: rgba(255,0,0,0.4);
+    opacity: 0.4;
 }
 .program-code .bpaction .lineno span {
     border-color: black;
@@ -186,10 +186,21 @@ body {
     float: left;
     margin-right: -15px;
 }
+#breakpoints-list {
+    list-style: none;
+    margin-left: 1em;
+}
 #breakpoint-container-handle {
     width: 15px;
     background-color: lightgray;
     float: left;
+}
+.breakpoint-list-item {
+    list-style: none;
+    border-bottom: 1px solid black;
+}
+.breakpoint-list-item:before {
+
 }
 
 #side-tray {
