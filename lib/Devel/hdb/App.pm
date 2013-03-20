@@ -238,7 +238,9 @@ sub set_breakpoint {
     my $filename = $req->param('f');
     my $line = $req->param('l');
     my $condition = $req->param('c');
+    my $condition_inactive = $req->param('ci');
     my $action = $req->param('a');
+    my $action_inactive = $req->param('ai');
 
     if (! DB->is_loaded($filename)) {
         return [ 404, ['Content-Type' => 'text/html'], ["$filename is not loaded"]];
@@ -251,7 +253,9 @@ sub set_breakpoint {
     my $params = $req->parameters;
     my %req;
     $req{condition} = $condition if (exists $params->{'c'});
+    $req{condition_inactive} = $condition_inactive if (exists $params->{'ci'});
     $req{action} = $action if (exists $params->{'a'});
+    $req{action_inactive} = $action_inactive if (exists $params->{'ai'});
 
     DB->set_breakpoint($filename, $line, %req);
 

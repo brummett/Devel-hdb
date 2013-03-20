@@ -90,6 +90,8 @@ sub is_breakpoint {
     local(*dbline)= $main::{'_<' . $filename};
 
     if ($dbline{$line}) {
+        return if $dbline{$line}->{condition_inactive};
+
         my($condition) = $dbline{$line}->{condition};
         return unless $condition;
         # TODO - allow user to set 1-time unconditional BP for run-to
@@ -257,8 +259,22 @@ sub set_breakpoint {
     if (exists $params{condition}) {
         $dbline{$line}->{condition} = $params{condition};
     }
+    if (exists $params{condition_inactive}) {
+        if ($params{condition_inactive}) {
+            $dbline{$line}->{condition_inactive} = 1;
+        } else {
+            delete $dbline{$line}->{condition_inactive}
+        }
+    }
     if (exists $params{action}) {
         $dbline{$line}->{action} = $params{action};
+    }
+    if (exists $params{action_inactive}) {
+        if ($params{action_inactive}) {
+            $dbline{$line}->{action_inactive} = 1;
+        } else {
+            delete $dbline{$line}->{action_inactive}
+        }
     }
 
     return 1;
