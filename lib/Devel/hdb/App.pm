@@ -58,19 +58,9 @@ sub init_debugger {
     }
 
     return if $self->{__init__};
-
     $self->{__init__} = 1;
 
-    # HTTP::Server::PSGI doesn't have a method to get the listen socket :(
-    my $s = $self->{server}->{listen_sock};
-    #$self->{base_url} = sprintf('http://%s:%d/%d/',
-    #        $s->sockhost, $s->sockport, $$);
-    $self->{base_url} = sprintf('http://%s:%d/',
-            $s->sockhost, $s->sockport);
-
-    select STDOUT;
-    local $| = 1;
-    print "Debugger listening on ",$self->{base_url},"\n";
+    $self->_announce();
 
     $self->{router} = Devel::hdb::Router->new();
     for ($self->{router}) {
@@ -93,6 +83,19 @@ sub init_debugger {
         $_->post("/eval", sub { $self->do_eval(@_) });
         $_->post("/getvar", sub { $self->do_getvar(@_) });
     }
+}
+
+sub _announce {
+    my $self = shift;
+
+    # HTTP::Server::PSGI doesn't have a method to get the listen socket :(
+    my $s = $self->{server}->{listen_sock};
+    $self->{base_url} = sprintf('http://%s:%d/',
+            $s->sockhost, $s->sockport);
+
+    select STDOUT;
+    local $| = 1;
+    print "Debugger pid $$ listening on ",$self->{base_url},"\n";
 }
 
 
