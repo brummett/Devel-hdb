@@ -154,9 +154,8 @@ sub DB {
         $package = 'main';
     }
 
-    unless ($dbobj) {
-        $dbobj = Devel::hdb::App->new();
-    }
+    $dbobj = Devel::hdb::App->get();
+
     do {
         local($in_debugger) = 1;
         if ($DB::long_call) {

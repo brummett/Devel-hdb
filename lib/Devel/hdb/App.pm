@@ -19,11 +19,14 @@ use Devel::hdb::Router;
 
 use vars qw( $parent_pid ); # when running in the test harness
 
-sub new {
+our $APP_OBJ;
+sub get {
+    return $APP_OBJ if $APP_OBJ;  # get() is a singleton
+
     my $class = shift;
     my %server_params = (host => $Devel::hdb::HOST || '127.0.0.1', @_);
 
-    my $self = bless {}, $class;
+    my $self = $APP_OBJ = bless {}, $class;
 
     $server_params{'port'} = $Devel::hdb::PORT if defined $Devel::hdb::PORT;
 
