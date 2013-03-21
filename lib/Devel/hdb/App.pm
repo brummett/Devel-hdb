@@ -24,20 +24,29 @@ sub get {
     return $APP_OBJ if $APP_OBJ;  # get() is a singleton
 
     my $class = shift;
-    my %server_params = (host => $Devel::hdb::HOST || '127.0.0.1', @_);
 
     my $self = $APP_OBJ = bless {}, $class;
 
-    $server_params{'port'} = $Devel::hdb::PORT if defined $Devel::hdb::PORT;
+    $self->_make_listen_socket();
+    $self->{json} = JSON->new();
+
+    $parent_pid = eval { getppid() } if ($Devel::hdb::TESTHARNESS);
+    return $self;
+}
+
+sub _make_listen_socket {
+    my $self = shift;
+    my %server_params = @_;
+
+    $server_params{host} = $Devel::hdb::HOST || '127.0.0.1';
+    if (!exists($server_params{port}) and defined($Devel::hdb::PORT)) {
+        $server_params{port} = $Devel::hdb::PORT;
+    }
 
     $self->{server} = Devel::hdb::Server->new(
                         %server_params,
                         server_ready => sub { $self->init_debugger },
                     );
-    $self->{json} = JSON->new();
-
-    $parent_pid = eval { getppid() } if ($Devel::hdb::TESTHARNESS);
-    return $self;
 }
 
 sub init_debugger {
