@@ -27,7 +27,11 @@ expression and action.  When the expression evaluates true, the debugger will
 stop on that line.
 
 A line number with a red circle is an unconditional breakpoint.  A blue circle
-is a conditional breakpoint.  The circle is outlined if that line has an action.
+is a conditional breakpoint.  The circle is dimmed if the breakpoint is
+inactive, and outlined if that line has an action.
+
+Click on the thick border between the code and watch expression panes to slide
+out the breakpoint list.
 
 ### Watch Expressions
 

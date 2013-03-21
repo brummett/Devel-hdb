@@ -7,7 +7,7 @@ use Devel::hdb::App;
 use Devel::hdb::DB;
 use IO::Socket::INET;
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 sub import {
     my $class = shift;
@@ -64,7 +64,8 @@ And to listen on any interface:
 =head2 Interface
 
 The GUI is divided into three main parts: Control buttons, Code browser and
-Watch expressions.
+Watch expressions.  Additionally, click on the thick border between the code
+and watch panes to slide out the breakpoint list.
 
 =over 4
 
@@ -115,7 +116,8 @@ through if that line is not breakable.  For breakable lines, clicking on the
 line number will set an unconditional breakpoint and turn the number red.
 Right-clicking on a breakable line number will bring up a menu where a
 breakpoint condition and action can be set.  Lines with conditional breakpoints
-are blue.  Lines with actions habe a circle outline.
+are blue.  Lines with actions have a circle outline, and are dimmed when the
+breakpoint is inactive.
 
 The banner at the top of the Code Pane shows the current function and its
 arguments.  Clicking on the banner will scoll the Code Pane to show the
@@ -137,7 +139,7 @@ them, click the blue cicle.
 
 =head2 Included Code
 
-This package includes a these third party libraries:
+This package includes these third party libraries:
 
 =over
 
