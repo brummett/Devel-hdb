@@ -231,7 +231,7 @@ sub do_getvar {
 
 
 # sets a breakpoint on line l of file f with condition c
-# Make c=1 for an unconditional bp, c=0 to clear it
+# Make c=1 for an unconditional bp, c='' to clear it
 sub set_breakpoint {
     my($self, $env) = @_;
     my $req = Plack::Request->new($env);
