@@ -373,8 +373,11 @@ sub loaded_files {
 }
 
 sub long_call {
-    my($class, $cb) = @_;
-    $DB::long_call = $cb;
+    my $class = shift;
+    if (@_) {
+        $DB::long_call = shift;
+    }
+    return $DB::long_call;
 }
 
 # FIXME: I think the keys for %DB::sub is fully qualified
