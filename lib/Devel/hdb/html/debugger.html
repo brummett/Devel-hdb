@@ -91,18 +91,20 @@
     <! template for the breakpoint right-click menu>
     <script id="breakpoint-right-click-template" type="text/x-handlebars-template">
         <div class="breakpoint-marker" data-filename="{{filename}}" data-lineno="{{lineno}}">
-            <input type="checkbox" class="toggle-breakpoint" {{#if conditionEnabled}}checked="checked"{{/if}}>
-            <i class="icon-stop"></i>&nbsp;
-            <span class="breakpoint-condition">
-                {{>breakpoint-condition-template}}
-            </span>
-        </div>
-        <div>
-            <input type="checkbox" class="toggle-action" {{#if actionEnabled}}checked="checked"{{/if}}>
-            <i class="icon-tasks"></i>&nbsp;
-            <span class="action">
-                {{>breakpoint-action-template}}
-            </span>
+            <div>
+                <input type="checkbox" class="toggle-breakpoint" {{#if conditionEnabled}}checked="checked"{{/if}}>
+                <i class="icon-stop"></i>&nbsp;
+                <span class="breakpoint-condition">
+                    {{>breakpoint-condition-template}}
+                </span>
+            </div>
+            <div>
+                <input type="checkbox" class="toggle-action" {{#if actionEnabled}}checked="checked"{{/if}}>
+                <i class="icon-tasks"></i>&nbsp;
+                <span class="action">
+                    {{>breakpoint-action-template}}
+                </span>
+            </div>
         </div>
     </script>
 
