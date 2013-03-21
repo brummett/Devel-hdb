@@ -209,11 +209,15 @@ sub sub {
     unless ($in_debugger) {
         my $tmp = $sub;
         $stack_depth++;
-        $stack_tracker = \$tmp;
-        bless $stack_tracker, 'hdbStackTracker';
+        $stack_tracker = _new_stack_tracker($tmp);
     }
 
     return &$sub;
+}
+
+sub _new_stack_tracker {
+    my $token = shift;
+    my $self = bless \$token, 'hdbStackTracker';
 }
 
 sub hdbStackTracker::DESTROY {
