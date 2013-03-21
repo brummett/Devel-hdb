@@ -6,6 +6,7 @@ package Devel::hdb::App;
 BEGIN {
     our $PROGRAM_NAME = $0;
     our @saved_ARGV = @ARGV;
+    our $ORIGINAL_PID = $$;
 }
 
 use Devel::hdb::Server;
@@ -80,6 +81,26 @@ sub init_debugger {
         $_->post("/eval", sub { $self->do_eval(@_) });
         $_->post("/getvar", sub { $self->do_getvar(@_) });
     }
+}
+
+
+# Code to get control when the debugged process forks
+sub _install_fork_hook {
+    *CORE::GLOBAL::fork = sub {
+        my $pid = CORE::fork();
+        if (defined($pid) and !$pid) {
+            # In the child.  Make a new listen socket, then tell the original
+            # process what our listen socket is so it can relay that into to
+            # the GUI
+            $parent_pid = undef;
+            our($ORIGINAL_PID) = $$;
+            my $self = Devel::hdb::App->get();
+            my $parent_base_url = $self->{base_url};
+            $self->_make_listen_socket();
+            $self->_notify_parent_of_fork($parent_base_url);
+        }
+        return $pid;
+    };
 }
 
 sub encode {
