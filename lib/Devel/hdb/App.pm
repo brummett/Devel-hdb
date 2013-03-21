@@ -99,24 +99,6 @@ sub _announce {
 }
 
 
-# Code to get control when the debugged process forks
-sub _install_fork_hook {
-    *CORE::GLOBAL::fork = sub {
-        my $pid = CORE::fork();
-        if (defined($pid) and !$pid) {
-            # In the child.  Make a new listen socket, then tell the original
-            # process what our listen socket is so it can relay that into to
-            # the GUI
-            $parent_pid = undef;
-            our($ORIGINAL_PID) = $$;
-            my $self = Devel::hdb::App->get();
-            my $parent_base_url = $self->{base_url};
-            $self->_make_listen_socket();
-            $self->_notify_parent_of_fork($parent_base_url);
-        }
-        return $pid;
-    };
-}
 
 sub encode {
     my $self = shift;

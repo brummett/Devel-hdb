@@ -119,8 +119,33 @@ sub postponed {
 
 }
 
+my $do_once;
+$do_once = sub {
+    # Code to get control when the debugged process forks
+    *CORE::GLOBAL::fork = sub {
+        my $pid = CORE::fork();
+        my $app = Devel::hdb::App->get();
+        my $tracker;
+        if ($pid) {
+            $app->notify_parent_child_was_forked($pid);
+        } elsif (defined $pid) {
+            $app->notify_child_process_is_forked();
+            # These should make it stop after returning from the fork
+            # It's cut-and-paste from Devel::hdb::App::stepout()
+            $DB::single=0;
+            $DB::step_over_depth = $DB::stack_depth - 1;
+            $tracker = _new_stack_tracker($pid);
+        }
+        return $pid;
+    };
+
+    $do_once = sub {};
+};
+
 sub DB {
     return unless $ready;
+
+    $do_once->();
 
     my($package, $filename, $line) = caller;
 
