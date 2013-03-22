@@ -563,11 +563,39 @@ sub new {
     bless $self, $class;
 }
 
-sub encode {
+my @queued;
+sub queue {
+    my $class = shift;
+
+    my $self = $class->new(@_);
+    push @queued, $self;
+    return $self;
+}
+
+sub _make_copy {
     my $self = shift;
 
     my %copy = map { exists($self->{$_}) ? ($_ => $self->{$_}) : () } keys %$self;
-    return JSON::encode_json(\%copy);
+    return \%copy;
+}
+
+sub encode {
+    my $self = shift;
+
+    my $copy = $self->_make_copy();
+
+    my $retval;
+    if (@queued) {
+        foreach ( @queued ) {
+            $_ = $_->_make_copy();
+        }
+        push @queued, $copy;
+        $retval = JSON::encode_json(\@queued);
+        @queued = ();
+    } else {
+        $retval = JSON::encode_json($copy);
+    }
+    return $retval;
 }
 
 sub data {
