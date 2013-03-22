@@ -5,6 +5,21 @@ our @ISA = qw( HTTP::Server::PSGI );
 
 use Socket qw(IPPROTO_TCP TCP_NODELAY);
 
+sub new {
+    my($class, %args) = @_;
+
+    my %supplied_port_arg;
+    if (exists $args{port}) {
+        $supplied_port_arg{port} = delete $args{port};
+    }
+
+    my $self = $class->SUPER::new(%args);
+    if (%supplied_port_arg) {
+        $self->{port} = $supplied_port_arg{port};
+    }
+    return $self;
+}
+
 sub accept_loop {
     my($self, $app) = @_;
 
