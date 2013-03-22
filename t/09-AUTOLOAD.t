@@ -18,9 +18,9 @@ my $resp = $mech->get($url.'continue');
 ok($resp->is_success, 'continue');
 
 $stack = $json->decode($resp->content);
-is($stack->[0]->{data}->[0]->{subroutine}, 'main::AUTOLOAD', 'Stopped in recursive AUTOLOAD');
-is($stack->[0]->{data}->[0]->{subname}, 'AUTOLOAD(bar)', 'Short subname shows the recursive called sub name');
-is($stack->[0]->{data}->[1]->{subname}, 'AUTOLOAD(foo)', 'Short subname shows the first called sub name');
+is($stack->{data}->[0]->{subroutine}, 'main::AUTOLOAD', 'Stopped in recursive AUTOLOAD');
+is($stack->{data}->[0]->{subname}, 'AUTOLOAD(bar)', 'Short subname shows the recursive called sub name');
+is($stack->{data}->[1]->{subname}, 'AUTOLOAD(foo)', 'Short subname shows the first called sub name');
 
 
 __DATA__

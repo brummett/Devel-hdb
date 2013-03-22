@@ -458,18 +458,17 @@ sub eval {
 END {
     $single=0;
     $finished = 1;
+    $in_debugger = 1;
     print "Debugged program pid $$ terminated with exit code $?\n";
 
-    if ($long_call) {
-        if ($user_requested_exit) {
-            $long_call->({ type => 'hangup'});
-        } else {
-            $long_call->({ type => 'termination', data => { exit_code => $? }});
-            #$exit_code = $?;
-            # These two will trigger DB::DB and the event loop
-            $single=1;
-            DB::fake::at_exit();
-        }
+    if ($user_requested_exit) {
+        Devel::hdb::App->get()->notify_program_exit();
+    } else {
+        Devel::hdb::App->get()->notify_program_terminated($?);
+        # These two will trigger DB::DB and the event loop
+        $in_debugger = 0;
+        $single=1;
+        DB::fake::at_exit();
     }
 }
 

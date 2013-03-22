@@ -57,11 +57,12 @@ is_deeply($stack,
 
 $resp = $mech->get($url.'stepin');
 ok($resp->is_success, 'step in');
-my $message = $json->decode($resp->content);
-is($message->[0]->{data}->[0]->{subroutine},
+# expecting 'stack' and 'termination' messages
+my @messages = sort { $a->{type} cmp $b->{type} } @{ $json->decode($resp->content) };
+is($messages[0]->{data}->[0]->{subroutine},
     'DB::fake::at_exit',
     'Stopped in at_exit()');
-is_deeply($message->[1],
+is_deeply($messages[1],
     { type => 'termination', data => { exit_code => 2 } },
     'Got termination message');
 

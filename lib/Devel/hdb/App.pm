@@ -160,7 +160,9 @@ sub do_terminate {
     return sub {
         my $responder = shift;
         my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
-        $writer->write($json->encode({ type => 'hangup' }));
+
+        my $resp = Devel::hdb::App::Response->new('hangup');
+        $writer->write($resp->encode);
         $writer->close();
         exit();
     };
@@ -568,16 +570,10 @@ sub _delay_stack_return_to_client {
         my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
 
-        my @messages;
         DB->long_call( sub {
-            if (@_) {
-                # They want to send additional messages
-                push @messages, shift;
-                return;
-            }
-            # Purposefully not using a response object since we can't encode a list of them
-            unshift @messages, { type => 'stack', rid => $rid, data => $self->_stack };
-            $writer->write($json->encode(\@messages));
+            my $resp = Devel::hdb::App::Response->new('stack', $env);
+            $resp->data( $self->_stack );
+            $writer->write( $resp->encode );
             $writer->close();
         });
     };
@@ -594,6 +590,19 @@ sub app {
 sub run {
     my $self = shift;
     return $self->{server}->run($self->app);
+}
+
+
+sub notify_program_terminated {
+    my $class = shift;
+    my $exit_code = shift;
+
+    my $msg = Devel::hdb::App::Response->queue('termination');
+    $msg->{data}->{exit_code} = $exit_code;
+}
+
+sub notify_program_exit {
+    my $msg = Devel::hdb::App::Response->queue('hangup');
 }
 
 
