@@ -614,7 +614,7 @@ sub new {
     bless $self, $class;
 }
 
-my @queued;
+our @queued;
 sub queue {
     my $class = shift;
 
@@ -640,7 +640,7 @@ sub encode {
         foreach ( @queued ) {
             $_ = $_->_make_copy();
         }
-        push @queued, $copy;
+        unshift @queued, $copy;
         $retval = JSON::encode_json(\@queued);
         @queued = ();
     } else {
