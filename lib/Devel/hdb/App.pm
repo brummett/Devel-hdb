@@ -82,7 +82,18 @@ sub init_debugger {
         $_->get("/exit", sub { $self->do_terminate(@_) });
         $_->post("/eval", sub { $self->do_eval(@_) });
         $_->post("/getvar", sub { $self->do_getvar(@_) });
+        $_->get("/ping", sub { $self->ping(@_) });
     }
+}
+
+sub ping {
+    my($self,$env) = @_;
+
+    my $resp = $self->_resp('ping', $env);
+    return [ 200,
+            [ 'Content-Type' => 'application/json' ],
+            [ $resp->encode() ]
+        ];
 }
 
 sub _announce {
