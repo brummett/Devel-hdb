@@ -136,7 +136,7 @@ sub notify_child_process_is_forked {
             my $resp = $ua->post($parent_base_url
                                 . 'announce_child', { pid => $$, uri => $self->{base_url} });
             unless ($resp->is_success()) {
-                print "sending announce failed :(\n";
+                print STDERR "sending announce failed... exiting\n";
                 exit(1) if ($Devel::hdb::TESTHARNESS);
             }
         }
