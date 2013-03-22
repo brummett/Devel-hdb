@@ -14,6 +14,7 @@ use Plack::Request;
 use IO::File;
 use JSON qw();
 use Scalar::Util;
+use LWP::UserAgent;
 
 use Devel::hdb::Router;
 
@@ -43,10 +44,11 @@ sub _make_listen_socket {
         $server_params{port} = $Devel::hdb::PORT;
     }
 
-    $self->{server} = Devel::hdb::Server->new(
-                        %server_params,
-                        server_ready => sub { $self->init_debugger },
-                    );
+    unless (exists $server_params{server_ready}) {
+        $server_params{server_ready} = sub { $self->init_debugger };
+    }
+
+    $self->{server} = Devel::hdb::Server->new( %server_params );
 }
 
 sub init_debugger {
@@ -82,6 +84,7 @@ sub init_debugger {
         $_->get("/exit", sub { $self->do_terminate(@_) });
         $_->post("/eval", sub { $self->do_eval(@_) });
         $_->post("/getvar", sub { $self->do_getvar(@_) });
+        $_->post("/announce_child", sub { $self->announce_child(@_) });
         $_->get("/ping", sub { $self->ping(@_) });
     }
 }
@@ -110,6 +113,38 @@ sub _announce {
 }
 
 
+# Called in the parent process after a fork
+sub notify_parent_child_was_forked {
+    my($self, $child_pid) = @_;
+
+}
+
+# called in the child process after a fork
+sub notify_child_process_is_forked {
+    my $self = shift;
+
+    $parent_pid = undef;
+    our($ORIGINAL_PID) = $$;
+    my $parent_base_url = $self->{base_url};
+
+    my $announced;
+    my $when_ready = sub {
+        unless ($announced) {
+            $announced = 1;
+            $self->_announce();
+            my $ua = LWP::UserAgent->new();
+            my $resp = $ua->post($parent_base_url
+                                . 'announce_child', { pid => $$, uri => $self->{base_url} });
+            unless ($resp->is_success()) {
+                print "sending announce failed :(\n";
+                exit(1) if ($Devel::hdb::TESTHARNESS);
+            }
+        }
+    };
+
+    # Force it to pick a new port
+    $self->_make_listen_socket(port => undef, server_ready => $when_ready);
+}
 
 sub encode {
     my $self = shift;
@@ -134,6 +169,22 @@ sub do_terminate {
 sub _resp {
     my $self = shift;
     return Devel::hdb::App::Response->new(@_);
+}
+
+sub announce_child {
+    my($self, $env) = @_;
+    my $req = Plack::Request->new($env);
+    my $child_pid = $req->param('pid');
+    my $child_uri = $req->param('uri');
+
+    my $resp = Devel::hdb::App::Response->queue('child_process', $env);
+    $resp->{data} = {
+            pid => $child_pid,
+            uri => $child_uri,
+            run => $child_uri . 'continue&nostop=1'
+        };
+
+    return [200, [], []];
 }
 
 # Evaluate some expression in the debugged program's context.
