@@ -19,6 +19,23 @@
             d.run();
         });
     </script>
+
+    <! template for forked child modal>
+    <script id="forked-child-modal-template" type="text/x-handlebars-template">
+        <div class="modal">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3>Alert</h3>
+            </div>
+            <div class="modal-body">
+                Child process forked with pid {{pid}}
+            </div>
+            <div class="modal-footer">
+                <a href="{{uri}}" class="btn btn-primary debug-child" target="_blank">Open</a>
+            </div>
+        </div>
+    </script>
+
     <! template for Bootstrap nav tabs>
     <script id="nav-tab-template" type="text/x-handlebars-template">
         <li{{#id}} id="{{id}}"{{/id}} class="stack-tab {{class}}{{#active}} active{{/active}}">
