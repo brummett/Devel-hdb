@@ -80,7 +80,7 @@ sub check_child_process_message {
         'uri data looks like a uri');
 
     like($msg->{data}->{run},
-        qr(^${curi}continue&nostop=1$),
+        qr(^${curi}continue\?nostop=1$),
         'run data looks ok');
 
     return ($curi, $cpid);

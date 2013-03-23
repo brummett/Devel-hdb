@@ -183,7 +183,7 @@ sub announce_child {
     $resp->{data} = {
             pid => $child_pid,
             uri => $child_uri,
-            run => $child_uri . 'continue&nostop=1'
+            run => $child_uri . 'continue?nostop=1'
         };
 
     return [200, [], []];
