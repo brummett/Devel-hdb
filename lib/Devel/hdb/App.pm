@@ -552,9 +552,24 @@ sub stepout {
 
 sub continue {
     my $self = shift;
+    my $env = shift;
+
+    my $req = Plack::Request->new($env);
+    my $nostop = $req->param('nostop');
 
     $DB::single=0;
-    return $self->_delay_stack_return_to_client(@_);
+    if ($nostop) {
+        DB->disable_debugger();
+        my $resp = Devel::hdb::App::Response->new('continue', $env);
+        $resp->data({ nostop => 1 });
+        $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
+        return [ 200,
+                    [ 'Content-Type' => 'application/json'],
+                    [ $resp->encode() ]
+                ];
+    }
+
+    return $self->_delay_stack_return_to_client($env);
 }
 
 sub _delay_stack_return_to_client {

@@ -21,6 +21,7 @@ our($stack_depth,
     $single,
     $signal,
     $trace,
+    $debugger_disabled,
     $step_over_depth,
     $dbobj,
     $ready,
@@ -38,6 +39,8 @@ our($stack_depth,
 BEGIN {
     $stack_depth    = 0;
     $single         = 0;
+    $trace          = 0;
+    $debugger_disabled = 0;
     $step_over_depth = undef;
     $dbobj          = undef;
     $ready          = 0;
@@ -143,7 +146,7 @@ BEGIN {
 };
 
 sub DB {
-    return unless $ready;
+    return if (!$ready or $debugger_disabled);
 
     my($package, $filename, $line) = caller;
 
@@ -195,7 +198,7 @@ sub DB {
 
 sub sub {
     no strict 'refs';
-    goto &$sub if (! $ready or index($sub, 'hdbStackTracker') == 0);
+    goto &$sub if (! $ready or index($sub, 'hdbStackTracker') == 0 or $debugger_disabled);
 
     local @AUTOLOAD_names = @AUTOLOAD_names;
     if (index($sub, '::AUTOLOAD', -10) >= 0) {
@@ -454,12 +457,21 @@ sub eval {
     }
 }
 
+sub disable_debugger {
+    # Setting $^P disables single stepping and subrouting entry
+    # bug if the program sets $DB::single explicitly, it'll still enter DB()
+    $^P = 0;  # Stops single-stepping
+    $debugger_disabled = 1;
+}
+
 
 END {
+    print "Debugged program pid $$ terminated with exit code $?\n";
+    return if $debugger_disabled;
+
     $single=0;
     $finished = 1;
     $in_debugger = 1;
-    print "Debugged program pid $$ terminated with exit code $?\n";
 
     if ($user_requested_exit) {
         Devel::hdb::App->get()->notify_program_exit();
