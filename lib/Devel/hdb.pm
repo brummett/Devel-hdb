@@ -137,6 +137,22 @@ them, click the blue cicle.
 
 =back
 
+=head2 Child Processes
+
+The debugger overrides Perl's fork() built-in so that the child process will
+stop with the first statement after the fork().  In the parent process'
+debugger window, it will pop up a dialog with two options
+
+=over
+
+=item Open
+Open a new browser window and debug the child process inside it
+
+=item Detach
+Disables the debugger in the child process, and forces it to run to completion.
+
+=back
+
 =head2 Included Code
 
 This package includes these third party libraries:

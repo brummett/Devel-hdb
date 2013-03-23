@@ -41,6 +41,12 @@ Double-click on an existing expression to edit the expression.
 
 For arrays, hashes and globs, click on the blue circle to collapse/expand it
 
+### Child Processes
+
+If the debugged program forks, it will pop up a dialog giving the option to
+"Open" a new debugger window, or "Detach" and allow it to run without
+stopping.
+
 ## Features
 
 * Single step, step over, step out, continue and exit the debugged program
@@ -54,8 +60,6 @@ Pretty much what you would expect from any debugger.
 
 ### Planned Features
 
-* Get notification when the debugged process forks, with options to debug the
-    child process, or allow it to continue
 * Get notification of untrapped exceptions, and stop at the exception point
 * Step into an arbitrary expression
 * Restart execution at some prior execution point
