@@ -54,7 +54,12 @@ sub start_test_program {
     }
 
     eval "END { Test::More::note('Killing pid $pid'); kill 'TERM',$pid }";
-    return ("http://localhost:${port}/");
+
+    if (wantarray) {
+        return ("http://localhost:${port}/", $pid);
+    } else {
+        return "http://localhost:${port}/";
+    }
 }
 
 # Pick a port not in use by the system
