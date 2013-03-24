@@ -6,7 +6,12 @@ use HdbHelper;
 use WWW::Mechanize;
 use JSON;
 
-use Test::More tests => 15;
+use Test::More;
+if ($^O =~ m/^MS/) {
+    plan skip_all => 'Test hangs on Windows';
+} else {
+    plan tests => 15;
+}
 
 my $url = start_test_program();
 

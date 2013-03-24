@@ -7,7 +7,12 @@ use WWW::Mechanize;
 use JSON;
 use Time::HiRes qw(sleep);
 
-use Test::More tests => 4;
+use Test::More;
+if ($^O =~ m/^MS/) {
+    plan skip_all => 'Test hangs on Windows';
+} else {
+    plan tests => 4;
+}
 
 my($url,$pid) = start_test_program();
 

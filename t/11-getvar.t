@@ -8,7 +8,12 @@ use JSON;
 
 use Devel::hdb::App;  # for _encode_eval_data
 
-use Test::More tests => 49;
+use Test::More;
+if ($^O =~ m/^MS/) {
+    plan skip_all => 'Test hangs on Windows';
+} else {
+    plan tests => 49;
+}
 
 my $url = start_test_program();
 

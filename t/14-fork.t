@@ -7,6 +7,9 @@ use WWW::Mechanize;
 use JSON;
 
 use Test::More;
+if ($^O =~ m/^MS/) {
+    plan skip_all => 'Test hangs on Windows';
+}
 
 my $url = start_test_program();
 

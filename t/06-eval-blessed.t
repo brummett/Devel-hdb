@@ -7,7 +7,12 @@ use WWW::Mechanize;
 use JSON;
 use Devel::hdb::App;
 
-use Test::More tests => 32;
+use Test::More;
+if ($^O =~ m/^MS/) {
+    plan skip_all => 'Test hangs on Windows';
+} else {
+    plan tests => 32;
+}
 
 my $encoded = Devel::hdb::App->_encode_eval_data(bless { a => [1,2,3]}, 'Foo');
 ok($encoded, 'Encode a blessed hashref directly');
