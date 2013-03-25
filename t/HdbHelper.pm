@@ -8,6 +8,7 @@ use warnings;
 use File::Basename;
 use IO::Socket;
 use File::Temp;
+use IO::File;
 use Time::HiRes qw(sleep);
 
 use Exporter 'import';
@@ -16,6 +17,10 @@ our @EXPORT = qw( start_test_program strip_stack strip_stack_inc_args );
 
 my $out_fh;
 sub start_test_program {
+    my $program_file;
+    if ($_ and $_[0] eq '-file') {
+        (undef, $program_file) = splice(@_,0,2);
+    }
     my @argv = @_;
 
     my $pkg = caller;
@@ -23,7 +28,13 @@ sub start_test_program {
     {   no strict 'refs';
         $in_fh = *{ $pkg . '::DATA' };
     }
-    $out_fh = File::Temp->new(TEMPLATE => 'devel-hdb-test-XXXX');
+
+    if ($program_file) {
+        $out_fh = IO::File->new('>', $program_file);
+    } else {
+        $out_fh = File::Temp->new(TEMPLATE => 'devel-hdb-test-XXXX');
+        $program_file = $out_fh->filename();
+    }
 
     {
         # Localize $/ for slurp mode
@@ -38,7 +49,7 @@ sub start_test_program {
     my $port = $ENV{DEVEL_HDB_PORT} = pick_unused_port();
     Test::More::note("Using port $ENV{DEVEL_HDB_PORT}\n");
     my $cmdline = join(' ', $^X, "-I $libdir -d:hdb=port:$port,testharness",
-                               $out_fh->filename,
+                               $program_file,
                                @argv);
 
     Test::More::note("running $cmdline");
