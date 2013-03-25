@@ -92,7 +92,7 @@ $answer = $json->decode($resp->content);
 ok(delete $answer->{data}->{result}->{__refaddr}, 'encoded has a refaddr');
 my $handle_info = delete $answer->{data}->{result}->{__value}->{IO};
 like($handle_info, qr(fileno \d+), 'Filehandle looks ok');
-ok(delete $answer->{data}->{result}->{__value}->{SCALAR}->{__refaddr}, 'enbedded SCALAR has a refaddr');
+ok(delete $answer->{data}->{result}->{__value}->{SCALAR}->{__refaddr}, 'embedded SCALAR has a refaddr');
 is_deeply($answer->{data},
     { expr => '$file',
       result => { __blessed => 'IO::File',
@@ -127,8 +127,8 @@ ok($resp->is_success, 'Get value of a complex structure');
 $answer = $json->decode($resp->content);
 ok(delete $answer->{data}->{result}->{__refaddr}, 'top-level has a refaddr');
 ok(delete $answer->{data}->{result}->{__value}->[0]->{__refaddr}, 'first list elt has a refaddr');
-ok(delete $answer->{data}->{result}->{__value}->[1]->{__refaddr}, 'first list elt has a refaddr');
-ok(delete $answer->{data}->{result}->{__value}->[2]->{__refaddr}, 'first list elt has a refaddr');
+ok(delete $answer->{data}->{result}->{__value}->[1]->{__refaddr}, 'next list elt has a refaddr');
+ok(delete $answer->{data}->{result}->{__value}->[2]->{__refaddr}, 'last list elt has a refaddr');
 is_deeply($answer->{data},
     { expr => '$complex',
       result => { __reftype => 'ARRAY',
