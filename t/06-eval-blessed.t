@@ -111,10 +111,11 @@ ok($resp->is_success, 'Get value of a Regex instance');
 $answer = $json->decode($resp->content);
 ok(delete $answer->{data}->{result}->{__refaddr}, 'encoded has a refaddr');
 my $expected_re = qr(abc) . '';
+my $expected_reftype = Scalar::Util::reftype(qr(abc));
 is_deeply($answer->{data},
     { expr => '$re',
       result => { __blessed => 'Regexp',
-                  __reftype => 'REGEXP',
+                  __reftype => $expected_reftype,
                   __value => $expected_re,
                 }
     },

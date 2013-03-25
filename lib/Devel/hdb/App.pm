@@ -249,6 +249,10 @@ sub _encode_eval_data {
                 $tmpvalue{IO} = 'fileno '.fileno(*{$value}{IO});
             }
             $value = \%tmpvalue;
+        } elsif (($reftype eq 'REGEXP')
+                    or ($reftype eq 'SCALAR' and $blesstype eq 'Regexp')
+        ) {
+            $value = $value . '';
         } elsif ($reftype eq 'SCALAR') {
             $value = $self->_encode_eval_data($$value);
         } elsif ($reftype eq 'CODE') {
@@ -256,8 +260,6 @@ sub _encode_eval_data {
             $value = $copy;
         } elsif ($reftype eq 'REF') {
             $value = $self->_encode_eval_data($$value);
-        } elsif ($reftype eq 'REGEXP') {
-            $value = $value . '';
         }
 
         $value = { __reftype => $reftype, __refaddr => $refaddr, __value => $value };
