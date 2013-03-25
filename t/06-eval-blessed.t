@@ -6,6 +6,7 @@ use HdbHelper;
 use WWW::Mechanize;
 use JSON;
 use Devel::hdb::App;
+use Scalar::Util;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
