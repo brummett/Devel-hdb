@@ -250,7 +250,7 @@ sub _encode_eval_data {
             }
             $value = \%tmpvalue;
         } elsif (($reftype eq 'REGEXP')
-                    or ($reftype eq 'SCALAR' and $blesstype eq 'Regexp')
+                    or ($reftype eq 'SCALAR' and defined($blesstype) and $blesstype eq 'Regexp')
         ) {
             $value = $value . '';
         } elsif ($reftype eq 'SCALAR') {
