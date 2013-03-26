@@ -113,15 +113,6 @@ sub is_breakpoint {
     return;
 }
 
-# This gets called after a require'd file is compiled, but before it's executed
-# it's called as DB::postponed(*{"_<$filename"})
-# We can use this to break on module load, for example.
-# If $DB::postponed{$subname} exists, then this is called as
-# DB::postponed($subname)
-sub postponed {
-
-}
-
 BEGIN {
     # Code to get control when the debugged process forks
     *CORE::GLOBAL::fork = sub {
@@ -278,13 +269,42 @@ sub get_var_at_level {
     return ${ $h->{$varname} };
 }
 
+
+# This gets called after a require'd file is compiled, but before it's executed
+# it's called as DB::postponed(*{"_<$filename"})
+# We can use this to break on module load, for example.
+# If $DB::postponed{$subname} exists, then this is called as
+# DB::postponed($subname)
+sub postponed {
+    my($filename) = ($_[0] =~ m/_\<(.*)$/);
+
+    our %postpone_until_loaded;
+    if (my $actions = delete $postpone_until_loaded{$filename}) {
+        $_->() foreach @$actions;
+    }
+}
+
+sub postpone_until_loaded {
+    my($class, $filename, $sub) = @_;
+
+    our %postpone_until_loaded;
+    $postpone_until_loaded{$filename} ||= [];
+
+    push @{ $postpone_until_loaded{$filename} }, $sub;
+}
+
 sub set_breakpoint {
     my $class = shift;
     my $filename = shift;
     my $line = shift;
     my %params = @_;
 
-    #no strict 'refs';
+    unless ($class->is_loaded($filename)) {
+        return $class->postpone_until_loaded($filename,
+            sub { $class->set_breakpoint($filename, $line, %params) }
+        );
+    }
+
     local(*dbline) = $main::{'_<' . $filename};
 
     if (exists $params{condition}) {

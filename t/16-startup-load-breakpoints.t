@@ -13,7 +13,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 11;
+    plan tests => 13;
 }
 
 my $program_file_name = File::Temp::tmpnam();
@@ -22,7 +22,7 @@ my $breakpoints = { breakpoints => [
         { filename => $program_file_name, lineno => 5, condition => '$a == 1' },
         { filename => $program_file_name, lineno => 7, action => '$a++' },
         { filename => $program_file_name, lineno => 11, condition => '1' },
-        #{ filename => 't/TestNothing.pm', lineno => 6, condition => 1 }, # loaded at runtime
+        { filename => 't/TestNothing.pm', lineno => 6, condition => 1 }, # loaded at runtime
 ]};
 my $setting_file = Devel::hdb::App->settings_file($program_file_name);
 print "setting file $setting_file\n";
@@ -59,13 +59,13 @@ is_deeply($stack,
     [ { line => 5, subroutine => 'MAIN' } ],
     'Stopped on line 5');
 
-#$resp = $mech->get($url.'continue');
-#ok($resp->is_success, 'continue');
-#$stack = strip_stack($json->decode($resp->content));
-#is_deeply($stack,
-#    [ { line => 6, subroutine => 'TestNothing::a_sub' },
-#      { line => 10, subroutine => 'MAIN' } ],
-#    'Stopped on line 6 of TestNothing');
+$resp = $mech->get($url.'continue');
+ok($resp->is_success, 'continue');
+$stack = strip_stack($json->decode($resp->content));
+is_deeply($stack,
+    [ { line => 6, subroutine => 'TestNothing::a_sub' },
+      { line => 10, subroutine => 'MAIN' } ],
+    'Stopped on line 6 of TestNothing');
 
 $resp = $mech->get($url.'continue');
 ok($resp->is_success, 'continue');
