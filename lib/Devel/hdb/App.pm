@@ -15,6 +15,7 @@ use IO::File;
 use JSON qw();
 use Scalar::Util;
 use LWP::UserAgent;
+use Data::Dumper;
 
 use Devel::hdb::Router;
 
@@ -88,6 +89,8 @@ sub init_debugger {
         $_->post("/getvar", sub { $self->do_getvar(@_) });
         $_->post("/announce_child", sub { $self->announce_child(@_) });
         $_->get("/ping", sub { $self->ping(@_) });
+        $_->post("/loadconfig", sub { $self->loadconfig(@_) });
+        $_->post("/saveconfig", sub { $self->saveconfig(@_) });
     }
 }
 
@@ -631,6 +634,45 @@ sub settings_file {
     return ((defined($prefix) && $prefix) || $PROGRAM_NAME) . '.hdb';
 }
 
+sub loadconfig {
+    my($self, $env) = @_;
+
+    my $req = Plack::Request->new($env);
+    my $file = $req->param('f');
+
+    my $result = eval { $self->load_settings_from_file($file) };
+    my $resp = Devel::hdb::App::Response->new('loadconfig', $env);
+    if ($@) {
+        $resp->data({ failed => $@ });
+    } else {
+        $resp->data({ success => 1, filename => $file });
+    }
+    return [ 200,
+            [ 'Content-Type' => 'application/json'],
+            [ $resp->encode() ]
+        ];
+}
+
+sub saveconfig {
+    my($self, $env) = @_;
+
+    my $req = Plack::Request->new($env);
+    my $file = $req->param('f');
+
+    $file = eval { $self->save_settings_to_file($file) };
+    my $resp = Devel::hdb::App::Response->new('saveconfig', $env);
+    if ($@) {
+        $resp->data({ failed => $@ });
+    } else {
+        $resp->data({ success => 1, filename => $file });
+    }
+    return [ 200,
+            [ 'Content-Type' => 'application/json'],
+            [ $resp->encode() ]
+        ];
+}
+
+
 sub load_settings_from_file {
     my $self = shift;
     my $file = shift;
@@ -663,10 +705,10 @@ sub save_settings_to_file {
         $file = $self->settings_file();
     }
 
-    my $breakpoints = DB->get_breakpoint();
+    my @breakpoints = DB->get_breakpoint();
     my $fh = IO::File->new($file, 'w') || die "Can't open $file for writing: $!";
-    $fh->print( Data::Dumper->new([$breakpoints])->Terse(1)->Dump());
-    return 1;
+    $fh->print( Data::Dumper->new([{ breakpoints => \@breakpoints}])->Terse(1)->Dump());
+    return $file;
 }
 
 
