@@ -37,6 +37,30 @@
         </div>
     </script>
 
+    <! template for save/load breakpoints>
+    <script id="save-load-breakpoints-modal-template" type="text/x-handlebars-template">
+        <div class="modal">
+        <form>
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3>{{action}} Breakpoints</h3>
+            </div>
+            <div class="modal-body">
+                    <div class="control-group">
+                        <label class="control-label" for="filename">Breakpoint file</label>
+                        <div class="controls">
+                            <input type="text" autofocus="autofocus" value="{{filename}}" class="span3" name="filename">
+                        </div>
+                    </div>
+            <div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">{{action}}</button>
+            </div>
+        </form>
+        </div>
+    </script>
+
     <! template for Bootstrap nav tabs>
     <script id="nav-tab-template" type="text/x-handlebars-template">
         <li{{#id}} id="{{id}}"{{/id}} class="stack-tab {{class}}{{#active}} active{{/active}}">
@@ -172,7 +196,13 @@
         <div id="side-tray" class="container-column">
             <div id="breakpoint-container" class="container-column">
                 <div id="breakpoints" class="container-column managed-height">
-                    <strong>Breakpoints</strong>
+                    <div>
+                        <strong>Breakpoints</strong>
+                        <a href="#" id="save-breakpoints" class="btn" title="Save Breakpoints">
+                            <i class="icon-hdd"></i></a>
+                        <a href="#" id="load-breakpoints" class="btn" title="Load Breakpoints">
+                            <i class="icon-folder-open"></i></a>
+                    </div>
                     <ol id="breakpoints-list"></ul>
                 </div>
                 <div id="breakpoint-container-handle" class="container-column managed-height">
