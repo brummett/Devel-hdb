@@ -62,6 +62,8 @@ sub init_debugger {
     return if $self->{__init__};
     $self->{__init__} = 1;
 
+    eval { $self->load_settings_from_file() };
+
     $self->_announce();
 
     $self->{router} = Devel::hdb::Router->new();
@@ -621,6 +623,52 @@ sub notify_program_terminated {
 sub notify_program_exit {
     my $msg = Devel::hdb::App::Response->queue('hangup');
 }
+
+sub settings_file {
+    my $class = shift;
+    my $prefix = shift;
+    our $PROGRAM_NAME;
+    return ((defined($prefix) && $prefix) || $PROGRAM_NAME) . '.hdb';
+}
+
+sub load_settings_from_file {
+    my $self = shift;
+    my $file = shift;
+
+    unless (defined $file) {
+        $file = $self->settings_file();
+    }
+
+    local($/);
+    my $fh = IO::File->new($file, 'r') || die "Can't open file $file for reading: $!";
+    my $buffer = <$fh>;
+    my $settings = eval $buffer;
+    die $@ if $@;
+
+    foreach my $bp ( @{ $settings->{breakpoints}} ) {
+        my %req;
+        foreach my $key ( qw( condition condition_inactive action action_inactive ) ) {
+            $req{$key} = $bp->{$key} if (exists $bp->{$key});
+        }
+        DB->set_breakpoint($bp->{filename}, $bp->{lineno}, %req);
+    }
+    return 1;
+}
+
+sub save_settings_to_file {
+    my $self = shift;
+    my $file = shift;
+
+    unless (defined $file) {
+        $file = $self->settings_file();
+    }
+
+    my $breakpoints = DB->get_breakpoint();
+    my $fh = IO::File->new($file, 'w') || die "Can't open $file for writing: $!";
+    $fh->print( Data::Dumper->new([$breakpoints])->Terse(1)->Dump());
+    return 1;
+}
+
 
 
 package Devel::hdb::App::Response;

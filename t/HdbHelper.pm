@@ -18,7 +18,7 @@ our @EXPORT = qw( start_test_program strip_stack strip_stack_inc_args );
 my $out_fh;
 sub start_test_program {
     my $program_file;
-    if ($_ and $_[0] eq '-file') {
+    if ($_[0] and $_[0] eq '-file') {
         (undef, $program_file) = splice(@_,0,2);
     }
     my @argv = @_;
@@ -30,7 +30,7 @@ sub start_test_program {
     }
 
     if ($program_file) {
-        $out_fh = IO::File->new('>', $program_file);
+        $out_fh = IO::File->new($program_file,'w');
     } else {
         $out_fh = File::Temp->new(TEMPLATE => 'devel-hdb-test-XXXX');
         $program_file = $out_fh->filename();

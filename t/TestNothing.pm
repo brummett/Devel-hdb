@@ -3,8 +3,8 @@ package TestNothing;
 3;
 
 sub a_sub {
-    5;
     6;
+    7;
 }
 
 1;
