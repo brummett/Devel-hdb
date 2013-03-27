@@ -1,3 +1,8 @@
+26 Mar 2013 - v0.05
+    * When the debugged program forks, the user is notified and given the
+      option to debug the child process in another window
+    * Breakpoints can be saved and restored
+
 21 Mar 2013 - v0.04
     * New breakpoint list view
     * Breakpoints and actions can be marked inactive without removing them
