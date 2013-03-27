@@ -13,7 +13,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 13;
+    plan tests => 14;
 }
 
 my $url = start_test_program();
@@ -46,7 +46,12 @@ ok($fh->close(), 'Wrote settings file');
 $resp = $mech->post($url.'loadconfig', { f => $fh->filename });
 ok($resp->is_success, 'loadconfig');
 my $result = $json->decode( $resp->content );
-is($result->{data}->{success}, 1, 'loadconfig was successful');
+
+my($load_resp) = grep { $_->{type} eq 'loadconfig' } @$result;
+is($load_resp->{data}->{success}, 1, 'loadconfig successful');
+
+my @load_breakpoints = grep { $_->{type} eq 'breakpoint' } @$result;
+is(scalar(@load_breakpoints), 4, '4 breakpoints were set'); # TestNothing isn't loaded yet
 
 $resp = $mech->get($url.'continue');
 ok($resp->is_success, 'continue');

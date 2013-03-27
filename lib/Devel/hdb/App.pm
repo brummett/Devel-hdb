@@ -346,19 +346,34 @@ sub set_breakpoint {
     $req{action} = $action if (exists $params->{'a'});
     $req{action_inactive} = $action_inactive if (exists $params->{'ai'});
 
-    DB->set_breakpoint($filename, $line, %req);
-
-    my $resp_data = DB->get_breakpoint($filename, $line);
-    unless ($resp_data) {
-        # This breakpoint was deleted
-        $resp_data = { filename => $filename, lineno => $line };
-    }
+    my $resp_data = $self->_set_breakpoint_and_respond($filename, $line, %req);
     $resp->data( $resp_data );
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
             [ $resp->encode() ]
           ];
+}
+
+sub _set_breakpoint_and_respond {
+    my($self, $filename, $line, %params) = @_;
+
+    unless (DB->is_loaded($filename)) {
+        DB->postpone_until_loaded(
+                $filename,
+                sub { DB->set_breakpoint($filename, $line, %params) }
+        );
+        return;
+    }
+
+    DB->set_breakpoint($filename, $line, %params);
+
+    my $resp_data = DB->get_breakpoint($filename, $line);
+    unless ($resp_data) {
+        # This breakpoint was deleted
+        $resp_data = { filename => $filename, lineno => $line };
+    }
+    return $resp_data;
 }
 
 
@@ -640,16 +655,22 @@ sub loadconfig {
     my $req = Plack::Request->new($env);
     my $file = $req->param('f');
 
-    my $result = eval { $self->load_settings_from_file($file) };
-    my $resp = Devel::hdb::App::Response->new('loadconfig', $env);
-    if ($@) {
-        $resp->data({ failed => $@ });
+    my @results = eval { $self->load_settings_from_file($file) };
+    my $load_resp = Devel::hdb::App::Response->new('loadconfig', $env);
+    if (! $@) {
+        foreach (@results) {
+            my $resp = Devel::hdb::App::Response->queue('breakpoint');
+            $resp->data($_);
+        }
+
+        $load_resp->data({ success => 1, filename => $file });
+
     } else {
-        $resp->data({ success => 1, filename => $file });
+        $load_resp->data({ failed => $@ });
     }
     return [ 200,
             [ 'Content-Type' => 'application/json'],
-            [ $resp->encode() ]
+            [ $load_resp->encode() ]
         ];
 }
 
@@ -681,20 +702,27 @@ sub load_settings_from_file {
         $file = $self->settings_file();
     }
 
-    local($/);
-    my $fh = IO::File->new($file, 'r') || die "Can't open file $file for reading: $!";
-    my $buffer = <$fh>;
+    my $buffer;
+    {
+        local($/);
+        my $fh = IO::File->new($file, 'r') || die "Can't open file $file for reading: $!";
+        $buffer = <$fh>;
+    }
     my $settings = eval $buffer;
     die $@ if $@;
 
+
+    my @set_breakpoints;
     foreach my $bp ( @{ $settings->{breakpoints}} ) {
         my %req;
         foreach my $key ( qw( condition condition_inactive action action_inactive ) ) {
             $req{$key} = $bp->{$key} if (exists $bp->{$key});
         }
-        DB->set_breakpoint($bp->{filename}, $bp->{lineno}, %req);
+        push @set_breakpoints,
+             $self->_set_breakpoint_and_respond($bp->{filename}, $bp->{lineno}, %req);
+        #$resp->data( $resp_data );
     }
-    return 1;
+    return @set_breakpoints;
 }
 
 sub save_settings_to_file {

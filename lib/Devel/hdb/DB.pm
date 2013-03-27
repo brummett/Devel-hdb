@@ -299,12 +299,6 @@ sub set_breakpoint {
     my $line = shift;
     my %params = @_;
 
-    unless ($class->is_loaded($filename)) {
-        return $class->postpone_until_loaded($filename,
-            sub { $class->set_breakpoint($filename, $line, %params) }
-        );
-    }
-
     local(*dbline) = $main::{'_<' . $filename};
 
     if (exists $params{condition}) {
