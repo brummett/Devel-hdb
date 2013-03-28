@@ -265,8 +265,13 @@ sub get_var_at_level {
         }
     }
 
+    # padwalker found it
     return unless exists($h->{$varname});
-    return ${ $h->{$varname} };
+    if (ref($h->{$varname}) eq 'SCALAR' or ref($h->{$varname}) eq 'REF') {
+        return ${ $h->{$varname} };
+    } else {
+        return $h->{$varname};
+    }
 }
 
 

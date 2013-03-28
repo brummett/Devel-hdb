@@ -12,7 +12,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 49;
+    plan tests => 53;
 }
 
 my $url = start_test_program();
@@ -62,7 +62,14 @@ check_resp($resp,
         { expr => '$Other::Package::variable', level => 0, result => 'pkgvar' },
         'Get value of pkg global $X at level 0');
 
-
+$resp = $mech->post($url.'getvar', {l => 0, v => '@my_list'});
+check_resp($resp,
+        { expr => '@my_list', level => 0,
+            result => { __reftype => 'ARRAY',
+                        __value => [1,2,3],
+                    },
+        },
+        'Get value of my var @my_list at level 0');
 
 
 $resp = $mech->post($url.'getvar', {l => 1, v => '$x'});
@@ -131,6 +138,7 @@ foo();
 sub foo {
     my $x = 'hello',
     my $z = { one => 1, two => 2 };
+    my @my_list = (1,2,3);
     $DB::single=1;
     8;
 }
