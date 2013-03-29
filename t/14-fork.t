@@ -42,14 +42,14 @@ if (ref($response) eq 'ARRAY' and @$response > 1) {
             'Parent process stopped on line 6');
 
     my $retries = 5;
-    do { 
-        last if $retries-- < 0;
-
+    while ($retries-- > 0) {
         sleep(0.1); # Give the child process a timeslice
         $resp = $mech->get($url.'ping');
         last unless $resp->is_success();
         $response = $json->decode($resp->content);
-    } until (ref($response) eq 'ARRAY');
+        last if (ref($response) eq 'ARRAY');
+    }
+
     ok($resp->is_success, 'ping to get child announcement');
     is(ref($response), 'ARRAY', 'Got ARRAY response to ping');
 
