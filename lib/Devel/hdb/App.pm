@@ -204,15 +204,22 @@ sub announce_child {
 sub do_eval {
     my($self, $env) = @_;
     my $req = Plack::Request->new($env);
-    my $eval_string = $DB::eval_string = $req->content();
+    my $eval_string = $req->content();
 
     my $resp = $self->_resp('evalresult', $env);
-    return $self->_eval_plumbing_closure($eval_string,$resp, $env);
+
+    my $result_packager = sub {
+        my $data = shift;
+        $data->{expr} = $eval_string;
+        return $data;
+    };
+    return $self->_eval_plumbing_closure($eval_string,$resp, $env, $result_packager);
 }
 
 sub _eval_plumbing_closure {
-    my($self, $eval_string, $resp, $env) = @_;
+    my($self, $eval_string, $resp, $env, $result_packager) = @_;
 
+    $DB::eval_string = $eval_string;
     return sub {
         my $responder = shift;
         my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
@@ -224,7 +231,8 @@ sub _eval_plumbing_closure {
                 sub {
                     my $data = shift;
                     $data->{result} = $self->_encode_eval_data($data->{result}) if ($data->{result});
-                    $data->{expr} = $eval_string;
+                    $data = $result_packager->($data);
+
                     $resp->data($data);
                     $writer->write($resp->encode());
                     $writer->close();
