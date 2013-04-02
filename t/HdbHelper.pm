@@ -65,6 +65,7 @@ sub start_test_program {
     }
 
     eval "END { Test::More::note('Killing pid $pid'); kill 'TERM',$pid }";
+    $HdbHelper::child_pid = $pid;
 
     if (wantarray) {
         return ("http://localhost:${port}/", $pid);

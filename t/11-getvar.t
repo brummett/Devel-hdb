@@ -12,7 +12,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 85;
+    plan tests => 105;
 }
 
 my $url = start_test_program();
@@ -166,8 +166,33 @@ check_resp($resp,
         },
         q(Get value of @my_hash{@my_list,2} at level 0));
 
+$resp = $mech->post($url.'getvar', {l => 0, v => '$@'});
+check_resp($resp,
+        { expr => '$@', level => 0, result => "hi there\n" },
+        'Get value of $@ at level 0');
 
+$resp = $mech->post($url.'getvar', {l => 0, v => '$$'});
+check_resp($resp,
+        { expr => '$$', level => 0, result => $HdbHelper::child_pid },
+        'Get value of $$ at level 0');
 
+$resp = $mech->post($url.'getvar', {l => 0, v => '$1'});
+check_resp($resp,
+        { expr => '$1', level => 0, result => 'b' },
+        'Get value of $1 at level 0');
+
+$resp = $mech->post($url.'getvar', {l => 0, v => '$^L'});
+check_resp($resp,
+        { expr => '$^L', level => 0, result => 'aaa' },
+        'Get value of $^L at level 0');
+
+$resp = $mech->post($url.'getvar', {l => 0, v => '@_'});
+check_resp($resp,
+        { expr => '@_', level => 0,
+            result => { __reftype => 'ARRAY',
+                        __value => [1,2,3] },
+        },
+        'Get value of @_ at level 0');
 
 
 
@@ -198,7 +223,7 @@ our $our_var = 'ourvar';
 $Other::Package::variable = 'pkgvar';
 my $x = 1;
 my $y = 2;
-foo();
+foo(1,2,3);
 sub foo {
     my $x = 'hello',
     my $z = { one => 1, two => 2 };
@@ -207,6 +232,9 @@ sub foo {
     my $two = 2;
     my @my_list = (0,1,2);
     my %my_hash = (1 => 'one', 2 => 'two', 3 => 'three');
+    local($^L) = 'aaa';
+    "abc" =~ m/^\w(\w)/;
+    eval { die "hi there\n" };
     $DB::single=1;
     8;
 }

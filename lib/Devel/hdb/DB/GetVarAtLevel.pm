@@ -50,6 +50,21 @@ sub get_var_at_level {
         # not a variable at all, just return it
         return $varname;
 
+    } elsif ($varname eq '@_' or $varname eq '@ARG') {
+        # handle these special, they're implemented as local() vars, so we'd
+        # really need to eval at some higher stack frame to inspect it if we could
+        # (that would make this whole enterprise easier).  We can fake it by using
+        # caller's side effect
+
+        # Count how many eval frames are between here and there.
+        # caller() counts them, but PadWalker does not
+        for (my $i = 1; $i <= $level; $i++) {
+            package DB;
+            (caller($i))[3] eq '(eval)' and $level++;
+        }
+        my @args = @DB::args;
+        return \@args;
+
     } elsif ($varname =~ m/\[|\}/) {
         # Not a simple variable name, maybe a complicated expression
         # like @list[1,2,3].  Try to emulate something like eval_at_level()

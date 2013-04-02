@@ -300,6 +300,19 @@ sub loaded_files {
         ];
 }
 
+my %perl_special_vars = map { $_ => 1 }
+    qw( $0 $1 $2 $3 $4 $5 $6 $7 $8 $9 $& ${^MATCH} $` ${^PREMATCH} $'
+        ${^POSTMATCH} $+ $^N @+ %+ $. $/ $| $\ $" $; $% $= $- @-
+        %- $~ $^ $: $^L $^A $? ${^CHILD_ERROR_NATIVE} ${^ENCODING}
+        $! %! $^E $@ $$ $< $> $[ $] $^C $^D ${^RE_DEBUG_FLAGS}
+        ${^RE_TRIE_MAXBUF} $^F $^H %^H $^I $^M $^O ${^OPEN} $^P $^R
+        $^S $^T ${^TAINT} ${^UNICODE} ${^UTF8CACHE} ${^UTF8LOCALE}
+        $^V $^W ${^WARNING_BITS} ${^WIN32_SLOPPY_STAT} $^X @ARGV $ARGV
+        @F  @ARG ); # @_ );
+$perl_special_vars{q{$,}} = 1;
+$perl_special_vars{q{$(}} = 1;
+$perl_special_vars{q{$)}} = 1;
+
 # Get the value of a variable, possibly in an upper stack frame
 sub do_getvar {
     my($self, $env) = @_;
@@ -308,6 +321,17 @@ sub do_getvar {
     my $varname = $req->param('v');
 
     my $resp = $self->_resp('getvar', $env);
+
+    if ($perl_special_vars{$varname}) {
+        my $result_packager = sub {
+            my $data = shift;
+            $data->{expr} = $varname;
+            $data->{level} = $level;
+            return $data;
+        };
+        return $self->_eval_plumbing_closure($varname, $resp, $env, $result_packager);
+    }
+
     my $adjust = DB->_first_program_frame();
     my $value = eval { DB->get_var_at_level($varname, $level + $adjust - 1) };
     my $exception = $@;
