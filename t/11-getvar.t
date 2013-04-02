@@ -12,7 +12,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 53;
+    plan tests => 85;
 }
 
 my $url = start_test_program();
@@ -66,7 +66,7 @@ $resp = $mech->post($url.'getvar', {l => 0, v => '@my_list'});
 check_resp($resp,
         { expr => '@my_list', level => 0,
             result => { __reftype => 'ARRAY',
-                        __value => [1,2,3],
+                        __value => [0,1,2],
                     },
         },
         'Get value of my var @my_list at level 0');
@@ -106,6 +106,70 @@ check_resp($resp,
         { expr => '$Other::Package::variable', level => 1, result => 'pkgvar' },
         'Get value of pkg global $Other::Package::variable at level 1');
 
+$resp = $mech->post($url.'getvar', {l => 0, v => '$my_list[1]'});
+check_resp($resp,
+        { expr => '$my_list[1]', level => 0, result => 1 },
+        'Get value of $my_list[1] at level 0');
+
+$resp = $mech->post($url.'getvar', {l => 0, v => '$my_list[$one]'});
+check_resp($resp,
+        { expr => '$my_list[$one]', level => 0, result => 1 },
+        'Get value of $my_list[$one] at level 0');
+
+$resp = $mech->post($url.'getvar', {l => 0, v => '@my_list[1, $two]'});
+check_resp($resp,
+        { expr => '@my_list[1, $two]', level => 0,
+            result => { __reftype => 'ARRAY',
+                        __value => [1,2],
+                    },
+        },
+        'Get value of my var @my_list[1, $two] at level 0');
+
+$resp = $mech->post($url.'getvar', {l => 0, v => '@my_list[$zero..3]'});
+check_resp($resp,
+        { expr => '@my_list[$zero..3]', level => 0,
+            result => { __reftype => 'ARRAY',
+                        __value => [0,1,2,undef],
+                    },
+        },
+        'Get value of my var @my_list[$zero..3] at level 0');
+
+$resp = $mech->post($url.'getvar', {l => 0, v => q($my_hash{1}) });
+check_resp($resp,
+        { expr => q($my_hash{1}), level => 0, result => 'one' },
+        q(Get value of $my_hash{1} at level 0));
+
+$resp = $mech->post($url.'getvar', {l => 0, v => q(@my_hash{1,2}) });
+check_resp($resp,
+        { expr => q(@my_hash{1,2}), level => 0,
+                result => { __reftype => 'ARRAY',
+                        __value => ['one','two'],
+                    },
+        },
+        q(Get value of @my_hash{1,2} at level 0));
+
+$resp = $mech->post($url.'getvar', {l => 0, v => q(@my_hash{$one,2}) });
+check_resp($resp,
+        { expr => q(@my_hash{$one,2}), level => 0,
+                result => { __reftype => 'ARRAY',
+                        __value => ['one','two'],
+                    },
+        },
+        q(Get value of @my_hash{$one,2} at level 0));
+
+$resp = $mech->post($url.'getvar', {l => 0, v => q(@my_hash{@my_list, 2}) });
+check_resp($resp,
+        { expr => q(@my_hash{@my_list, 2}), level => 0,
+                result => { __reftype => 'ARRAY',
+                        __value => [undef,'one','two','two'],
+                    },
+        },
+        q(Get value of @my_hash{@my_list,2} at level 0));
+
+
+
+
+
 
 
 
@@ -138,7 +202,11 @@ foo();
 sub foo {
     my $x = 'hello',
     my $z = { one => 1, two => 2 };
-    my @my_list = (1,2,3);
+    my $zero = 0;
+    my $one = 1;
+    my $two = 2;
+    my @my_list = (0,1,2);
+    my %my_hash = (1 => 'one', 2 => 'two', 3 => 'three');
     $DB::single=1;
     8;
 }

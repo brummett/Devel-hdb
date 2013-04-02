@@ -237,43 +237,8 @@ sub _first_program_frame {
 sub get_var_at_level {
     my($class, $varname, $level) = @_;
 
-    require PadWalker;
-
-    my $h = PadWalker::peek_my( $level || 1);
-
-    unless (exists $h->{$varname}) {
-        # not a lexical, try our()
-        $h = PadWalker::peek_our( $level || 1);
-    }
-
-    unless (exists $h->{$varname}) {
-        # last chance, see if it's a package var
-
-        if (my($sigil, $bare_varname) = ($varname =~ m/^([\$\@\%\*])(\w+)$/)) {
-            # a varname without a pacakge, try in the package at
-            # that caller level
-            my($package) = caller($level+1);
-            $package ||= 'main';
-
-            my $expanded_varname = $sigil . $package . '::' . $bare_varname;
-            $expanded_varname = _fixup_expr_for_eval($expanded_varname);
-            my @value = eval( $expanded_varname );
-            return @value < 2 ? $value[0] : \@value;
-
-        } elsif ($varname =~ m/^[\$\@\%\*]\w+(::\w+)*(::)?$/) {
-            $varname = _fixup_expr_for_eval($varname);
-            my @value = eval($varname);
-            return @value < 2 ? $value[0] : \@value;
-        }
-    }
-
-    # padwalker found it
-    return unless exists($h->{$varname});
-    if (ref($h->{$varname}) eq 'SCALAR' or ref($h->{$varname}) eq 'REF') {
-        return ${ $h->{$varname} };
-    } else {
-        return $h->{$varname};
-    }
+    require Devel::hdb::DB::GetVarAtLevel;
+    return Devel::hdb::DB::GetVarAtLevel::get_var_at_level($varname, $level+1);
 }
 
 

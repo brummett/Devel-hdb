@@ -296,7 +296,7 @@ sub do_getvar {
 
     my $resp = $self->_resp('getvar', $env);
     my $adjust = DB->_first_program_frame();
-    my $value = eval { DB->get_var_at_level($varname, $level + $adjust) };
+    my $value = eval { DB->get_var_at_level($varname, $level + $adjust - 1) };
     my $exception = $@;
 
     if ($exception) {
