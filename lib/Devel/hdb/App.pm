@@ -207,6 +207,11 @@ sub do_eval {
     my $eval_string = $DB::eval_string = $req->content();
 
     my $resp = $self->_resp('evalresult', $env);
+    return $self->_eval_plumbing_closure($eval_string,$resp, $env);
+}
+
+sub _eval_plumbing_closure {
+    my($self, $eval_string, $resp, $env) = @_;
 
     return sub {
         my $responder = shift;
