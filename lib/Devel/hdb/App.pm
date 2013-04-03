@@ -122,6 +122,12 @@ sub _announce {
 sub notify_parent_child_was_forked {
     my($self, $child_pid) = @_;
 
+    my $gotit = sub {
+        my($rv,$env) = @_;
+        $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
+    };
+    $self->{router}->once_after('POST','/announce_child', $gotit);
+    $self->run();
 }
 
 # called in the child process after a fork

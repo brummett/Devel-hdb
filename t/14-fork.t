@@ -9,6 +9,8 @@ use JSON;
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
+} else {
+    plan tests => 8;
 }
 
 my $url = start_test_program();
@@ -23,41 +25,18 @@ $response = $json->decode($resp->content);
 
 my $stack;
 my($child_uri, $child_pid);
-if (ref($response) eq 'ARRAY' and @$response > 1) {
-    # got the child announcement here
-    # expecting child_announce and stack messages
-    my @responses = sort { $a->{type} cmp $b->{type} } @$response;
-    ($child_uri, $child_pid) = check_child_process_message($responses[0]);
 
-    $stack = strip_stack($responses[1]);
-    is_deeply($stack, 
-            [ { line => 6, subroutine => 'MAIN' } ],
-            'Parent process stopped on line 6');
+# should get two response messages, one with the new stack position
+# and another with the child announcement
 
-} else {
-    # only got the stack from program stopping
-    $stack = strip_stack($response);
-    is_deeply($stack, 
-            [ { line => 6, subroutine => 'MAIN' } ],
-            'Parent process stopped on line 6');
+# 'child_process' sorts before 'stack'
+my @responses = sort { $a->{type} cmp $b->{type} } @$response;
+($child_uri, $child_pid) = check_child_process_message($responses[0]);
 
-    my $retries = 5;
-    while ($retries-- > 0) {
-        sleep(0.1); # Give the child process a timeslice
-        $resp = $mech->get($url.'ping');
-        last unless $resp->is_success();
-        $response = $json->decode($resp->content);
-        last if (ref($response) eq 'ARRAY');
-    }
-
-    ok($resp->is_success, 'ping to get child announcement');
-    is(ref($response), 'ARRAY', 'Got ARRAY response to ping');
-
-    my @responses = sort { $a->{type} cmp $b->{type} } @$response;
-    ($child_uri, $child_pid) = check_child_process_message($responses[0]);
-
-    is($responses[1]->{type}, 'ping', 'Got ping response');
-}
+$stack = strip_stack($responses[1]);
+is_deeply($stack,
+        [ { line => 6, subroutine => 'MAIN' } ],
+        'Parent process stopped on line 6');
 
 eval qq(END { kill 'TERM', $child_pid }) if ($child_pid);
 
@@ -68,7 +47,6 @@ is_deeply($stack,
         [ { line => 3, subroutine => 'MAIN' } ],
         'Child process stopped immediately after fork');
 
-done_testing();
 
 sub check_child_process_message {
     my $msg = shift;
