@@ -40,8 +40,9 @@ sub route($$) {
     my $self = shift;
     my $env = shift;
 
-    return unless exists $self->{$env->{REQUEST_METHOD}};
-    my $matchlist = $self->{$env->{REQUEST_METHOD}};
+    my $req_method = $env->{REQUEST_METHOD};
+    return unless exists $self->{$req_method};
+    my $matchlist = $self->{$req_method};
 
     my($fire, @matches);
     foreach my $route ( @$matchlist ) {
@@ -58,10 +59,35 @@ sub route($$) {
         }
 
         if ($fire) {
-            return $cb->($env, @matches);
+            my $rv = $cb->($env, @matches);
+            my $hooks = $self->{after_hooks}->{$req_method}->{$path};
+            if ($hooks && @$hooks) {
+                $_->($rv, $env, @matches) foreach @$hooks;
+            }
+            return $rv;
         }
     }
     return [ 404, [ 'Content-Type' => 'text/html'], ['Not found']];
+}
+
+sub once_after($$$&) {
+    my($self, $req, $path, $cb) = @_;
+
+    my $this_list = $self->{after_hooks}->{$req}->{$path} ||= [];
+
+    my $wrapped_as_str;
+    my $wrapped = sub {
+        &$cb;
+        for (my $i = 0; $i < @$this_list; $i++) {
+            if ($this_list->[$i] eq $wrapped_as_str) {
+                splice(@$this_list, $i, 1);
+                return;
+           }
+        }
+    };
+    $wrapped_as_str = $wrapped . '';
+
+    push @$this_list, $wrapped;
 }
 
 1;
