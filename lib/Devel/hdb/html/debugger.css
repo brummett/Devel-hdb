@@ -115,6 +115,9 @@ div#controls {
 .current-sub-and-args ul.sub-arg-list li { display: inline; }
 .current-sub-and-args ul.sub-arg-list li:after { content: ","; }
 .current-sub-and-args ul.sub-arg-list li:last-child:after { content: ""; }
+.current-sub-and-args .current-subroutine {
+    font-weight: bold;
+}
 
 
 #filewindow {
