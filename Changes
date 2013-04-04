@@ -1,3 +1,10 @@
+4 Apr 2013 - v0.06
+    * Hover-over-variable works for hash and array elements, and for (most)
+      Perl special variables.
+    * User is notified immediately after a fork(), rather than waiting until
+      after the next user interaction
+    * Fix for code pane rendering in Firefox
+
 26 Mar 2013 - v0.05
     * When the debugged program forks, the user is notified and given the
       option to debug the child process in another window
