@@ -1,0 +1,13 @@
+Source: libdevel-hdb-perl
+Section: perl
+Priority: optional
+Build-Depends: debhelper (>= 7)
+Build-Depends-Indep: perl, libwww-mechanize-perl, libfile-temp-perl, libplack-perl, libjson-perl, libwww-perl, libpadwalker-perl
+Maintainer: Anthony Brummett <brummett@cpan.org>
+Homepage: http://search.cpan.org/dist/Devel-hdb/
+Vcs-Git: git://github.com/amb43790/Devel-hdb.git
+
+Package: libdevel-hdb-perl
+Architecture: all
+Depends: libplack-perl, libjson-perl, libwww-perl, libpadwalker-perl
+Description: A Perl debugger as a REST service and browser application.

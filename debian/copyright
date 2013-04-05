@@ -1,0 +1,26 @@
+Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=135
+Maintainer: Anthony Brummett
+Source: http://search.cpan.org/dist/Devel-hdb/
+Name: Devel-hdb
+
+Copyright: © 2013, Anthony Brummett
+License: Artistic or GPL-1+
+
+Files: debian/*
+Copyright:
+ © 2013, Anthony Brummett <brummett@cpan.org>
+License: Artistic or GPL-1+
+
+License: Artistic
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the Artistic License, which comes with Perl.
+    On Debian GNU/Linux systems, the complete text of the Artistic License
+    can be found in `/usr/share/common-licenses/Artistic'
+
+License: GPL-1+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 1, or (at your option)
+    any later version.
+    On Debian GNU/Linux systems, the complete text of the GNU General
+    Public License can be found in `/usr/share/common-licenses/GPL'

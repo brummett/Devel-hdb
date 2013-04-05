@@ -1,0 +1,9 @@
+libdevel-hdb-perl (0.06-1) unstable; urgency=low
+  * Hover-over-variable works for hash and array elements, and for (most)
+    Perl special variables.
+  * User is notified immediately after a fork(), rather than waiting until
+    after the next user interaction
+  * Fix for code pane rendering in Firefox
+  * First debian package
+
+ -- Anthony Brummett <brummett@cpan.org>  Thu, 04 Apr 2013 15:36:00 -0500
