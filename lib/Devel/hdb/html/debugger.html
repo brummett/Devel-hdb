@@ -37,6 +37,20 @@
         </div>
     </script>
 
+    <! template for 'program terminated' modal>
+    <script id="program-terminated-modal-template" type="text/x-handlebars-template">
+        <div class="modal">
+            <div class="modal-header">header</div>
+            <div class="modal-body">
+                Debugged program terminated with exit code {{exit_code}}
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-dismiss="modal">Ok</button>
+                <button class="btn btn-danger control-button" data-action="exit" data-dismiss="modal">Exit</button>
+            </div>
+        </div>
+    </script>
+
     <! template for save/load breakpoints>
     <script id="save-load-breakpoints-modal-template" type="text/x-handlebars-template">
         <div class="modal">
@@ -170,12 +184,12 @@
         <div class="container-column">
             <div class="row">
                 <div id="controls" class="span6 offset1">
-                    <a class="btn control-button" id="stepin" href="stepin">Step In</a>
-                    <a class="btn control-button" id="stepover" href="stepover">Step Over</a>
-                    <a class="btn control-button" id="stepout" href="stepout">Step Out</a>
-                    <a class="btn btn-primary control-button" id="continue" href="continue">Run</a>
+                    <button class="btn control-button" data-action="stepin">Step In</button>
+                    <button class="btn control-button" data-action="stepover">Step Over</button>
+                    <button class="btn control-button" data-action="stepout">Step Out</button>
+                    <button class="btn btn-primary control-button" data-action="continue">Run</button>
 
-                    <a class="btn btn-danger control-button pull-right" id="exit" href="exit">Exit</a>
+                    <button class="btn btn-danger control-button pull-right" data-action="exit">Exit</button>
                 </div>
             </div>
 
