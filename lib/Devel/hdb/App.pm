@@ -16,6 +16,7 @@ use JSON qw();
 use Scalar::Util;
 use LWP::UserAgent;
 use Data::Dumper;
+use File::Basename;
 
 use Devel::hdb::Router;
 use Devel::hdb::DB::PackageInfo;
@@ -53,6 +54,17 @@ sub _make_listen_socket {
     $self->{server} = Devel::hdb::Server->new( %server_params );
 }
 
+sub router {
+    my $self = shift;
+    unless (ref $self) {
+        $self = $self->get()
+    }
+    if (@_) {
+        $self->{router} = shift;
+    }
+    return $self->{router};
+}
+
 sub init_debugger {
     my $self = shift;
 
@@ -68,7 +80,8 @@ sub init_debugger {
 
     $self->_announce();
 
-    $self->{router} = Devel::hdb::Router->new();
+    $self->router( Devel::hdb::Router->new() );
+
     for ($self->{router}) {
         # All the paths we listen for
         $_->get(qr(/db/(.*)), sub { $self->assets(@_) });
@@ -89,22 +102,12 @@ sub init_debugger {
         $_->post("/eval", sub { $self->do_eval(@_) });
         $_->post("/getvar", sub { $self->do_getvar(@_) });
         $_->post("/announce_child", sub { $self->announce_child(@_) });
-        $_->get("/ping", sub { $self->ping(@_) });
         $_->post("/loadconfig", sub { $self->loadconfig(@_) });
         $_->post("/saveconfig", sub { $self->saveconfig(@_) });
         $_->get(qr(/pkginfo/((\w+)(::\w+)*)), sub { $self->pkginfo(@_) });
         $_->get(qr(/subinfo/((\w+)(::\w+)*)), sub { $self->subinfo(@_) });
     }
-}
-
-sub ping {
-    my($self,$env) = @_;
-
-    my $resp = $self->_resp('ping', $env);
-    return [ 200,
-            [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
-        ];
+    require Devel::hdb::App::Ping;
 }
 
 sub _announce {
