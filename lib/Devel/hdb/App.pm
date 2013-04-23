@@ -95,7 +95,6 @@ sub init_debugger {
         $_->get("/breakpoint", sub { $self->get_breakpoint(@_) });
         $_->get("/breakpoints", sub { $self->get_all_breakpoints(@_) });
         $_->get("/loadedfiles", sub { $self->loaded_files(@_) });
-        $_->get("/exit", sub { $self->do_terminate(@_) });
         $_->post("/eval", sub { $self->do_eval(@_) });
         $_->post("/getvar", sub { $self->do_getvar(@_) });
         $_->post("/announce_child", sub { $self->announce_child(@_) });
@@ -107,6 +106,7 @@ sub init_debugger {
     require Devel::hdb::App::Ping;
     require Devel::hdb::App::Assets;
     require Devel::hdb::App::Config;
+    require Devel::hdb::App::Terminate;
 }
 
 sub _announce {
@@ -165,23 +165,6 @@ sub notify_child_process_is_forked {
 sub encode {
     my $self = shift;
     return $self->{json}->encode(shift);
-}
-
-# Exit the running program
-# Sets up as a long_call so we can send the 'hangup' response
-# and then exit()
-sub do_terminate {
-    my $json = shift->{json};
-    DB->user_requested_exit();
-    return sub {
-        my $responder = shift;
-        my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
-
-        my $resp = Devel::hdb::App::Response->new('hangup');
-        $writer->write($resp->encode);
-        $writer->close();
-        exit();
-    };
 }
 
 sub _resp {
