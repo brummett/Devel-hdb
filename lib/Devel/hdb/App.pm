@@ -106,6 +106,7 @@ sub init_debugger {
     }
     require Devel::hdb::App::Ping;
     require Devel::hdb::App::Assets;
+    require Devel::hdb::App::Config;
 }
 
 sub _announce {
@@ -724,51 +725,6 @@ sub settings_file {
     our $PROGRAM_NAME;
     return ((defined($prefix) && $prefix) || $PROGRAM_NAME) . '.hdb';
 }
-
-sub loadconfig {
-    my($self, $env) = @_;
-
-    my $req = Plack::Request->new($env);
-    my $file = $req->param('f');
-
-    my @results = eval { $self->load_settings_from_file($file) };
-    my $load_resp = Devel::hdb::App::Response->new('loadconfig', $env);
-    if (! $@) {
-        foreach (@results) {
-            my $resp = Devel::hdb::App::Response->queue('breakpoint');
-            $resp->data($_);
-        }
-
-        $load_resp->data({ success => 1, filename => $file });
-
-    } else {
-        $load_resp->data({ failed => $@ });
-    }
-    return [ 200,
-            [ 'Content-Type' => 'application/json'],
-            [ $load_resp->encode() ]
-        ];
-}
-
-sub saveconfig {
-    my($self, $env) = @_;
-
-    my $req = Plack::Request->new($env);
-    my $file = $req->param('f');
-
-    $file = eval { $self->save_settings_to_file($file) };
-    my $resp = Devel::hdb::App::Response->new('saveconfig', $env);
-    if ($@) {
-        $resp->data({ failed => $@ });
-    } else {
-        $resp->data({ success => 1, filename => $file });
-    }
-    return [ 200,
-            [ 'Content-Type' => 'application/json'],
-            [ $resp->encode() ]
-        ];
-}
-
 
 sub load_settings_from_file {
     my $self = shift;
