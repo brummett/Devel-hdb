@@ -823,16 +823,16 @@ sub encode {
 
     my $copy = $self->_make_copy();
 
-    my $retval;
+    my $retval = '';
     if (@queued) {
         foreach ( @queued ) {
             $_ = $_->_make_copy();
         }
         unshift @queued, $copy;
-        $retval = JSON::encode_json(\@queued);
+        $retval = eval { JSON::encode_json(\@queued) };
         @queued = ();
     } else {
-        $retval = JSON::encode_json($copy);
+        $retval = eval { JSON::encode_json($copy) };
     }
     return $retval;
 }
