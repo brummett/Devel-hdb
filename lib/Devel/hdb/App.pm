@@ -84,9 +84,6 @@ sub init_debugger {
 
     for ($self->{router}) {
         # All the paths we listen for
-        $_->get(qr(/db/(.*)), sub { $self->assets(@_) });
-        $_->get(qr(/img/(.*)), sub { $self->assets(@_) });
-        $_->get("/", sub { $self->assets(shift, 'debugger.html', @_) }); # load the debugger window
         $_->get("/stepin", sub { $self->stepin(@_) });
         $_->get("/stepover", sub { $self->stepover(@_) });
         $_->get("/stepout", sub { $self->stepout(@_) });
@@ -108,6 +105,7 @@ sub init_debugger {
         $_->get(qr(/subinfo/((\w+)(::\w+)*)), sub { $self->subinfo(@_) });
     }
     require Devel::hdb::App::Ping;
+    require Devel::hdb::App::Assets;
 }
 
 sub _announce {
@@ -614,39 +612,6 @@ sub stack {
         ];
 }
 
-
-# send back a file located in the 'html' subdirectory
-sub assets {
-    my($self, $env, $file) = @_;
-
-    $file =~ s/\.\.//g;  # Remove ..  They're unnecessary and a security risk
-    my $file_path = $INC{'Devel/hdb.pm'};
-    $file_path =~ s/\.pm$//;
-    $file_path .= '/html/'.$file;
-    my $fh = IO::File->new($file_path);
-    unless ($fh) {
-        return [ 404, ['Content-Type' => 'text/html'], ['Not found']];
-    }
-
-    my $type;
-    if ($file =~ m/\.js$/) {
-        $type = 'application/javascript';
-    } elsif ($file =~ m/\.html$/) {
-        $type = 'text/html';
-    } elsif ($file =~ m/\.css$/) {
-        $type = 'text/css';
-    } else {
-        $type = 'text/plain';
-    }
-
-    if ($env->{'psgi.streaming'}) {
-        return [ 200, ['Content-Type' => $type], $fh];
-    } else {
-        local $/;
-        my $buffer = <$fh>;
-        return [ 200, ['Content-Type' => $type], [$buffer]];
-    }
-}
 
 sub stepover {
     my $self = shift;
