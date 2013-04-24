@@ -288,10 +288,29 @@ sub _encode_eval_data {
 
         $value = { __reftype => $reftype, __refaddr => $refaddr, __value => $value };
         $value->{__blessed} = $blesstype if $blesstype;
+
+    } elsif (ref(\$value) eq 'GLOB') {
+        # It's an actual typeglob (not a glob ref)
+        my $globref = \$value;
+        my %tmpvalue = map { $_ => $self->_encode_eval_data(*{$globref}{$_}) }
+                       grep { *{$globref}{$_} }
+                       qw(HASH ARRAY SCALAR);
+        if (*{$globref}{CODE}) {
+            $tmpvalue{CODE} = *{$globref}{CODE};
+        }
+        if (*{$globref}{IO}) {
+            $tmpvalue{IO} = 'fileno '.fileno(*{$globref}{IO});
+        }
+        $value = {  __reftype => 'GLOB',
+                    __refaddr => Scalar::Util::refaddr($globref),
+                    __value => \%tmpvalue,
+                };
     }
+    
 
     return $value;
 }
+
 
 sub loaded_files {
     my($self, $env) = @_;

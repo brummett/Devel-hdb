@@ -10,7 +10,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 15;
+    plan tests => 19;
 }
 
 my $url = start_test_program();
@@ -85,6 +85,30 @@ is_deeply($answer,
                 }
     },
     'Value is correct');
+
+
+$resp = $mech->post("${url}eval", content => '*STDOUT');
+ok($resp->is_success, 'Get value of a reference to a reference');
+$answer = $json->decode($resp->content);
+ok(delete $answer->{data}->{result}->{__refaddr}, 'Encoded value has a refaddr');
+ok(delete $answer->{data}->{result}->{__value}->{SCALAR}->{__refaddr}, 'Contained SCALAR value has a refaddr');
+is_deeply($answer,
+    {   type => 'evalresult',
+        data => { expr => '*STDOUT',
+                  result => {
+                      __reftype => 'GLOB',
+                      __value => {
+                        IO => 'fileno 1',
+                        SCALAR => {
+                            __reftype => 'SCALAR',
+                            __value => undef
+                        },
+                      },
+                  },
+              },
+    },
+    'Encoded bare typeglob');
+                    
 
 
 
