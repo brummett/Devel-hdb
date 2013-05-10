@@ -93,6 +93,7 @@ sub init_debugger {
         $_->post("/loadconfig", sub { $self->loadconfig(@_) });
         $_->post("/saveconfig", sub { $self->saveconfig(@_) });
         $_->get(qr(/pkginfo/((\w+)(::\w+)*)), sub { $self->pkginfo(@_) });
+        $_->get(qr(/subinfo/((\w+)(::\w+)*)), sub { $self->subinfo(@_) });
     }
 }
 
@@ -343,6 +344,19 @@ sub pkginfo {
             [ $resp->encode() ]
         ];
 }
+
+# Get information about a subroutine
+sub subinfo {
+    my($self, $env, $subname) = @_;
+
+    my $resp = $self->_resp('subinfo', $env);
+    $resp->data( Devel::hdb::DB::PackageInfo::sub_info($subname));
+    return [ 200,
+            [ 'Content-Type' => 'application/json' ],
+            [ $resp->encode() ]
+        ];
+}
+
 
 
 my %perl_special_vars = map { $_ => 1 }

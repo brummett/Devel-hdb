@@ -10,12 +10,17 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 41;
+    plan tests => 61;
 }
 
 my $json = JSON->new();
 my $url = start_test_program();
 my $mech = WWW::Mechanize->new();
+
+my $resp = $mech->get($url.'continue');
+ok($resp->is_success, 'Run to breakpoint');
+my $stack = $json->decode($resp->content);
+my $filename = $stack->{data}->[0]->{filename};
 
 my @tests = (
     { pkg => 'main',    pkgs => [ qw( Foo Quux ) ],    has_subs => 1 },
@@ -26,6 +31,21 @@ my @tests = (
     { pkg => 'Quux',    pkgs => [ qw( Sub ) ],         has_subs => 1 },
     { pkg => 'Quux::Sub',   pkgs => [ qw( Package ) ], has_subs => 0 },
     { pkg => 'Quux::Sub::Package', pkgs => [ ],        has_subs => 0 },
+);
+
+my %sub_locations = (
+    'main_1'    => 8,
+    'main_2'    => 9,
+    'foo_1'     => 13,
+    'foo_2'     => 14,
+    'foo_bar_1' => 18,
+    'foo_bar_2' => 19,
+    'foo_bar_baz_1' => 23,
+    'foo_bar_baz_2' => 24,
+    'quux_1'    => 28,
+    'quux_2'    => 29,
+    'quux_sub_package_1' => 33,
+    'quux_sub_pacakge_2' => 34,
 );
 
 foreach my $test ( @tests ) {
@@ -55,8 +75,35 @@ foreach my $test ( @tests ) {
         (my $subname = lc($package)) =~ s/::/_/g;
         $subname .= "_$c";
         is_in($subname, $info->{data}->{subs}, "Found $subname in package $package");
+
+        # Get info about this sub
+        $resp = $mech->get("${url}subinfo/${package}::${subname}");
+        ok($resp->is_success, "Get source location about $subname in $package");
+        my $sub_info = $json->decode($resp->content);
+        is_deeply($sub_info->{data},
+                {   file    => $filename,
+                    start   => $sub_locations{$subname},
+                    end     => $sub_locations{$subname},
+                    source  => $filename,
+                    source_line => $sub_locations{$subname},
+                },
+                "location matches expected");
     }
 }
+
+$resp = $mech->get("${url}subinfo/main::on_the_fly");
+ok($resp->is_success, 'Get info about main::on_the_fly');
+my $sub_info = $json->decode($resp->content);
+
+my $file = delete $sub_info->{data}->{file};
+like($file, qr{\(eval \d+\)\[$filename:1\]}, 'file matches expected');
+is_deeply($sub_info->{data},
+    {   start   => 1,
+        end     => 4,
+        source  => $filename,
+        source_line => 1,
+    },
+    'location matches expected');
     
 
 sub is_in {
@@ -67,6 +114,11 @@ sub is_in {
 
 
 __DATA__
+eval "sub main::on_the_fly {
+    1;
+    2;
+}";
+$DB::single=1;
 1;
 
 sub main_1 { 1}
