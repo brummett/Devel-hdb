@@ -4,6 +4,7 @@
     <title>hdb</title>
     <!-- Bootstrap -->
     <link href="db/bootstrap.css" rel="stylesheet" media="screen">
+    <link href="db/css-treeview.css" rel="stylesheet" media="screen">
     <link href="db/debugger.css" rel="stylesheet" media="screen">
     <link rel="icon" href="/db/favicon.ico" type="image/x-icon" />
     <script src="db/jquery.js"></script>
@@ -13,6 +14,7 @@
     <script src="db/filemanager.js"></script>
     <script src="db/stackmanager.js"></script>
     <script src="db/jquery.scrollTo.js"></script>
+    <script src="db/filepicker.js"></script>
     <script src="db/debugger.js"></script>
     <script>
         $(document).ready(function() {
@@ -29,14 +31,25 @@
                 <h4>Subroutines</h4>
             </div>
             <div class="modal-body css-treeview">
-
+                <ul></ul>
             </div>
         </div>
     </script>
 
     <! template for the tree view inside the sub picker>
     <script id="sub-picker-tree" type="text/x-handlebars-template">
-        {{if }}
+        {{#each subs}}
+            <li>
+                <a class="subroutine" data-package="{{../package_name}}" data-sub="{{this}}">{{this}}</a>
+            </li>
+        {{/each}}
+        {{#each packages}}
+            <li>
+                <input unfilled="true" type="checkbox" id="{{../package_name}}::{{this}}" />
+                <label for="{{../package_name}}::{{this}}">{{this}}</label>
+                <ul></ul>
+            </li>
+        {{/each}}
     </script>
 
     <! template for forked child modal>
@@ -94,7 +107,14 @@
         </div>
     </script>
 
-    <! template for Bootstrap nav tabs>
+    <! template for the file tabs along the top>
+    <script id="file-tab-template" type="text/x-handlebars-template">
+        <li{{#id}} id="{{id}}"{{/id}} class="{{#active}}active{{/active}}">
+            <a href="#{{id}}" data-toggle="tab">{{label}}</a>
+        </li>
+    </script>
+
+    <! template for Bootstrap stack nav tabs>
     <script id="nav-tab-template" type="text/x-handlebars-template">
         <li{{#id}} id="{{id}}"{{/id}} class="stack-tab {{class}}{{#active}} active{{/active}}">
         </li>

@@ -331,8 +331,6 @@ sub loaded_files {
 # Get data about the packages and subs within the mentioned package
 sub pkginfo {
     my($self, $env, $package) = @_;
-    my $req = Plack::Request->new($env);
-    my $child_pid = $req->param('pid');
 
     my $resp = $self->_resp('pkginfo', $env);
     my $sub_packages = Devel::hdb::DB::PackageInfo::namespaces_in_package($package);
@@ -542,6 +540,7 @@ sub sourcefile {
         my $offset = 1;
 
         for (my $i = $offset; $i < scalar(@$file); $i++) {
+            no warnings 'numeric';  # eval-ed "sources" generate "not-numeric" warnings
             push @rv, [ $file->[$i], $file->[$i] + 0 ];
         }
     }
