@@ -18,6 +18,7 @@ use LWP::UserAgent;
 use Data::Dumper;
 
 use Devel::hdb::Router;
+use Devel::hdb::DB::PackageInfo;
 
 use vars qw( $parent_pid ); # when running in the test harness
 
@@ -91,6 +92,7 @@ sub init_debugger {
         $_->get("/ping", sub { $self->ping(@_) });
         $_->post("/loadconfig", sub { $self->loadconfig(@_) });
         $_->post("/saveconfig", sub { $self->saveconfig(@_) });
+        $_->get(qr(/pkginfo/((\w+)(::\w+)*)), sub { $self->pkginfo(@_) });
     }
 }
 
@@ -324,6 +326,24 @@ sub loaded_files {
             [ $resp->encode() ]
         ];
 }
+
+# Get data about the packages and subs within the mentioned package
+sub pkginfo {
+    my($self, $env, $package) = @_;
+    my $req = Plack::Request->new($env);
+    my $child_pid = $req->param('pid');
+
+    my $resp = $self->_resp('pkginfo', $env);
+    my $sub_packages = Devel::hdb::DB::PackageInfo::namespaces_in_package($package);
+    my $subs = Devel::hdb::DB::PackageInfo::subs_in_package($package);
+
+    $resp->data({ packages => $sub_packages, subs => $subs });
+    return [ 200,
+            [ 'Content-Type' => 'application/json' ],
+            [ $resp->encode() ]
+        ];
+}
+
 
 my %perl_special_vars = map { $_ => 1 }
     qw( $0 $1 $2 $3 $4 $5 $6 $7 $8 $9 $& ${^MATCH} $` ${^PREMATCH} $'
