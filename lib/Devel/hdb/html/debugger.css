@@ -96,7 +96,7 @@ div#controls {
     margin-bottom: 0;
 }
 #filewindow > ul > li {
-    /* margin-bottom: -2px;*/
+    max-width: 150px;
 }
 #filewindow > ul a {
     background-color: white;
@@ -107,7 +107,6 @@ div#controls {
 /* In practice, this is for the filewindow tabs */
 .trunc-left {
     white-space: nowrap;
-    max-width: 150px;
     overflow: hidden;
     direction: rtl;
     text-align: left;
