@@ -96,13 +96,21 @@ div#controls {
     margin-bottom: 0;
 }
 #filewindow > ul > li {
-    margin-bottom: -2px;
+    /* margin-bottom: -2px;*/
 }
 #filewindow > ul a {
     background-color: white;
     border-top: 2px solid rgb(170, 170, 170);
     border-left: 2px solid rgb(170, 170, 170);
     border-right: 2px solid rgb(170, 170, 170);
+}
+/* In practice, this is for the filewindow tabs */
+.trunc-left {
+    white-space: nowrap;
+    max-width: 150px;
+    overflow: hidden;
+    direction: rtl;
+    text-align: left;
 }
 
 .current-sub-and-args {
