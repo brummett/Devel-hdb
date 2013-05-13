@@ -29,6 +29,12 @@ sub subs_in_package {
     return \@subs;
 }
 
+sub sub_is_debuggable {
+    my($pkg, $sub) = @_;
+    no strict 'refs';
+    return !! $DB::sub{"${pkg}::${sub}"};
+}
+
 sub sub_info {
     my $fqn = shift;
 

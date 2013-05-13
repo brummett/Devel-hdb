@@ -334,9 +334,10 @@ sub pkginfo {
 
     my $resp = $self->_resp('pkginfo', $env);
     my $sub_packages = Devel::hdb::DB::PackageInfo::namespaces_in_package($package);
-    my $subs = Devel::hdb::DB::PackageInfo::subs_in_package($package);
+    my @subs = grep { Devel::hdb::DB::PackageInfo::sub_is_debuggable($package, $_) }
+                    @{ Devel::hdb::DB::PackageInfo::subs_in_package($package) };
 
-    $resp->data({ packages => $sub_packages, subs => $subs });
+    $resp->data({ packages => $sub_packages, subs => \@subs });
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
             [ $resp->encode() ]
