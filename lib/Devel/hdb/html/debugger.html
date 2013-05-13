@@ -45,8 +45,8 @@
         {{/each}}
         {{#each packages}}
             <li>
-                <input unfilled="true" type="checkbox" id="{{../package_name}}::{{this}}" />
-                <label for="{{../package_name}}::{{this}}">{{this}}</label>
+                <input unfilled="true" type="checkbox" id="{{#if ../package_name}}{{../../package_name}}::{{/if}}{{this}}" />
+                <label for="{{#if ../package_name}}{{../../package_name}}::{{/if}}{{this}}">{{this}}</label>
                 <ul></ul>
             </li>
         {{/each}}
@@ -128,7 +128,7 @@
     <! template for Bootstrap nav panes>
     <script id="nav-pane-template" type="text/x-handlebars-template">
         <div id="{{tabId}}" class="tab-pane{{#active}} active{{/active}}">
-            <div class="current-sub-and-args alert">&nbsp;</div>
+            <div class="current-sub-and-args alert">{{#if banner}}{{banner}}{{else}}&nbsp;{{/if}}</div>
             <div class="managed-height program-code-container" data-filename="{{filename}}">
                 {{{html}}}
             </div>

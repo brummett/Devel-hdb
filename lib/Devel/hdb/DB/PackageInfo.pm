@@ -11,7 +11,8 @@ sub namespaces_in_package {
     no strict 'refs';
     return undef unless %{"${pkg}::"};
 
-    my @packages =  map { substr($_, 0, -2) }
+    my @packages =  sort
+                    map { substr($_, 0, -2) }  # remove '::' at the end
                     grep { m/::$/ }
                     keys %{"${pkg}::"};
     return \@packages;
@@ -22,7 +23,8 @@ sub subs_in_package {
     my $pkg = shift;
 
     no strict 'refs';
-    my @subs =  grep { defined &{"${pkg}::$_"} }
+    my @subs =  sort
+                grep { defined &{"${pkg}::$_"} }
                 keys %{"${pkg}::"};
     return \@subs;
 }
@@ -31,6 +33,10 @@ sub sub_info {
     my $fqn = shift;
 
     my $loc = $DB::sub{$fqn};
+    unless ($loc) {
+        warn "No subroutine info found for $fqn\n";
+        return {};
+    }
     my($file, $start, $end) = $loc =~ m/(.*):(\d+)-(\d+)$/;
     my($source, $source_line) = $file =~ m/\[(.*):(\d+)/;
     return {
