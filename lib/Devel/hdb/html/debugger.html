@@ -40,7 +40,7 @@
     <script id="sub-picker-tree" type="text/x-handlebars-template">
         {{#each subs}}
             <li>
-                <a class="subroutine" data-package="{{../package_name}}" data-sub="{{this}}">{{this}}</a>
+                <a class="subroutine" data-package="{{#if ../package_name}}{{../package_name}}{{else}}main{{/if}}" data-sub="{{this}}">{{this}}</a>
             </li>
         {{/each}}
         {{#each packages}}
