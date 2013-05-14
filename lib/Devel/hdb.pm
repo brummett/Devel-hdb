@@ -105,7 +105,7 @@ running.
 Most of the interface is taken up by the code browser.  Tabs along the top
 show one file at a time.  The "+" next to the last tab brings up a dialog
 to choose another file to open.  Click the "x" next to a file name to close
-that tab.  NOTE: loading additional files is not implemented yet.
+that tab.
 
 The first tab is special: it shows the stack frames of the currently
 executing program and cannot be closed.  The stack tab itself has tabs along
