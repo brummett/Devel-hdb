@@ -6,12 +6,14 @@ package Devel::hdb;
 use Devel::hdb::App;
 use Devel::hdb::DB;
 use IO::Socket::INET;
+use IO::File;
 
 our $VERSION = 0.06;
 
 sub import {
     my $class = shift;
 
+    our $TESTHARNESS;
     while (@_) {
         my $param = shift;
         if ($param =~ m/port:(\d+)/) {
@@ -21,7 +23,15 @@ sub import {
         } elsif ($param eq 'a') {
             our $HOST = inet_ntoa(INADDR_ANY);
         } elsif ($param eq 'testharness') {
-            our $TESTHARNESS = 1;
+            $TESTHARNESS = 1;
+        } elsif ($param =~ m/trace:(.*)/) {
+            print STDERR "Writing execution trace to $1...\n" unless $TESTHARNESS;
+            DB->disable_stopping(1);
+            unless($DB::trace = IO::File->new($1, 'w')) {
+                die "Can't open trace file for writing: $!";
+            }
+        } elsif ($param =~ m/follow:(.*)/) {
+            DB->input_trace_file($1, sub { Devel::hdb::App->get()->notify_trace_diff(@_) });
         }
     }
 }

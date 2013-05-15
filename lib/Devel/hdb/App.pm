@@ -726,6 +726,13 @@ sub run {
     return $self->{server}->run($self->app);
 }
 
+sub notify_trace_diff {
+    my($self, $trace_data) = @_;
+
+    my $msg = Devel::hdb::App::Response->queue('trace_diff');
+    $msg->{data} = $trace_data;
+}
+
 sub notify_program_terminated {
     my $class = shift;
     my $exit_code = shift;

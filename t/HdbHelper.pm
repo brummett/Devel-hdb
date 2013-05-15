@@ -16,18 +16,17 @@ our @EXPORT = qw( start_test_program strip_stack strip_stack_inc_args );
 
 
 my $out_fh;
+my $program_source;
 sub start_test_program {
-    my $program_file;
+
+    my($program_file, $module_args);
     if ($_[0] and $_[0] eq '-file') {
         (undef, $program_file) = splice(@_,0,2);
     }
-    my @argv = @_;
-
-    my $pkg = caller;
-    my $in_fh;
-    {   no strict 'refs';
-        $in_fh = *{ $pkg . '::DATA' };
+    if ($_[0] and $_[0] eq '-module_args') {
+        (undef, $module_args) = splice(@_,0,2);
     }
+    my @argv = @_;
 
     if ($program_file) {
         $out_fh = IO::File->new($program_file,'w');
@@ -36,19 +35,30 @@ sub start_test_program {
         $program_file = $out_fh->filename();
     }
 
-    {
+    unless ($program_source) {
         # Localize $/ for slurp mode
         # Localize $. to avoid die messages including 
         local($/, $.);
-        $out_fh->print(<$in_fh>);
-        $out_fh->close();
+        my $pkg = caller;
+        my $in_fh = do {
+            no strict 'refs';
+            *{ $pkg . '::DATA' };
+        };
+        $program_source = <$in_fh>;
     }
+    $out_fh->print($program_source);
+    $out_fh->close();
 
     my $libdir = File::Basename::dirname(__FILE__). '/../lib';
 
     my $port = $ENV{DEVEL_HDB_PORT} = pick_unused_port();
     Test::More::note("Using port $ENV{DEVEL_HDB_PORT}\n");
-    my $cmdline = join(' ', $^X, "-I $libdir -d:hdb=port:$port,testharness",
+
+    my $module_invocation = "-d:hdb=port:$port,testharness";
+    if ($module_args) {
+        $module_invocation .= ",$module_args";
+    }
+    my $cmdline = join(' ', $^X, "-I $libdir $module_invocation",
                                $program_file,
                                @argv);
 

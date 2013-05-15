@@ -69,6 +69,36 @@
         </div>
     </script>
 
+    <! Template for the execution trace difference notifiaction>
+    <script id="trace-diff-modal-template" type="text/x-handlebars-template">
+        <div class="modal">
+            <div class="modal-header">
+                Stopped
+            <div>
+            <div class="modal-body">
+                Execution has deviated from the trace file.  The next expected line was
+                {{#if expected_offset}}
+                    {{expected_subroutine}} line {{expected_offset}}
+                    in {{expected_filename}}:{{expected_line}}
+                {{else}}
+                    <dl>
+                        <dt>package</dt>
+                            <dd>{{expected_package}}</dd>
+                        <dt>file</dt>
+                            <dd>{{expected_filename}}</dd>
+                        <dt>subroutine</dt>
+                            <dd>{{expected_subroutine}}</dd>
+                        <dt>line</dt>
+                            <dd>{{expected_line}}</dd>
+                    </dl>
+                {{/if}}
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </script>
+
     <! template for 'program terminated' modal>
     <script id="program-terminated-modal-template" type="text/x-handlebars-template">
         <div class="modal">
