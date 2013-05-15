@@ -51,7 +51,7 @@ is_deeply($stack,
     { line => 4, subroutine => 'main::foo' },
     { line => 1, subroutine => '(eval)' },
     { line => 1, subroutine => 'MAIN' } ],
-    'Stopped on line 7, frames above are lines 4 and 1');
+    'Stopped on line 8, frames above are lines 4 and 1');
 
 $resp = $mech->get($url.'stepin');
 ok($resp->is_success, 'step in');
