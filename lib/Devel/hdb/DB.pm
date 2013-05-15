@@ -384,13 +384,6 @@ sub long_call {
     return $DB::long_call;
 }
 
-# FIXME: I think the keys for %DB::sub is fully qualified
-# sub names, like Package::Subpkg::subname
-# values are "filename:startline-endline"
-sub subroutines {
-
-}
-
 sub user_requested_exit {
     $user_requested_exit = 1;
 }
