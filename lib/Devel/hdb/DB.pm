@@ -9,14 +9,6 @@ use Devel::hdb::DB::Eval;
 
 package DB;
 
-# NOTE: Look into trapping $SIG{__DIE__} se we can report
-# untrapped exceptions back to the debugger.
-# inside the handler, note the value for $^S:
-# undef - died while parsing something
-# 1 - died while executing an eval
-# 0 - Died not inside an eval
-# We could re-throw the die if $^S is 1
-
 use vars qw( %dbline @dbline );
 
 our($stack_depth,
@@ -36,6 +28,7 @@ our($stack_depth,
     $eval_string,
     @AUTOLOAD_names,
     $sub,
+    $uncaught_exception,
 );
 
 BEGIN {
@@ -137,6 +130,30 @@ BEGIN {
         return $pid;
     };
 };
+
+# NOTE: Look into trapping $SIG{__DIE__} se we can report
+# untrapped exceptions back to the debugger.
+# inside the handler, note the value for $^S:
+# undef - died while parsing something
+# 1 - died while executing an eval
+# 0 - Died not inside an eval
+# We could re-throw the die if $^S is 1
+$SIG{__DIE__} = sub {
+    my $tracker;
+    if (defined($^S) && $^S == 0) {
+        my $exception = $_[0];
+        my($package, $filename, $line) = caller;
+        $uncaught_exception = {
+            'package'   => $package,
+            line        => $line,
+            filename    => $filename,
+            exception   => $exception,
+        };
+        # After we fall off the end, the interpreter will try and exit,
+        # triggering the END block that calls DB::fake::at_exit()
+    }
+};
+
 
 sub DB {
     return if (!$ready or $debugger_disabled);
@@ -409,7 +426,7 @@ END {
     if ($user_requested_exit) {
         Devel::hdb::App->get()->notify_program_exit();
     } else {
-        Devel::hdb::App->get()->notify_program_terminated($?);
+        Devel::hdb::App->get()->notify_program_terminated($?, $uncaught_exception);
         # These two will trigger DB::DB and the event loop
         $in_debugger = 0;
         $single=1;

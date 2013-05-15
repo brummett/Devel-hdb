@@ -726,12 +726,15 @@ sub run {
     return $self->{server}->run($self->app);
 }
 
-
 sub notify_program_terminated {
     my $class = shift;
     my $exit_code = shift;
+    my $exception_data = shift;
 
     my $msg = Devel::hdb::App::Response->queue('termination');
+    if ($exception_data) {
+        $msg->{data} = $exception_data;
+    }
     $msg->{data}->{exit_code} = $exit_code;
 }
 
