@@ -37,10 +37,11 @@ is_deeply($messages[1],
     {   type => 'termination',
         data => {
             'package'   => 'main',
-            line        => 4,
+            line        => 11,
             filename    => $filename,
-            exception   => "Not a HASH reference at $filename line 4.\n",
+            exception   => "Not a HASH reference at $filename line 11.\n",
             exit_code   => 255,
+            subroutine  => 'main::do_die2',
         }
     },
     'Got termination/exception message');
@@ -50,7 +51,13 @@ __DATA__
 $a = [];
 eval { die "inside eval" };
 die "exception was not trapped: $@" unless $@ =~ m/^inside eval at/;
-$a->{foo} = 1;
+&do_die();
 4;
 $DB::single = 1;
 6;
+sub do_die {
+    &do_die2() };
+sub do_die2 {
+    $a->{foo} = 1;
+}
+    

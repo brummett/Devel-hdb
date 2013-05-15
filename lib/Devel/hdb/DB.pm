@@ -139,15 +139,23 @@ BEGIN {
 # 0 - Died not inside an eval
 # We could re-throw the die if $^S is 1
 $SIG{__DIE__} = sub {
-    my $tracker;
     if (defined($^S) && $^S == 0) {
         my $exception = $_[0];
-        my($package, $filename, $line) = caller;
+        # It's interesting to note that if we pass an arg to caller() to
+        # find out the offending subroutine name, then the line reported
+        # changes.  Instead of reporting the line the exception occured
+        # (which it correctly does with no args), it returns the line which
+        # called the function which threw the exception.
+        # We'll work around it by calling it twice
+        my($package, $filename, undef, $subname) = caller(1);
+        my(undef, undef, $line, undef) = caller(0);
+        $subname = 'MAIN' unless defined($subname);
         $uncaught_exception = {
             'package'   => $package,
             line        => $line,
             filename    => $filename,
             exception   => $exception,
+            subroutine  => $subname,
         };
         # After we fall off the end, the interpreter will try and exit,
         # triggering the END block that calls DB::fake::at_exit()
