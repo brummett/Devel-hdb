@@ -72,9 +72,14 @@
     <! template for 'program terminated' modal>
     <script id="program-terminated-modal-template" type="text/x-handlebars-template">
         <div class="modal">
-            <div class="modal-header">header</div>
+            <div class="modal-header">Program Terminated</div>
             <div class="modal-body">
                 Debugged program terminated with exit code {{exit_code}}
+                {{#if exception}}
+                    <br>
+                    Exception in {{subroutine}} at {{filename}}:{{line}}
+                    <div class="alert alert-error">{{exception}}</div>
+                {{/if}}
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" data-dismiss="modal">Ok</button>
