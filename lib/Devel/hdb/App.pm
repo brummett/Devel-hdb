@@ -76,8 +76,6 @@ sub init_debugger {
     return if $self->{__init__};
     $self->{__init__} = 1;
 
-    eval { $self->load_settings_from_file() };
-
     $self->_announce();
 
     $self->router( Devel::hdb::Router->new() );
@@ -91,9 +89,6 @@ sub init_debugger {
         $_->get("/stack", sub { $self->stack(@_) });
         $_->get("/sourcefile", sub { $self->sourcefile(@_) });
         $_->get("/program_name", sub { $self->program_name(@_) });
-        $_->post("/breakpoint", sub { $self->set_breakpoint(@_) });
-        $_->get("/breakpoint", sub { $self->get_breakpoint(@_) });
-        $_->get("/breakpoints", sub { $self->get_all_breakpoints(@_) });
         $_->get("/loadedfiles", sub { $self->loaded_files(@_) });
         $_->post("/eval", sub { $self->do_eval(@_) });
         $_->post("/getvar", sub { $self->do_getvar(@_) });
@@ -104,6 +99,10 @@ sub init_debugger {
     require Devel::hdb::App::Config;
     require Devel::hdb::App::Terminate;
     require Devel::hdb::App::PackageInfo;
+    require Devel::hdb::App::Breakpoint;
+
+    eval { $self->load_settings_from_file() };
+
 }
 
 sub _announce {
@@ -368,94 +367,6 @@ sub do_getvar {
 }
 
 
-# sets a breakpoint on line l of file f with condition c
-# Make c=1 for an unconditional bp, c='' to clear it
-sub set_breakpoint {
-    my($self, $env) = @_;
-    my $req = Plack::Request->new($env);
-    my $filename = $req->param('f');
-    my $line = $req->param('l');
-    my $condition = $req->param('c');
-    my $condition_inactive = $req->param('ci');
-    my $action = $req->param('a');
-    my $action_inactive = $req->param('ai');
-
-    if (! DB->is_loaded($filename)) {
-        return [ 404, ['Content-Type' => 'text/html'], ["$filename is not loaded"]];
-    } elsif (! DB->is_breakable($filename, $line)) {
-        return [ 403, ['Content-Type' => 'text/html'], ["line $line of $filename is not breakable"]];
-    }
-
-    my $resp = $self->_resp('breakpoint', $env);
-
-    my $params = $req->parameters;
-    my %req;
-    $req{condition} = $condition if (exists $params->{'c'});
-    $req{condition_inactive} = $condition_inactive if (exists $params->{'ci'});
-    $req{action} = $action if (exists $params->{'a'});
-    $req{action_inactive} = $action_inactive if (exists $params->{'ai'});
-
-    my $resp_data = $self->_set_breakpoint_and_respond($filename, $line, %req);
-    $resp->data( $resp_data );
-
-    return [ 200,
-            [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
-          ];
-}
-
-sub _set_breakpoint_and_respond {
-    my($self, $filename, $line, %params) = @_;
-
-    unless (DB->is_loaded($filename)) {
-        DB->postpone_until_loaded(
-                $filename,
-                sub { DB->set_breakpoint($filename, $line, %params) }
-        );
-        return;
-    }
-
-    DB->set_breakpoint($filename, $line, %params);
-
-    my $resp_data = DB->get_breakpoint($filename, $line);
-    unless ($resp_data) {
-        # This breakpoint was deleted
-        $resp_data = { filename => $filename, lineno => $line };
-    }
-    return $resp_data;
-}
-
-
-
-sub get_breakpoint {
-    my($self, $env) = @_;
-    my $req = Plack::Request->new($env);
-    my $filename = $req->param('f');
-    my $line = $req->param('l');
-
-    my $resp = $self->_resp('breakpoint', $env);
-    $resp->data( DB->get_breakpoint($filename, $line) );
-
-    return [ 200, ['Content-Type' => 'application/json'],
-            [ $resp->encode() ]
-          ];
-}
-
-sub get_all_breakpoints {
-    my($self, $env) = @_;
-    my $req = Plack::Request->new($env);
-    my $filename = $req->param('f');
-    my $line = $req->param('l');
-    my $rid = $req->param('rid');
-
-    # Purposefully not using a response object because there's not yet
-    # clean way to encode a list of them
-    my @bp = map {  { type => 'breakpoint', data => $_, defined($rid) ? (rid => $rid) : () } }
-            DB->get_breakpoint($filename, $line);
-    return [ 200, ['Content-Type' => 'application/json'],
-            [ $self->encode( \@bp ) ]
-        ];
-}
 
 # Return the name of the program, $o
 sub program_name {
@@ -702,7 +613,7 @@ sub load_settings_from_file {
             $req{$key} = $bp->{$key} if (exists $bp->{$key});
         }
         push @set_breakpoints,
-             $self->_set_breakpoint_and_respond($bp->{filename}, $bp->{lineno}, %req);
+            Devel::hdb::App::Breakpoint->set_breakpoint_and_respond($bp->{filename}, $bp->{lineno}, %req);
         #$resp->data( $resp_data );
     }
     return @set_breakpoints;
