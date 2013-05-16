@@ -502,7 +502,6 @@ sub disable_debugger {
 END {
     $trace = 0;
 
-    print "Debugged program pid $$ terminated with exit code $?\n";
     return if $debugger_disabled;
 
     $single=0;

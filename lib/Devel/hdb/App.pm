@@ -117,7 +117,7 @@ sub _announce {
 
     select STDOUT;
     local $| = 1;
-    print "Debugger pid $$ listening on ",$self->{base_url},"\n";
+    print "Debugger pid $$ listening on ",$self->{base_url},"\n" unless ($Devel::hdb::TESTHARNESS);
 }
 
 
@@ -738,6 +738,7 @@ sub notify_program_terminated {
     my $exit_code = shift;
     my $exception_data = shift;
 
+    print STDERR "Debugged program pid $$ terminated with exit code $exit_code\n" unless ($Devel::hdb::TESTHARNESS);
     my $msg = Devel::hdb::App::Response->queue('termination');
     if ($exception_data) {
         $msg->{data} = $exception_data;
