@@ -1,3 +1,9 @@
+libdevel-hdb-perl (0.08-1) unstable; urgency=low
+  * Fix text overflow with the main program tab
+  * Fix bug in the open-file picker
+
+ -- Anthony Brummett <brummett@cpan.org>  Thu, 16 May 2013 14:45:00 -0500
+
 libdevel-hdb-perl (0.07-1) unstable; urgency=low
   * Perl value serializer can now handle typeglobs
   * Opening additional code windows now works

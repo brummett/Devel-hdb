@@ -1,3 +1,7 @@
+16 May 2013 - v0.08
+    * Fix text overflow with the main program tab
+    * Fix bug in the open-file picker
+
 16 May 2013 - v0.07
     * Perl value serializer can now handle typeglobs
     * Opening additional code windows now works
