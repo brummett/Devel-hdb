@@ -98,13 +98,12 @@ sub init_debugger {
         $_->post("/eval", sub { $self->do_eval(@_) });
         $_->post("/getvar", sub { $self->do_getvar(@_) });
         $_->post("/announce_child", sub { $self->announce_child(@_) });
-        $_->get(qr(/pkginfo/((\w+)(::\w+)*)), sub { $self->pkginfo(@_) });
-        $_->get(qr(/subinfo/((\w+)(::\w+)*)), sub { $self->subinfo(@_) });
     }
     require Devel::hdb::App::Ping;
     require Devel::hdb::App::Assets;
     require Devel::hdb::App::Config;
     require Devel::hdb::App::Terminate;
+    require Devel::hdb::App::PackageInfo;
 }
 
 sub _announce {
@@ -310,35 +309,6 @@ sub loaded_files {
             [ $resp->encode() ]
         ];
 }
-
-# Get data about the packages and subs within the mentioned package
-sub pkginfo {
-    my($self, $env, $package) = @_;
-
-    my $resp = $self->_resp('pkginfo', $env);
-    my $sub_packages = Devel::hdb::DB::PackageInfo::namespaces_in_package($package);
-    my @subs = grep { Devel::hdb::DB::PackageInfo::sub_is_debuggable($package, $_) }
-                    @{ Devel::hdb::DB::PackageInfo::subs_in_package($package) };
-
-    $resp->data({ packages => $sub_packages, subs => \@subs });
-    return [ 200,
-            [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
-        ];
-}
-
-# Get information about a subroutine
-sub subinfo {
-    my($self, $env, $subname) = @_;
-
-    my $resp = $self->_resp('subinfo', $env);
-    $resp->data( Devel::hdb::DB::PackageInfo::sub_info($subname));
-    return [ 200,
-            [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
-        ];
-}
-
 
 
 my %perl_special_vars = map { $_ => 1 }
