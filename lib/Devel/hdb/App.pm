@@ -19,7 +19,6 @@ use Data::Dumper;
 use File::Basename;
 
 use Devel::hdb::Router;
-use Devel::hdb::DB::PackageInfo;
 
 use vars qw( $parent_pid ); # when running in the test harness
 
