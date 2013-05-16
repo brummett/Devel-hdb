@@ -1,3 +1,9 @@
+16 May 2013 - v0.07
+    * Perl value serializer can now handle typeglobs
+    * Opening additional code windows now works
+    * Untrapped exceptions are now caught and shown in the GUI
+    * Added trace/follow mode
+
 4 Apr 2013 - v0.06
     * Hover-over-variable works for hash and array elements, and for (most)
       Perl special variables.
