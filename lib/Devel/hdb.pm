@@ -65,11 +65,11 @@ start it like this:
 
 To specify a particular IP address to listen on:
 
-    perl -d:hdb=host:192.168.0.123 yourprogram.pm
+    perl -d:hdb=host:192.168.0.123 yourprogram.pl
 
 And to listen on any interface:
 
-    perl -d:hdb=a yourprogram.pm
+    perl -d:hdb=a yourprogram.pl
 
 =head2 Interface
 
@@ -162,6 +162,27 @@ Open a new browser window and debug the child process inside it
 Disables the debugger in the child process, and forces it to run to completion.
 
 =back
+
+=head2 Trace and Follow mode
+
+Devel::hdb can trace the execution of a program and stop if the code path
+differs from that of a previously save run.  First, run the program in trace
+mode:
+
+  perl -d:hdb=trace:<tracefile> yourprogram.pl
+
+In trace mode, the program runs normally, and the debugger does not stop
+execution.  It records information about which lines of code were run into
+the specified file (tracefile, in this example).  Next, run the program
+again in follow mode:
+
+  perl -d:hdb=follow:<tracefile> yourprogram.pl
+
+This time, the debugger starts up normally, stopping on the first line of the
+program.  As the program runs, the debugger reads the trace information from
+the specified file.  The first time the current location is different than
+what is in the file, the debugger will stop and report which line it expected.
+After it stops in this way, follow mode is disabled.
 
 =head2 Included Code
 

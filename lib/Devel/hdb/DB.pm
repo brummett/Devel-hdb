@@ -234,7 +234,7 @@ $SIG{__DIE__} = sub {
 
 sub disable_stopping {
     my $class = shift;
-    my $no_stopping = shift;
+    $no_stopping = shift;
 }
 
 sub DB {
@@ -500,7 +500,7 @@ sub disable_debugger {
 
 
 END {
-    undef $trace;
+    $trace = 0;
 
     print "Debugged program pid $$ terminated with exit code $?\n";
     return if $debugger_disabled;
