@@ -98,8 +98,6 @@ sub init_debugger {
         $_->post("/eval", sub { $self->do_eval(@_) });
         $_->post("/getvar", sub { $self->do_getvar(@_) });
         $_->post("/announce_child", sub { $self->announce_child(@_) });
-        $_->post("/loadconfig", sub { $self->loadconfig(@_) });
-        $_->post("/saveconfig", sub { $self->saveconfig(@_) });
         $_->get(qr(/pkginfo/((\w+)(::\w+)*)), sub { $self->pkginfo(@_) });
         $_->get(qr(/subinfo/((\w+)(::\w+)*)), sub { $self->subinfo(@_) });
     }
