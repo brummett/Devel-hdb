@@ -92,7 +92,7 @@ about where the subroutine was declared:
   source      Original source file of the subroutine text
   source_line Line in the original source file
 
-source and source_loc can differ from file and start in the case of
+source and source_line can differ from file and start in the case of
 subroutines defined inside of a string eval.  In this case, "file" will
 be a string like
   (eval 23)[/some/file/path/module.pm:123]
