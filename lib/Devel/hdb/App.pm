@@ -19,6 +19,8 @@ use File::Basename;
 
 use Devel::hdb::Router;
 
+use Devel::hdb::App::EncodePerlData qw(encode_perl_data);
+
 use vars qw( $parent_pid ); # when running in the test harness
 
 our $APP_OBJ;
@@ -215,7 +217,7 @@ sub _eval_plumbing_closure {
                 $eval_string,
                 sub {
                     my $data = shift;
-                    $data->{result} = $self->_encode_eval_data($data->{result}) if ($data->{result});
+                    $data->{result} = encode_perl_data($data->{result}) if ($data->{result});
                     $data = $result_packager->($data);
 
                     $resp->data($data);
@@ -225,69 +227,6 @@ sub _eval_plumbing_closure {
             )
         );
     };
-}
-
-sub _encode_eval_data {
-    my($self, $value) = @_;
-
-    if (ref $value) {
-        my $reftype     = Scalar::Util::reftype($value);
-        my $refaddr     = Scalar::Util::refaddr($value);
-        my $blesstype   = Scalar::Util::blessed($value);
-
-        if ($reftype eq 'HASH') {
-            $value = { map { $_ => $self->_encode_eval_data($value->{$_}) } keys(%$value) };
-
-        } elsif ($reftype eq 'ARRAY') {
-            $value = [ map { $self->_encode_eval_data($_) } @$value ];
-
-        } elsif ($reftype eq 'GLOB') {
-            my %tmpvalue = map { $_ => $self->_encode_eval_data(*{$value}{$_}) }
-                           grep { *{$value}{$_} }
-                           qw(HASH ARRAY SCALAR);
-            if (*{$value}{CODE}) {
-                $tmpvalue{CODE} = *{$value}{CODE};
-            }
-            if (*{$value}{IO}) {
-                $tmpvalue{IO} = 'fileno '.fileno(*{$value}{IO});
-            }
-            $value = \%tmpvalue;
-        } elsif (($reftype eq 'REGEXP')
-                    or ($reftype eq 'SCALAR' and defined($blesstype) and $blesstype eq 'Regexp')
-        ) {
-            $value = $value . '';
-        } elsif ($reftype eq 'SCALAR') {
-            $value = $self->_encode_eval_data($$value);
-        } elsif ($reftype eq 'CODE') {
-            (my $copy = $value.'') =~ s/^(\w+)\=//;  # Hack to change CodeClass=CODE(0x123) to CODE=(0x123)
-            $value = $copy;
-        } elsif ($reftype eq 'REF') {
-            $value = $self->_encode_eval_data($$value);
-        }
-
-        $value = { __reftype => $reftype, __refaddr => $refaddr, __value => $value };
-        $value->{__blessed} = $blesstype if $blesstype;
-
-    } elsif (ref(\$value) eq 'GLOB') {
-        # It's an actual typeglob (not a glob ref)
-        my $globref = \$value;
-        my %tmpvalue = map { $_ => $self->_encode_eval_data(*{$globref}{$_}) }
-                       grep { *{$globref}{$_} }
-                       qw(HASH ARRAY SCALAR);
-        if (*{$globref}{CODE}) {
-            $tmpvalue{CODE} = *{$globref}{CODE};
-        }
-        if (*{$globref}{IO}) {
-            $tmpvalue{IO} = 'fileno '.fileno(*{$globref}{IO});
-        }
-        $value = {  __reftype => 'GLOB',
-                    __refaddr => Scalar::Util::refaddr($globref),
-                    __value => \%tmpvalue,
-                };
-    }
-    
-
-    return $value;
 }
 
 
@@ -352,7 +291,7 @@ sub do_getvar {
             die $exception
         }
     } else {
-        $value = $self->_encode_eval_data($value);
+        $value = encode_perl_data($value);
         $resp->data( { expr => $varname, level => $level, result => $value } );
     }
     return [ 200,

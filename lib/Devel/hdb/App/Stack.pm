@@ -12,6 +12,8 @@ use base 'Devel::hdb::App::Base';
 use Exporter 'import';
 our @EXPORT_OK = qw(_stack);
 
+use Devel::hdb::App::EncodePerlData qw(encode_perl_data);
+
 __PACKAGE__->add_route('get', '/stack', \&stack);
 
 sub stack {
@@ -49,7 +51,7 @@ sub _stack {
         }
         next if $discard;
 
-        $caller{args} = [ map { $app->_encode_eval_data($_) } @DB::args ]; # unless @stack;
+        $caller{args} = [ map { encode_perl_data($_) } @DB::args ]; # unless @stack;
         $caller{subname} = $caller{subroutine} =~ m/\b(\w+$|__ANON__)/ ? $1 : $caller{subroutine};
         if ($caller{subname} eq 'AUTOLOAD') {
             $caller{subname} .= '(' . ($DB::AUTOLOAD_names[ $next_AUTOLOAD_name-- ] =~ m/::(\w+)$/)[0] . ')';
@@ -98,16 +100,13 @@ with the following keys:
 
 The top-level stack frame is reported as being in the subroutine named 'MAIN'.
 
-Complex subroutine arguments like typeglobs and references are encoded as a
-hash (regardless of the actual type) containing additional metadata about
-the value that is not expressable with normal JSON-encoding, like the
-reference address and what package it is blessed into.
+Values in the args list are encoded using Devel::hdb::App::EncodePerlData.
 
 =back
 
 =head1 SEE ALSO
 
-Devel::hdb
+Devel::hdb, Devel::hdb::App::EncodePerlData
 
 =head1 AUTHOR
 

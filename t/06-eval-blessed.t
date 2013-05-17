@@ -8,6 +8,8 @@ use JSON;
 use Devel::hdb::App;
 use Scalar::Util;
 
+use Devel::hdb::App::EncodePerlData qw(encode_perl_data);
+
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
@@ -15,7 +17,7 @@ if ($^O =~ m/^MS/) {
     plan tests => 32;
 }
 
-my $encoded = Devel::hdb::App->_encode_eval_data(bless { a => [1,2,3]}, 'Foo');
+my $encoded = encode_perl_data(bless { a => [1,2,3]}, 'Foo');
 ok($encoded, 'Encode a blessed hashref directly');
 ok(delete $encoded->{__refaddr}, 'encoded has a refaddr');
 ok(delete $encoded->{__value}->{a}->{__refaddr}, 'sub-array has a refaddr');
