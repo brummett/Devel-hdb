@@ -4,7 +4,6 @@ use strict;
 package Devel::hdb::App;
 
 BEGIN {
-    our $PROGRAM_NAME = $0;
     our $ORIGINAL_PID = $$;
 }
 
@@ -82,7 +81,6 @@ sub init_debugger {
 
     for ($self->{router}) {
         # All the paths we listen for
-        $_->get("/program_name", sub { $self->program_name(@_) });
         $_->get("/loadedfiles", sub { $self->loaded_files(@_) });
         $_->post("/eval", sub { $self->do_eval(@_) });
         $_->post("/getvar", sub { $self->do_getvar(@_) });
@@ -90,6 +88,7 @@ sub init_debugger {
     }
     require Devel::hdb::App::Stack;
     require Devel::hdb::App::Control;
+    require Devel::hdb::App::ProgramName;
     require Devel::hdb::App::Ping;
     require Devel::hdb::App::Assets;
     require Devel::hdb::App::Config;
@@ -302,21 +301,6 @@ sub do_getvar {
 
 
 
-# Return the name of the program, $o
-sub program_name {
-    my($self, $env) = @_;
-
-    my $resp = $self->_resp('program_name', $env);
-
-    our $PROGRAM_NAME;
-    $resp->data($PROGRAM_NAME);
-
-    return [200, ['Content-Type' => 'text/plain'],
-                [ $resp->encode() ]
-        ];
-}
-
-
 # Send back a data structure describing the call stack
 # stepin, stepover, stepout and run will call this to return
 # back to the debugger window the current state
@@ -360,8 +344,7 @@ sub notify_program_exit {
 sub settings_file {
     my $class = shift;
     my $prefix = shift;
-    our $PROGRAM_NAME;
-    return ((defined($prefix) && $prefix) || $PROGRAM_NAME) . '.hdb';
+    return ((defined($prefix) && $prefix) || $0) . '.hdb';
 }
 
 sub load_settings_from_file {
