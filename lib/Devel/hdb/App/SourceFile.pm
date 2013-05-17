@@ -17,11 +17,7 @@ sub sourcefile {
     my $resp = $app->_resp('sourcefile', $env);
 
     my $filename = $req->param('f');
-    my $file;
-    {
-        no strict 'refs';
-        $file = $main::{'_<' . $filename};
-    }
+    my $file = DB->file_source($filename);
 
     my @rv;
     if ($file) {
@@ -50,40 +46,24 @@ sub sourcefile {
 
 =head1 NAME
 
-Devel::hdb::App::Control - Control execution of the debugged program
+Devel::hdb::App::SourceFile - Get Perl source for the running program
 
 =head1 DESCRIPTION
+
+Registers a route used to get the Perl source code for files used by the
+debugged program.
 
 =head2 Routes
 
 =over 4
 
-=item /stepin
+=item /sourcefile
 
-Causes the debugger to execute the current statement and pause before the
-next.  If the current statement involves a function call, execution stops
-at the first line inside the called function.
-
-=item /stepover
-
-Causes the debugger to execute the current statement and pause before the
-next.  If the current statement involves function calls, these functions
-are run to completion and execution stops before the next statement at
-the current stack level.  If execution of these functions leaves the current
-stack frame, usually from an exception caught at a higher frame or a goto,
-execution pauses at the first staement following the unwinding.
-
-=item /steoput
-
-Causes the debugger to start running continuously until the current stack
-frame exits.
-
-=item /continue
-
-Causes the debugger to start running continuously until it encounters another
-breakpoint.  /continue accepts one optional argument C<nostop>; if true, the
-debugger gets out of the way of the debugged process and will not stop for
-any reason.
+This route requires one parameter 'f' , the filename to get the source for.
+It returns a JSON-encoded array of arrays.  The first-level array has one
+element for each line in the file.  The second-level elements each have
+2 elements.  The first is the Perl source for that line in the file.  The
+second element is 0 if the line is not breakable, and true if it is.
 
 =back
 

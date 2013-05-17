@@ -136,6 +136,14 @@ sub input_trace_file {
     $trace = 1;
 }
 
+sub file_source {
+    my($class, $file) = @_;
+
+    my $glob = $main::{'_<' . $file};
+    return unless $glob;
+    return *{$glob}{ARRAY};
+}
+
 sub is_breakpoint {
     my($package, $filename, $line, $subroutine) = @_;
 
