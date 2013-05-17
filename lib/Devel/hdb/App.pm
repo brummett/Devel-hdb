@@ -77,10 +77,6 @@ sub init_debugger {
 
     $self->router( Devel::hdb::Router->new() );
 
-    for ($self->{router}) {
-        # All the paths we listen for
-        $_->post("/announce_child", sub { $self->announce_child(@_) });
-    }
     require Devel::hdb::App::Stack;
     require Devel::hdb::App::Control;
     require Devel::hdb::App::ProgramName;
@@ -92,6 +88,7 @@ sub init_debugger {
     require Devel::hdb::App::Breakpoint;
     require Devel::hdb::App::SourceFile;
     require Devel::hdb::App::Eval;
+    require Devel::hdb::App::AnnounceChild;
 
     eval { $self->load_settings_from_file() };
 
@@ -158,22 +155,6 @@ sub encode {
 sub _resp {
     my $self = shift;
     return Devel::hdb::App::Response->new(@_);
-}
-
-sub announce_child {
-    my($self, $env) = @_;
-    my $req = Plack::Request->new($env);
-    my $child_pid = $req->param('pid');
-    my $child_uri = $req->param('uri');
-
-    my $resp = Devel::hdb::App::Response->queue('child_process', $env);
-    $resp->{data} = {
-            pid => $child_pid,
-            uri => $child_uri,
-            run => $child_uri . 'continue?nostop=1'
-        };
-
-    return [200, [], []];
 }
 
 
