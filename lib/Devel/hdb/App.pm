@@ -5,7 +5,6 @@ package Devel::hdb::App;
 
 BEGIN {
     our $PROGRAM_NAME = $0;
-    our @saved_ARGV = @ARGV;
     our $ORIGINAL_PID = $$;
 }
 
@@ -81,11 +80,6 @@ sub init_debugger {
 
     for ($self->{router}) {
         # All the paths we listen for
-        $_->get("/stepin", sub { $self->stepin(@_) });
-        $_->get("/stepover", sub { $self->stepover(@_) });
-        $_->get("/stepout", sub { $self->stepout(@_) });
-        $_->get("/continue", sub { $self->continue(@_) });
-        $_->get("/stack", sub { $self->stack(@_) });
         $_->get("/sourcefile", sub { $self->sourcefile(@_) });
         $_->get("/program_name", sub { $self->program_name(@_) });
         $_->get("/loadedfiles", sub { $self->loaded_files(@_) });
@@ -93,6 +87,7 @@ sub init_debugger {
         $_->post("/getvar", sub { $self->do_getvar(@_) });
         $_->post("/announce_child", sub { $self->announce_child(@_) });
     }
+    require Devel::hdb::App::Control;
     require Devel::hdb::App::Ping;
     require Devel::hdb::App::Assets;
     require Devel::hdb::App::Config;
@@ -420,129 +415,6 @@ sub sourcefile {
 # Send back a data structure describing the call stack
 # stepin, stepover, stepout and run will call this to return
 # back to the debugger window the current state
-sub _stack {
-    my $self = shift;
-
-    my $discard = 1;
-    my @stack;
-    my $next_AUTOLOAD_name = $#DB::AUTOLOAD_names;
-    our @saved_ARGV;
-
-    for (my $i = 0; ; $i++) {
-        my %caller;
-        {
-            package DB;
-            @caller{qw( package filename line subroutine hasargs wantarray
-                        evaltext is_require )} = caller($i);
-        }
-        last unless defined ($caller{line});
-        # Don't include calls within the debugger
-        if ($caller{subroutine} eq 'DB::DB') {
-            $discard = 0;
-        }
-        next if $discard;
-
-        $caller{args} = [ map { $self->_encode_eval_data($_) } @DB::args ]; # unless @stack;
-        $caller{subname} = $caller{subroutine} =~ m/\b(\w+$|__ANON__)/ ? $1 : $caller{subroutine};
-        if ($caller{subname} eq 'AUTOLOAD') {
-            $caller{subname} .= '(' . ($DB::AUTOLOAD_names[ $next_AUTOLOAD_name-- ] =~ m/::(\w+)$/)[0] . ')';
-        }
-        $caller{level} = $i;
-
-        push @stack, \%caller;
-    }
-    # TODO: put this into the above loop
-    for (my $i = 0; $i < @stack-1; $i++) {
-        @{$stack[$i]}{'subroutine','subname','args'} = @{$stack[$i+1]}{'subroutine','subname','args'};
-    }
-    $stack[-1]->{subroutine} = 'MAIN';
-    $stack[-1]->{subname} = 'MAIN';
-    $stack[-1]->{args} = \@saved_ARGV; # These are guaranteed to be simple scalars, no need to encode
-
-    return \@stack;
-}
-
-sub stack {
-    my($self, $env) = @_;
-
-    my $resp = $self->_resp('stack', $env);
-    $resp->data( $self->_stack );
-
-    return [ 200,
-            [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
-        ];
-}
-
-
-sub stepover {
-    my $self = shift;
-
-    $DB::single=1;
-    $DB::step_over_depth = $DB::stack_depth;
-    return $self->_delay_stack_return_to_client(@_);
-}
-
-sub stepin {
-    my $self = shift;
-
-    $DB::single=1;
-    return $self->_delay_stack_return_to_client(@_);
-}
-
-sub stepout {
-    my $self = shift;
-
-    $DB::single=0;
-    $DB::step_over_depth = $DB::stack_depth - 1;
-    return $self->_delay_stack_return_to_client(@_);
-}
-    
-
-sub continue {
-    my $self = shift;
-    my $env = shift;
-
-    my $req = Plack::Request->new($env);
-    my $nostop = $req->param('nostop');
-
-    $DB::single=0;
-    if ($nostop) {
-        DB->disable_debugger();
-        my $resp = Devel::hdb::App::Response->new('continue', $env);
-        $resp->data({ nostop => 1 });
-        $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
-        return [ 200,
-                    [ 'Content-Type' => 'application/json'],
-                    [ $resp->encode() ]
-                ];
-    }
-
-    return $self->_delay_stack_return_to_client($env);
-}
-
-sub _delay_stack_return_to_client {
-    my $self = shift;
-    my $env = shift;
-
-    my $req = Plack::Request->new($env);
-    my $rid = $req->param('rid');
-
-    my $json = $self->{json};
-    return sub {
-        my $responder = shift;
-        my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
-        $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
-
-        DB->long_call( sub {
-            my $resp = Devel::hdb::App::Response->new('stack', $env);
-            $resp->data( $self->_stack );
-            $writer->write( $resp->encode );
-            $writer->close();
-        });
-    };
-}
-
 sub app {
     my $self = shift;
     unless ($self->{app}) {
