@@ -82,7 +82,6 @@ sub init_debugger {
 
     for ($self->{router}) {
         # All the paths we listen for
-        $_->get("/sourcefile", sub { $self->sourcefile(@_) });
         $_->get("/program_name", sub { $self->program_name(@_) });
         $_->get("/loadedfiles", sub { $self->loaded_files(@_) });
         $_->post("/eval", sub { $self->do_eval(@_) });
@@ -97,6 +96,7 @@ sub init_debugger {
     require Devel::hdb::App::Terminate;
     require Devel::hdb::App::PackageInfo;
     require Devel::hdb::App::Breakpoint;
+    require Devel::hdb::App::SourceFile;
 
     eval { $self->load_settings_from_file() };
 
@@ -316,41 +316,6 @@ sub program_name {
         ];
 }
 
-
-# send back a list.  Each list elt is a list of 2 elements:
-# 0: the line of code
-# 1: whether that line is breakable
-sub sourcefile {
-    my($self, $env) = @_;
-    my $req = Plack::Request->new($env);
-    my $resp = $self->_resp('sourcefile', $env);
-
-    my $filename = $req->param('f');
-    my $file;
-    {
-        no strict 'refs';
-        $file = $main::{'_<' . $filename};
-    }
-
-    my @rv;
-    if ($file) {
-        no warnings 'uninitialized';  # at program termination, the loaded file data can be undef
-        #my $offset = $file->[0] =~ m/use\s+Devel::_?hdb;/ ? 1 : 0;
-        my $offset = 1;
-
-        for (my $i = $offset; $i < scalar(@$file); $i++) {
-            no warnings 'numeric';  # eval-ed "sources" generate "not-numeric" warnings
-            push @rv, [ $file->[$i], $file->[$i] + 0 ];
-        }
-    }
-
-    $resp->data({ filename => $filename, lines => \@rv});
-
-    return [ 200,
-            [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
-        ];
-}
 
 # Send back a data structure describing the call stack
 # stepin, stepover, stepout and run will call this to return
