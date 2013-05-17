@@ -17,18 +17,13 @@ sub sourcefile {
     my $resp = $app->_resp('sourcefile', $env);
 
     my $filename = $req->param('f');
-    my $file = DB->file_source($filename);
 
     my @rv;
-    if ($file) {
+    if (my $file = DB->file_source($filename)) {
         no warnings 'uninitialized';  # at program termination, the loaded file data can be undef
-        #my $offset = $file->[0] =~ m/use\s+Devel::_?hdb;/ ? 1 : 0;
-        my $offset = 1;
-
-        for (my $i = $offset; $i < scalar(@$file); $i++) {
-            no warnings 'numeric';  # eval-ed "sources" generate "not-numeric" warnings
-            push @rv, [ $file->[$i], $file->[$i] + 0 ];
-        }
+        no warnings 'numeric';        # eval-ed "sources" generate "not-numeric" warnings
+        @rv = map { [ $_, $_ + 0 ] } @$file;
+        shift @rv;  # Get rid of the 0th element
     }
 
     $resp->data({ filename => $filename, lines => \@rv});
