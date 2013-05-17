@@ -9,11 +9,8 @@ BEGIN {
 
 use Devel::hdb::Server;
 use IO::File;
-use JSON qw();
-use Scalar::Util;
 use LWP::UserAgent;
 use Data::Dumper;
-use File::Basename;
 
 use Devel::hdb::Router;
 use Devel::hdb::Response;
@@ -29,7 +26,6 @@ sub get {
     my $self = $APP_OBJ = bless {}, $class;
 
     $self->_make_listen_socket();
-    $self->{json} = JSON->new();
 
     $parent_pid = eval { getppid() } if ($Devel::hdb::TESTHARNESS);
     return $self;
@@ -145,11 +141,6 @@ sub notify_child_process_is_forked {
 
     # Force it to pick a new port
     $self->_make_listen_socket(port => undef, server_ready => $when_ready);
-}
-
-sub encode {
-    my $self = shift;
-    return $self->{json}->encode(shift);
 }
 
 

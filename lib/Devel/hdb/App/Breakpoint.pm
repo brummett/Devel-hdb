@@ -7,6 +7,7 @@ use base 'Devel::hdb::App::Base';
 
 use Plack::Request;
 use Devel::hdb::Response;
+use JSON;
 
 __PACKAGE__->add_route('post', '/breakpoint', \&set_breakpoint);
 __PACKAGE__->add_route('get', '/breakpoint', \&get_breakpoint);
@@ -97,7 +98,7 @@ sub get_all_breakpoints {
     my @bp = map {  { type => 'breakpoint', data => $_, defined($rid) ? (rid => $rid) : () } }
             DB->get_breakpoint($filename, $line);
     return [ 200, ['Content-Type' => 'application/json'],
-            [ $app->encode( \@bp ) ]
+            [ JSON::encode_json( \@bp ) ]
         ];
 }
 
