@@ -81,7 +81,6 @@ sub init_debugger {
 
     for ($self->{router}) {
         # All the paths we listen for
-        $_->get("/loadedfiles", sub { $self->loaded_files(@_) });
         $_->post("/eval", sub { $self->do_eval(@_) });
         $_->post("/getvar", sub { $self->do_getvar(@_) });
         $_->post("/announce_child", sub { $self->announce_child(@_) });
@@ -226,20 +225,6 @@ sub _eval_plumbing_closure {
             )
         );
     };
-}
-
-
-sub loaded_files {
-    my($self, $env) = @_;
-
-    my $resp = $self->_resp('loadedfiles', $env);
-
-    my @files = DB->loaded_files();
-    $resp->data(\@files);
-    return [ 200,
-            [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
-        ];
 }
 
 

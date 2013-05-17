@@ -6,6 +6,7 @@ use warnings;
 use base 'Devel::hdb::App::Base';
 
 __PACKAGE__->add_route('get', '/sourcefile', \&sourcefile);
+__PACKAGE__->add_route('get', '/loadedfiles', \&loaded_files);
 
 # send back a list.  Each list elt is a list of 2 elements:
 # 0: the line of code
@@ -34,6 +35,19 @@ sub sourcefile {
         ];
 }
 
+sub loaded_files {
+    my($class, $app, $env) = @_;
+
+    my $resp = $app->_resp('loadedfiles', $env);
+
+    my @files = DB->loaded_files();
+    $resp->data(\@files);
+    return [ 200,
+            [ 'Content-Type' => 'application/json' ],
+            [ $resp->encode() ]
+        ];
+}
+
 
 1;
 
@@ -45,7 +59,7 @@ Devel::hdb::App::SourceFile - Get Perl source for the running program
 
 =head1 DESCRIPTION
 
-Registers a route used to get the Perl source code for files used by the
+Registers routes for getting the Perl source code for files used by the
 debugged program.
 
 =head2 Routes
@@ -59,6 +73,12 @@ It returns a JSON-encoded array of arrays.  The first-level array has one
 element for each line in the file.  The second-level elements each have
 2 elements.  The first is the Perl source for that line in the file.  The
 second element is 0 if the line is not breakable, and true if it is.
+
+=item /loadedfiles
+
+Returns a JSON-encoded array of files names loaded by the debuged program.
+This list also contains the files used by the debugger, and the file-like
+entities for "eval"ed strings.
 
 =back
 
