@@ -5,6 +5,7 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
+use Devel::hdb::Response;
 use Devel::hdb::DB::PackageInfo;
 
 __PACKAGE__->add_route('get', qr(/pkginfo/((\w+)(::\w+)*)), \&pkginfo);
@@ -14,7 +15,7 @@ __PACKAGE__->add_route('get', qr(/subinfo/((\w+)(::\w+)*)), \&subinfo);
 sub pkginfo {
     my($class, $app, $env, $package) = @_;
 
-    my $resp = $app->_resp('pkginfo', $env);
+    my $resp = Devel::hdb::Response->new('pkginfo', $env);
     my $sub_packages = Devel::hdb::DB::PackageInfo::namespaces_in_package($package);
     my @subs = grep { Devel::hdb::DB::PackageInfo::sub_is_debuggable($package, $_) }
                     @{ Devel::hdb::DB::PackageInfo::subs_in_package($package) };
@@ -30,7 +31,7 @@ sub pkginfo {
 sub subinfo {
     my($class, $app, $env, $subname) = @_;
 
-    my $resp = $app->_resp('subinfo', $env);
+    my $resp = Devel::hdb::Response->new('subinfo', $env);
     $resp->data( Devel::hdb::DB::PackageInfo::sub_info($subname));
     return [ 200,
             [ 'Content-Type' => 'application/json' ],

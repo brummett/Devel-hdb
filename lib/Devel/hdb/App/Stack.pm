@@ -9,6 +9,8 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
+use Devel::hdb::Response;
+
 use Exporter 'import';
 our @EXPORT_OK = qw(_stack);
 
@@ -19,7 +21,7 @@ __PACKAGE__->add_route('get', '/stack', \&stack);
 sub stack {
     my($class, $app, $env) = @_;
 
-    my $resp = $app->_resp('stack', $env);
+    my $resp = Devel::hdb::Response->new('stack', $env);
     $resp->data( $class->_stack($app) );
 
     return [ 200,

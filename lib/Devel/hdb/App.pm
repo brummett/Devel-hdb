@@ -8,7 +8,6 @@ BEGIN {
 }
 
 use Devel::hdb::Server;
-use Plack::Request;
 use IO::File;
 use JSON qw();
 use Scalar::Util;
@@ -17,6 +16,7 @@ use Data::Dumper;
 use File::Basename;
 
 use Devel::hdb::Router;
+use Devel::hdb::Response;
 
 use vars qw( $parent_pid ); # when running in the test harness
 
@@ -152,11 +152,6 @@ sub encode {
     return $self->{json}->encode(shift);
 }
 
-sub _resp {
-    my $self = shift;
-    return Devel::hdb::App::Response->new(@_);
-}
-
 
 # Send back a data structure describing the call stack
 # stepin, stepover, stepout and run will call this to return
@@ -177,7 +172,7 @@ sub run {
 sub notify_trace_diff {
     my($self, $trace_data) = @_;
 
-    my $msg = Devel::hdb::App::Response->queue('trace_diff');
+    my $msg = Devel::hdb::Response->queue('trace_diff');
     $msg->{data} = $trace_data;
 }
 
@@ -187,7 +182,7 @@ sub notify_program_terminated {
     my $exception_data = shift;
 
     print STDERR "Debugged program pid $$ terminated with exit code $exit_code\n" unless ($Devel::hdb::TESTHARNESS);
-    my $msg = Devel::hdb::App::Response->queue('termination');
+    my $msg = Devel::hdb::Response->queue('termination');
     if ($exception_data) {
         $msg->{data} = $exception_data;
     }
@@ -195,7 +190,7 @@ sub notify_program_terminated {
 }
 
 sub notify_program_exit {
-    my $msg = Devel::hdb::App::Response->queue('hangup');
+    my $msg = Devel::hdb::Response->queue('hangup');
 }
 
 sub settings_file {
@@ -247,68 +242,6 @@ sub save_settings_to_file {
     my $fh = IO::File->new($file, 'w') || die "Can't open $file for writing: $!";
     $fh->print( Data::Dumper->new([{ breakpoints => \@breakpoints}])->Terse(1)->Dump());
     return $file;
-}
-
-
-
-package Devel::hdb::App::Response;
-
-sub new {
-    my($class, $type, $env) = @_;
-
-    my $self = { type => $type };
-
-    if ($env) {
-        my $req = Plack::Request->new($env);
-        my $rid = $req->param('rid');
-        if (defined $rid) {
-            $self->{rid} = $rid;
-        }
-    }
-    bless $self, $class;
-}
-
-our @queued;
-sub queue {
-    my $class = shift;
-
-    my $self = $class->new(@_);
-    push @queued, $self;
-    return $self;
-}
-
-sub _make_copy {
-    my $self = shift;
-
-    my %copy = map { exists($self->{$_}) ? ($_ => $self->{$_}) : () } keys %$self;
-    return \%copy;
-}
-
-sub encode {
-    my $self = shift;
-
-    my $copy = $self->_make_copy();
-
-    my $retval = '';
-    if (@queued) {
-        foreach ( @queued ) {
-            $_ = $_->_make_copy();
-        }
-        unshift @queued, $copy;
-        $retval = eval { JSON::encode_json(\@queued) };
-        @queued = ();
-    } else {
-        $retval = eval { JSON::encode_json($copy) };
-    }
-    return $retval;
-}
-
-sub data {
-    my $self = shift;
-    if (@_) {
-        $self->{data} = shift;
-    }
-    return $self->{data};
 }
 
 1;

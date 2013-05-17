@@ -5,6 +5,8 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
+use Devel::hdb::Response;
+
 __PACKAGE__->add_route('get', '/exit', \&do_terminate);
 
 # Exit the running program
@@ -18,7 +20,7 @@ sub do_terminate {
         my $responder = shift;
         my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
 
-        my $resp = Devel::hdb::App::Response->new('hangup');
+        my $resp = Devel::hdb::Response->new('hangup');
         $writer->write($resp->encode);
         $writer->close();
         exit();

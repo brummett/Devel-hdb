@@ -5,6 +5,8 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
+use Devel::hdb::Response;
+
 __PACKAGE__->add_route('post', '/loadconfig', \&loadconfig);
 __PACKAGE__->add_route('post', '/saveconfig', \&saveconfig);
 
@@ -15,10 +17,10 @@ sub loadconfig {
     my $file = $req->param('f');
 
     my @results = eval { $app->load_settings_from_file($file) };
-    my $load_resp = Devel::hdb::App::Response->new('loadconfig', $env);
+    my $load_resp = Devel::hdb::Response->new('loadconfig', $env);
     if (! $@) {
         foreach (@results) {
-            my $resp = Devel::hdb::App::Response->queue('breakpoint');
+            my $resp = Devel::hdb::Response->queue('breakpoint');
             $resp->data($_);
         }
 
@@ -40,7 +42,7 @@ sub saveconfig {
     my $file = $req->param('f');
 
     $file = eval { $app->save_settings_to_file($file) };
-    my $resp = Devel::hdb::App::Response->new('saveconfig', $env);
+    my $resp = Devel::hdb::Response->new('saveconfig', $env);
     if ($@) {
         $resp->data({ failed => $@ });
     } else {

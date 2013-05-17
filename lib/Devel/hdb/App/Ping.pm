@@ -5,12 +5,14 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
+use Devel::hdb::Response;
+
 __PACKAGE__->add_route('get', '/ping', \&ping);
 
 sub ping {
     my($self, $app, $env) = @_;
 
-    my $resp = $app->_resp('ping', $env);
+    my $resp = Devel::hdb::Response->new('ping', $env);
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
             [ $resp->encode() ]

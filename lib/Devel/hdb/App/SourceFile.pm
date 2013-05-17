@@ -5,6 +5,8 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
+use Devel::hdb::Response;
+
 __PACKAGE__->add_route('get', '/sourcefile', \&sourcefile);
 __PACKAGE__->add_route('get', '/loadedfiles', \&loaded_files);
 
@@ -15,7 +17,7 @@ sub sourcefile {
     my($class, $app, $env) = @_;
 
     my $req = Plack::Request->new($env);
-    my $resp = $app->_resp('sourcefile', $env);
+    my $resp = Devel::hdb::Response->new('sourcefile', $env);
 
     my $filename = $req->param('f');
 
@@ -38,7 +40,7 @@ sub sourcefile {
 sub loaded_files {
     my($class, $app, $env) = @_;
 
-    my $resp = $app->_resp('loadedfiles', $env);
+    my $resp = Devel::hdb::Response->new('loadedfiles', $env);
 
     my @files = DB->loaded_files();
     $resp->data(\@files);

@@ -6,6 +6,7 @@ use warnings;
 use base 'Devel::hdb::App::Base';
 
 use Plack::Request;
+use Devel::hdb::Response;
 
 __PACKAGE__->add_route('post', '/breakpoint', \&set_breakpoint);
 __PACKAGE__->add_route('get', '/breakpoint', \&get_breakpoint);
@@ -28,7 +29,7 @@ sub set_breakpoint {
         return [ 403, ['Content-Type' => 'text/html'], ["line $line of $filename is not breakable"]];
     }
 
-    my $resp = $app->_resp('breakpoint', $env);
+    my $resp = Devel::hdb::Response->new('breakpoint', $env);
 
     my $params = $req->parameters;
     my %req;
@@ -75,7 +76,7 @@ sub get_breakpoint {
     my $filename = $req->param('f');
     my $line = $req->param('l');
 
-    my $resp = $app->_resp('breakpoint', $env);
+    my $resp = Devel::hdb::Response->new('breakpoint', $env);
     $resp->data( DB->get_breakpoint($filename, $line) );
 
     return [ 200, ['Content-Type' => 'application/json'],

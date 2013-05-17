@@ -5,6 +5,7 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
+use Devel::hdb::Response;
 use Devel::hdb::App::EncodePerlData qw(encode_perl_data);
 
 __PACKAGE__->add_route('post', '/eval', \&do_eval);
@@ -23,7 +24,7 @@ sub do_eval {
     my $req = Plack::Request->new($env);
     my $eval_string = $req->content();
 
-    my $resp = $app->_resp('evalresult', $env);
+    my $resp = Devel::hdb::Response->new('evalresult', $env);
 
     my $result_packager = sub {
         my $data = shift;
@@ -54,7 +55,7 @@ sub do_getvar {
     my $level = $req->param('l');
     my $varname = $req->param('v');
 
-    my $resp = $app->_resp('getvar', $env);
+    my $resp = Devel::hdb::Response->new('getvar', $env);
 
     if ($perl_special_vars{$varname}) {
         my $result_packager = sub {

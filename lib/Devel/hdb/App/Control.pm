@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use base 'Devel::hdb::App::Base';
+use Devel::hdb::Response;
 use Devel::hdb::App::Stack qw(_stack);
 
 __PACKAGE__->add_route('get', '/stack', \&stack);
@@ -44,7 +45,7 @@ sub continue {
     $DB::single=0;
     if ($nostop) {
         DB->disable_debugger();
-        my $resp = Devel::hdb::App::Response->new('continue', $env);
+        my $resp = Devel::hdb::Response->new('continue', $env);
         $resp->data({ nostop => 1 });
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
         return [ 200,
@@ -69,7 +70,7 @@ sub _delay_stack_return_to_client {
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
 
         DB->long_call( sub {
-            my $resp = Devel::hdb::App::Response->new('stack', $env);
+            my $resp = Devel::hdb::Response->new('stack', $env);
             $resp->data( $class->_stack($app) );
             $writer->write( $resp->encode );
             $writer->close();

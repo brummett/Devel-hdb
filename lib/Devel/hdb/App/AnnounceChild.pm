@@ -5,6 +5,8 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
+use Devel::hdb::Response;
+
 __PACKAGE__->add_route('post', '/announce_child', \&announce_child);
 
 sub announce_child {
@@ -14,7 +16,7 @@ sub announce_child {
     my $child_pid = $req->param('pid');
     my $child_uri = $req->param('uri');
 
-    my $resp = Devel::hdb::App::Response->queue('child_process', $env);
+    my $resp = Devel::hdb::Response->queue('child_process', $env);
     $resp->{data} = {
             pid => $child_pid,
             uri => $child_uri,
