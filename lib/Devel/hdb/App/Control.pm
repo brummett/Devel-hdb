@@ -88,6 +88,8 @@ Devel::hdb::App::Control - Control execution of the debugged program
 
 =head1 DESCRIPTION
 
+Registers routes for methods to control execution of the debugged program
+
 =head2 Routes
 
 =over 4
