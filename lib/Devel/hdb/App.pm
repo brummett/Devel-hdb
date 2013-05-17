@@ -87,6 +87,7 @@ sub init_debugger {
         $_->post("/getvar", sub { $self->do_getvar(@_) });
         $_->post("/announce_child", sub { $self->announce_child(@_) });
     }
+    require Devel::hdb::App::Stack;
     require Devel::hdb::App::Control;
     require Devel::hdb::App::Ping;
     require Devel::hdb::App::Assets;
