@@ -166,7 +166,7 @@ Disables the debugger in the child process, and forces it to run to completion.
 =head2 Trace and Follow mode
 
 Devel::hdb can trace the execution of a program and stop if the code path
-differs from that of a previously save run.  First, run the program in trace
+differs from that of a previously saved run.  First, run the program in trace
 mode:
 
   perl -d:hdb=trace:<tracefile> yourprogram.pl
