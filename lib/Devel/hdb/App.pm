@@ -11,6 +11,8 @@ use Devel::hdb::Server;
 use IO::File;
 use LWP::UserAgent;
 use Data::Dumper;
+use Sys::Hostname;
+use IO::Socket::INET;
 
 use Devel::hdb::Router;
 use Devel::hdb::Response;
@@ -95,8 +97,14 @@ sub _announce {
 
     # HTTP::Server::PSGI doesn't have a method to get the listen socket :(
     my $s = $self->{server}->{listen_sock};
+    my $hostname = $s->sockhost;
+    if ($hostname eq '0.0.0.0') {
+        $hostname = Sys::Hostname::hostname();
+    } elsif ($hostname ne '127.0.0.1') {
+        $hostname = gethostbyaddr($s->sockaddr, AF_INET);
+    }
     $self->{base_url} = sprintf('http://%s:%d/',
-            $s->sockhost, $s->sockport);
+            $hostname, $s->sockport);
 
     select STDOUT;
     local $| = 1;
