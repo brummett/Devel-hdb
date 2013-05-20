@@ -57,7 +57,7 @@ To debug a Perl program, start it like this:
     perl -d:hdb youprogram.pl
 
 It will print a message on STDERR with the URL the debugger is listening to.
-Point you web browser at this URL and it will being up the debugger GUI.
+Point your web browser at this URL and it will being up the debugger GUI.
 It defaults to listening on localhost port 8080; to use a different port,
 start it like this:
 
