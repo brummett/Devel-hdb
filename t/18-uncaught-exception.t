@@ -39,7 +39,7 @@ is_deeply($messages[1],
             'package'   => 'main',
             line        => 11,
             filename    => $filename,
-            exception   => "Not a HASH reference at $filename line 11.\n",
+            exception   => "This is an uncaught exception at $filename line 11.\n",
             exit_code   => 255,
             subroutine  => 'main::do_die2',
         }
@@ -48,7 +48,6 @@ is_deeply($messages[1],
 
 
 __DATA__
-$a = [];
 eval { die "inside eval" };
 die "exception was not trapped: $@" unless $@ =~ m/^inside eval at/;
 &do_die();
@@ -56,8 +55,9 @@ die "exception was not trapped: $@" unless $@ =~ m/^inside eval at/;
 $DB::single = 1;
 6;
 sub do_die {
-    &do_die2() };
+    &do_die2()
+}
 sub do_die2 {
-    $a->{foo} = 1;
+    die "This is an uncaught exception";
 }
     
