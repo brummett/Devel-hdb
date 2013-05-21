@@ -35,7 +35,7 @@ my @responses = sort { $a->{type} cmp $b->{type} } @$response;
 
 $stack = strip_stack($responses[1]);
 is_deeply($stack,
-        [ { line => 6, subroutine => 'MAIN' } ],
+        [ { line => 5, subroutine => 'MAIN' } ],
         'Parent process stopped on line 6');
 
 eval qq(END { kill 'TERM', $child_pid }) if ($child_pid);
@@ -73,6 +73,6 @@ my $orig_pid = $$;
 if (! fork) {
     3;  #child
 }
-$DB::single = 1 if ($$ == $orig_pid);
+5;
 6;
 print "___ pid $$ exiting\n";
