@@ -14,22 +14,21 @@ if ($^O =~ m/^MS/) {
     plan tests => 9;
 }
 
-my $program_file = File::Temp->new();;
+my $program_file = File::Temp->new();
 $program_file->close();
 
 my $trace_file = File::Temp->new();
 $trace_file->close();
 
-my $url = start_test_program('-file' => $program_file->filename,
-                             '-module_args' => 'trace:'.$trace_file->filename);
+my($url, $pid) = start_test_program('-file' => $program_file->filename,
+                                    '-module_args' => 'trace:'.$trace_file->filename);
 
-my $json = JSON->new();
-
-#my $resp = $mech->get($url.'continue');
-
-#ok($resp->is_success, 'Run test program tracing execution');
-#my $messages = $json->decode($resp->content);
-#ok(scalar(grep { $_->{type} eq 'termination'} @$messages ), 'Program ran to termination');
+local $SIG{ALRM} = sub {
+    ok(0, 'Test program did not finish');
+    exit;
+};
+alarm(5);
+waitpid($pid, 0);
 ok(-s $trace_file->filename, 'Program generated a trace file');
 
 my $url2 = start_test_program('-file' => $program_file->filename,
@@ -44,9 +43,9 @@ $resp = $mech->get($url2.'continue');
 ok($resp->is_success, 'continue');
 
 # expecting 'stack' and 'trace_diff' messages
+my $json = JSON->new();
 my @messages = sort { $a->{type} cmp $b->{type} } @{ $json->decode( $resp->content) };
-use Data::Dumper;
-#print Data::Dumper::Dumper(\@messages);
+
 is($messages[0]->{type}, 'stack', 'Got stack message');
 is($messages[0]->{data}->[0]->{line}, 2, 'Stopped on differing line');
 
