@@ -4,7 +4,7 @@
 }
 
 .PerlValue {
-    zoom: 80%;
+    font-size: x-small;
 }
 .program-code .active .code  {
     background-color: rgba(0,101,204,0.7) !important;
