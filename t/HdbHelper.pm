@@ -32,7 +32,7 @@ sub start_test_program {
     if ($program_file) {
         $out_fh = IO::File->new($program_file,'w');
     } else {
-        $out_fh = File::Temp->new(TEMPLATE => 'devel-hdb-test-XXXX');
+        $out_fh = File::Temp->new(TEMPLATE => 'devel-hdb-test-XXXX', TMPDIR => 1);
         $program_file = $out_fh->filename();
     }
 
