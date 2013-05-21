@@ -32,7 +32,11 @@ sub import {
             }
         } elsif ($param =~ m/follow:(.*)/) {
             DB->input_trace_file($1, sub { Devel::hdb::App->get()->notify_trace_diff(@_) });
+        } elsif ($param =~ m/listenfd:(\d+)/) {
+            our $LISTEN_SOCK = IO::Socket::INET->new();
+            $LISTEN_SOCK->fdopen($1, 'r');
         }
+
     }
 }
 1;

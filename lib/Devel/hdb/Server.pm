@@ -17,6 +17,8 @@ sub new {
     if (%supplied_port_arg) {
         $self->{port} = $supplied_port_arg{port};
     }
+
+    $self->{listen_sock} = $args{listen_sock} if exists $args{listen_sock};
     return $self;
 }
 

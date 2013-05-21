@@ -42,10 +42,13 @@ sub _make_listen_socket {
         $server_params{port} = $Devel::hdb::PORT;
     }
 
+    $server_params{listen_sock} = $Devel::hdb::LISTEN_SOCK if defined $Devel::hdb::LISTEN_SOCK;
+
     unless (exists $server_params{server_ready}) {
         $server_params{server_ready} = sub { $self->init_debugger };
     }
 
+    $Devel::hdb::HOST = $Devel::hdb::PORT = $Devel::hdb::LISTEN_SOCK = undef;
     $self->{server} = Devel::hdb::Server->new( %server_params );
 }
 
