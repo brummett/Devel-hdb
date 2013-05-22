@@ -13,7 +13,7 @@ use Fcntl;
 use Time::HiRes qw(sleep);
 
 use Exporter 'import';
-our @EXPORT = qw( start_test_program strip_stack strip_stack_inc_args );
+our @EXPORT = qw( start_test_program strip_stack strip_stack_inc_args strip_refaddr );
 
 
 my $out_fh;
@@ -112,6 +112,24 @@ sub strip_stack_inc_args {
         return $stack;  # not was expected, return the whole thing
     }
     return [ map { { line => $_->{line}, subroutine => $_->{subroutine}, args => $_->{args} } } @{$stack->{data}} ];
+}
+
+# recursively remove all occurances of __refaddr
+sub strip_refaddr {
+    my $value = shift;
+
+    return unless ref $value;
+
+    if ($value->{__reftype} && $value->{__refaddr}) {
+        delete $value->{__refaddr};
+        return unless exists($value->{__value});
+        my $reftype = ref($value->{__value});
+        if ($reftype eq 'ARRAY') {
+            strip_refaddr($_) foreach @{$value->{__value}};
+        } elsif ($reftype eq 'HASH') {
+            strip_refaddr($_) foreach (values %{$value->{__value}});
+        }
+    }
 }
 
 
