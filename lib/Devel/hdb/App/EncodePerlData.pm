@@ -10,25 +10,47 @@ our @EXPORT_OK = qw( encode_perl_data );
 
 sub encode_perl_data {
     my $value = shift;
+    my $path_expr = shift;
+    my $seen = shift;
 
     if (!ref($value) and ref(\$value) eq 'GLOB') {
         # It's an actual typeglob (not a glob ref)
         $value = \$value;
     }
 
+    $path_expr ||= '$VAR';
+    $seen ||= {};
+
     if (ref $value) {
         my $reftype     = Scalar::Util::reftype($value);
         my $refaddr     = Scalar::Util::refaddr($value);
         my $blesstype   = Scalar::Util::blessed($value);
 
+        if ($seen->{$value}) {
+            my $rv = {  __reftype => $reftype,
+                        __refaddr => $refaddr,
+                        __recursive => $seen->{$value} };
+            $rv->{__blessed} = $blesstype if $blesstype;
+            return $rv;
+        }
+        $seen->{$value} = $path_expr;
+
+        # Build a new path string for recursive calls
+        my $_p = sub {
+            return '$'.$path_expr if ($reftype eq 'SCALAR' or $reftype eq 'REF');
+
+            my @bracket = $reftype eq 'ARRAY' ? ( '[', ']' ) : ( '{', '}' );
+            return sprintf('%s->%s%s%s', $path_expr, $bracket[0], $_, $bracket[1]);
+        };
+
         if ($reftype eq 'HASH') {
-            $value = { map { $_ => encode_perl_data($value->{$_}) } keys(%$value) };
+            $value = { map { $_ => encode_perl_data($value->{$_}, &$_p, $seen) } keys(%$value) };
 
         } elsif ($reftype eq 'ARRAY') {
-            $value = [ map { encode_perl_data($_) } @$value ];
+            $value = [ map { encode_perl_data($value->[$_], &$_p, $seen) } (0 .. $#$value) ];
 
         } elsif ($reftype eq 'GLOB') {
-            my %tmpvalue = map { $_ => encode_perl_data(*{$value}{$_}) }
+            my %tmpvalue = map { $_ => encode_perl_data(*{$value}{$_}, &$_p, $seen) }
                            grep { *{$value}{$_} }
                            qw(HASH ARRAY SCALAR);
             if (*{$value}{CODE}) {
@@ -43,17 +65,16 @@ sub encode_perl_data {
         ) {
             $value = $value . '';
         } elsif ($reftype eq 'SCALAR') {
-            $value = encode_perl_data($$value);
+            $value = encode_perl_data($$value, &$_p, $seen);
         } elsif ($reftype eq 'CODE') {
             (my $copy = $value.'') =~ s/^(\w+)\=//;  # Hack to change CodeClass=CODE(0x123) to CODE=(0x123)
             $value = $copy;
         } elsif ($reftype eq 'REF') {
-            $value = encode_perl_data($$value);
+            $value = encode_perl_data($$value, &$_p, $seen );
         }
 
         $value = { __reftype => $reftype, __refaddr => $refaddr, __value => $value };
         $value->{__blessed} = $blesstype if $blesstype;
-
     }
 
     return $value;

@@ -12,7 +12,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 105;
+    plan tests => 109;
 }
 
 my $url = start_test_program();
@@ -194,8 +194,28 @@ check_resp($resp,
         },
         'Get value of @_ at level 0');
 
-
-
+$resp = $mech->post($url.'getvar', { l => 0, v => '%recursive' });
+check_resp($resp,
+        { expr => '%recursive', level => 0,
+            result => {
+                __reftype => 'HASH',
+                __value => {
+                    one => 1,
+                    two => 2,
+                    subhash => {
+                        __reftype => 'HASH',
+                        __value => {
+                            subkey => 1,
+                            recursive => {
+                                __reftype => 'HASH',
+                                __recursive => '$VAR->{subhash}'
+                            },
+                        },
+                    },
+                },
+            }
+        },
+        'Get value of self-referential data structure');
 
 
 sub check_resp {
@@ -209,9 +229,7 @@ sub check_resp {
     is($got->{expr}, $expected->{expr}, 'Response expr matches');
     is($got->{level}, $expected->{level}, 'Level matches');
 
-    if (ref $got->{result}) {
-        delete ($got->{result}->{__refaddr});
-    }
+    strip_refaddr($got->{result});
 
     is_deeply($got->{result}, $expected->{result},
         'Result is '.(defined($expected->{result}) ? '"'.$expected->{result}.'"' : 'undef'));
@@ -232,6 +250,8 @@ sub foo {
     my $two = 2;
     my @my_list = (0,1,2);
     my %my_hash = (1 => 'one', 2 => 'two', 3 => 'three');
+    my %recursive = ( one => 1, two => 2, subhash => { subkey => 1 } );
+    $recursive{subhash}->{recursive} = $recursive{subhash};
     local($^L) = 'aaa';
     "abc" =~ m/^\w(\w)/;
     eval { die "hi there\n" };
