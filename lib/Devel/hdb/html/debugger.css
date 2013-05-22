@@ -127,6 +127,8 @@ div#controls {
 
 .current-sub-and-args {
     margin-bottom: 0;
+    overflow: hidden;
+    white-space: nowrap;
 }
 .current-sub-and-args ul.sub-arg-list {
     display: inline;
