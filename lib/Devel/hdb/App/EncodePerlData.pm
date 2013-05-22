@@ -29,7 +29,8 @@ sub encode_perl_data {
         if ($seen->{$value}) {
             my $rv = {  __reftype => $reftype,
                         __refaddr => $refaddr,
-                        __recursive => $seen->{$value} };
+                        __recursive => 1,
+                        __value => $seen->{$value} };
             $rv->{__blessed} = $blesstype if $blesstype;
             return $rv;
         }

@@ -208,7 +208,8 @@ check_resp($resp,
                             subkey => 1,
                             recursive => {
                                 __reftype => 'HASH',
-                                __recursive => '$VAR->{subhash}'
+                                __recursive => 1,
+                                __value => '$VAR->{subhash}'
                             },
                         },
                     },
