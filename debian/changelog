@@ -1,3 +1,11 @@
+libdevel-hdb-perl (0.09-1) unstable; urgency=low
+  * After a fork(), the always stop the parent process
+  * Add key bindings similar to the command-line debugger
+  * Sending v-strings and self-referential data structures over the wire now works
+  * Improve test reliability
+
+ -- Anthony Brummett <brummett@cpan.org>  Thu, 16 May 2013 14:45:00 -0500
+
 libdevel-hdb-perl (0.08-1) unstable; urgency=low
   * Fix text overflow with the main program tab
   * Fix bug in the open-file picker

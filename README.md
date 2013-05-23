@@ -55,12 +55,13 @@ stopping.
 * Watch variables/expressions
 * Get control when the process exits
 * Hover over a variable to see its value.  Works for all stack frames.
+* Get notification of untrapped exceptions, and stop at the exception point
+* Stop execution when execution reaches a different point than a previous run
 
 Pretty much what you would expect from any debugger.
 
 ### Planned Features
 
-* Get notification of untrapped exceptions, and stop at the exception point
 * Step into an arbitrary expression
 * Restart execution at some prior execution point
 
