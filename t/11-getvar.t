@@ -12,7 +12,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 109;
+    plan tests => 113;
 }
 
 my $url = start_test_program();
@@ -218,6 +218,16 @@ check_resp($resp,
         },
         'Get value of self-referential data structure');
 
+$resp = $mech->post($url.'getvar', { l => 0, v => '$vstring'});
+check_resp($resp,
+        { expr => '$vstring', level => 0,
+            result => {
+                __reftype => 'VSTRING',
+                __value => [1,2,3,4],
+            }
+        },
+        'Get value is a v-string');
+
 
 sub check_resp {
     my $resp = shift;
@@ -253,6 +263,7 @@ sub foo {
     my %my_hash = (1 => 'one', 2 => 'two', 3 => 'three');
     my %recursive = ( one => 1, two => 2, subhash => { subkey => 1 } );
     $recursive{subhash}->{recursive} = $recursive{subhash};
+    my $vstring = v1.2.3.4;
     local($^L) = 'aaa';
     "abc" =~ m/^\w(\w)/;
     eval { die "hi there\n" };

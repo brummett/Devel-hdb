@@ -13,9 +13,12 @@ sub encode_perl_data {
     my $path_expr = shift;
     my $seen = shift;
 
-    if (!ref($value) and ref(\$value) eq 'GLOB') {
-        # It's an actual typeglob (not a glob ref)
-        $value = \$value;
+    if (!ref($value)) {
+        my $ref = ref(\$value);
+        if ($ref eq 'GLOB' or $ref eq 'VSTRING') {
+            my $copy = $value;
+            $value = \$copy;
+        }
     }
 
     $path_expr ||= '$VAR';
@@ -72,6 +75,8 @@ sub encode_perl_data {
             $value = $copy;
         } elsif ($reftype eq 'REF') {
             $value = encode_perl_data($$value, &$_p, $seen );
+        } elsif ($reftype eq 'VSTRING') {
+            $value = [ unpack('c*', $$value) ];
         }
 
         $value = { __reftype => $reftype, __refaddr => $refaddr, __value => $value };
@@ -123,9 +128,11 @@ returns a hashref with these keys
 If the reference was not blessed, then the __blessed key will not be present.
 __value is generally a copy of the underlying data.  For example, if the input
 value is an hashref, then __value will also be a hashref containing the input
-value's kays and values.  For typeblobs, __value will be a hashref with the
-keys SCALAR, ARRAY, HASH, IO and CODE.  For coderefs, __value will be the
-stringified reference, like "CODE=(0x12345678)"
+value's kays and values.  For typeblobs and glob refs, __value will be a
+hashref with the keys SCALAR, ARRAY, HASH, IO and CODE.  For coderefs,
+__value will be the stringified reference, like "CODE=(0x12345678)".  For
+v-strings and v-string refs, __value will by an arrayref containing the
+integers making up the v-string.
 
 encode_perl_data() handles arbitrarily neste data strucures, meaning that
 values in the __values slot may also be encoded this way.
