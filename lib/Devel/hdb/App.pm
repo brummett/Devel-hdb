@@ -231,7 +231,7 @@ sub load_settings_from_file {
             $req{$key} = $bp->{$key} if (exists $bp->{$key});
         }
         push @set_breakpoints,
-            Devel::hdb::App::Breakpoint->set_breakpoint_and_respond($bp->{filename}, $bp->{lineno}, %req);
+            Devel::hdb::App::Breakpoint->set_breakpoint_and_respond($self, $bp->{filename}, $bp->{lineno}, %req);
         #$resp->data( $resp_data );
     }
     return @set_breakpoints;

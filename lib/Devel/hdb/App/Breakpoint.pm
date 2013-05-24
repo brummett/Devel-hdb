@@ -21,12 +21,12 @@ sub set_breakpoint {
     my $line = $req->param('l');
     my $condition = $req->param('c');
     my $condition_inactive = $req->param('ci');
-    my $action = $req->param('a');
-    my $action_inactive = $req->param('ai');
+    #my $action = $req->param('a');
+    #my $action_inactive = $req->param('ai');
 
-    if (! DB->is_loaded($filename)) {
+    if (! $app->is_loaded($filename)) {
         return [ 404, ['Content-Type' => 'text/html'], ["$filename is not loaded"]];
-    } elsif (! DB->is_breakable($filename, $line)) {
+    } elsif (! $app->is_breakable($filename, $line)) {
         return [ 403, ['Content-Type' => 'text/html'], ["line $line of $filename is not breakable"]];
     }
 
@@ -36,10 +36,10 @@ sub set_breakpoint {
     my %req;
     $req{condition} = $condition if (exists $params->{'c'});
     $req{condition_inactive} = $condition_inactive if (exists $params->{'ci'});
-    $req{action} = $action if (exists $params->{'a'});
-    $req{action_inactive} = $action_inactive if (exists $params->{'ai'});
+    #$req{action} = $action if (exists $params->{'a'});
+    #$req{action_inactive} = $action_inactive if (exists $params->{'ai'});
 
-    my $resp_data = $class->set_breakpoint_and_respond($filename, $line, %req);
+    my $resp_data = $class->set_breakpoint_and_respond($app, $filename, $line, %req);
     $resp->data( $resp_data );
 
     return [ 200,
@@ -48,23 +48,43 @@ sub set_breakpoint {
           ];
 }
 
-sub set_breakpoint_and_respond {
-    my($class, $filename, $line, %params) = @_;
+my(%my_breakpoints, %my_actions);
 
-    unless (DB->is_loaded($filename)) {
-        DB->postpone_until_loaded(
+sub set_breakpoint_and_respond {
+    my($class, $app, $filename, $line, %params) = @_;
+
+    my $changer;
+    my $is_add;
+    if (exists($params{condition}) and ! $params{condition}) {
+        # deleting a breakpoint
+        my $bp = $my_breakpoints{$filename}->{$line};
+        $changer = sub {
+                    $app->remove_break($bp);
+                    delete $my_breakpoints{$filename}->{$line};
+                };
+    } else {
+        # setting a breakpoint
+        $is_add = 1;
+        $changer = sub {
+                    my $bp = $app->add_break(file => $filename, line => $line, code => $params{condition});
+                    $my_breakpoints{$filename}->{$line} = $bp;
+                };
+
+    }
+
+    unless ($app->is_loaded($filename)) {
+        $app->postpone(
                 $filename,
-                sub { DB->set_breakpoint($filename, $line, %params) }
+                $changer
         );
         return;
     }
 
-    DB->set_breakpoint($filename, $line, %params);
-
-    my $resp_data = DB->get_breakpoint($filename, $line);
-    unless ($resp_data) {
-        # This breakpoint was deleted
-        $resp_data = { filename => $filename, lineno => $line };
+    #my $resp_data = $app->get_breaks($filename, $line);
+    my $bp = $changer->();
+    my $resp_data = { filename => $filename, lineno => $line };
+    if ($is_add) {
+        @$resp_data{'condition','condition_inactive'} = ( $bp->code, $bp->inactive );
     }
     return $resp_data;
 }
@@ -78,7 +98,14 @@ sub get_breakpoint {
     my $line = $req->param('l');
 
     my $resp = Devel::hdb::Response->new('breakpoint', $env);
-    $resp->data( DB->get_breakpoint($filename, $line) );
+    #$resp->data( DB->get_breakpoint($filename, $line) );
+    my($bp) = $app->get_breaks(file => $filename, line => $line);
+    my $resp_data = { filename => $filename, lineno => $line };
+    if ($bp) {
+        $resp_data->{condition} = $bp->code;
+        $bp->inactive and do { $resp_data->{condition_inactive} = 1 };
+    }
+    $resp->data($resp_data);
 
     return [ 200, ['Content-Type' => 'application/json'],
             [ $resp->encode() ]
@@ -95,8 +122,29 @@ sub get_all_breakpoints {
 
     # Purposefully not using a response object because there's not yet
     # clean way to encode a list of them
-    my @bp = map {  { type => 'breakpoint', data => $_, defined($rid) ? (rid => $rid) : () } }
-            DB->get_breakpoint($filename, $line);
+    #my @bp = map {  { type => 'breakpoint', data => $_, defined($rid) ? (rid => $rid) : () } }
+    #        DB->get_breakpoint($filename, $line);
+
+    #my @bp = map { {type => 'breakpoint',
+    #                defined($rid) ? (rid => $rid) : (),
+    #                data => {
+    #                    filename => $_->file,
+    #                    lineno => $_->line,
+    #                    condition => $_->code,
+    #                    $_->inactive && do { ( condition_inactive => 1 ) }
+    #                }
+    #            } }
+    #        $app->get_breaks(file => $filename, line => $line);
+    my @bp;
+    foreach my $bp ( $app->get_breaks( file => $filename, line => $line) ) {
+        my $this = { type => 'breakpoint' };
+        $this->{rid} = 1 if (defined $rid);
+        $this->{data} = {   filename => $bp->file,
+                            lineno => $bp->line,
+                            condition => $bp->code,
+                        };
+        $this->{data}->{condition_inactive} = 1 if $bp->inactive;
+    }
     return [ 200, ['Content-Type' => 'application/json'],
             [ JSON::encode_json( \@bp ) ]
         ];

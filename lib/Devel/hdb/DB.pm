@@ -6,6 +6,7 @@ package Devel::hdb::DB;
 use Scalar::Util;
 use IO::File;
 
+use Devel::hdb::DB::Evalable;  # Breakpoints and Actions
 use Devel::hdb::DB::Eval;
 
 my %attached_clients;
@@ -50,6 +51,71 @@ sub disable_debugger {
     $DB::debugger_disabled = 1;
 }
 
+sub is_loaded {
+    my($self, $filename) = @_;
+    #no strict 'refs';
+    return $main::{'_<' . $filename};
+}
+
+sub is_breakable {
+    my($class, $filename, $line) = @_;
+
+    use vars qw(@dbline);
+    local(*dbline) = $main::{'_<' . $filename};
+    return $dbline[$line] + 0;   # FIXME change to == 0
+}
+
+sub add_break {
+    my $self = shift;
+    Devel::hdb::DB::Breakpoint->new(@_);
+}
+
+sub get_breaks {
+    my $self = shift;
+    Devel::hdb::DB::Breakpoint->get(@_);
+}
+
+sub remove_break {
+    my $self = shift;
+    if (ref $_[0]) {
+        # given a breakpoint object
+        shift->delete();
+    } else {
+        # given breakpoint params
+        Devel::hdb::DB::Breakpoint->delete(@_);
+    }
+}
+
+sub add_action {
+    my($self, $file, $line, $code) = @_;
+    Devel::hdb::DB::Action->new(file => $file, line => $line, code => $code);
+}
+
+sub remove_action {
+    my $self = shift;
+    if (ref $_[0]) {
+        # given an action object
+        shift->delete();
+    } else {
+        # given breakpoint params
+        Devel::hdb::DB::Action->delete(@_);
+    }
+}
+
+sub get_actions {
+    my $self = shift;
+    Devel::hdb::DB::Action->get(@_);
+}
+
+sub postpone {
+    my($class, $filename, $sub) = @_;
+
+    $DB::postpone_until_loaded{$filename} ||= [];
+    push @{ $DB::postpone_until_loaded{$filename} }, $sub;
+}
+
+
+
 ## Methods called by the DB core - override in clients
 
 sub stopped {}
@@ -82,6 +148,7 @@ our($stack_depth,
     $sub,
     $uncaught_exception,
     $input_trace,
+    %postpone_until_loaded,
 );
 
 BEGIN {
@@ -214,25 +281,28 @@ sub is_breakpoint {
 
     local(*dbline)= $main::{'_<' . $filename};
 
-    if ($dbline{$line}) {
-        return if $dbline{$line}->{condition_inactive};
-
-        my($condition) = $dbline{$line}->{condition};
-        return unless $condition;
-        # TODO - allow user to set 1-time unconditional BP for run-to
-        # see perl5db.pl and search for ";9"
-        if ($condition eq '1') {
-            return 1
-        } elsif (length($condition)) {
-            $eval_string = $condition;
-            my $result = &eval;
-            if ($result->{result}) {
-                $single = $signal = 0;
-                return 1;
+    my $should_break = 0;
+    if ($dbline{$line} && $dbline{$line}->{condition}) {
+        my @delete;
+        foreach my $condition ( @{ $dbline{$line}->{condition} }) {
+            next if $condition->inactive;
+            my $code = $condition->code;
+            if ($code eq '1') {
+                $should_break = 1;
+            } else {
+                $eval_string = $condition->code;
+                my $rv = &eval;
+                $should_break = 1 if ($rv and $rv->{result});
             }
+            push @delete, $condition if $condition->once;
         }
+        $_->delete for @delete;
     }
-    return;
+
+    if ($should_break) {
+        $single = $signal = 0;
+    }
+    return $should_break;
 }
 
 BEGIN {
@@ -296,6 +366,22 @@ sub disable_stopping {
     $no_stopping = shift;
 }
 
+
+sub _execute_actions {
+    my($filename, $line) = @_;
+    local(*dbline) = $main::{'_<' . $filename};
+    if ($dbline{$line} && $dbline{$line}->{action}) {
+        my @delete;
+        foreach my $action ( @{ $dbline{$line}->{action}} ) {
+            next if $action->inactive;
+            $eval_string = $action->code;
+            &eval;
+            push @delete, $action if $action->once;
+        }
+        $_->delete for @delete;
+    }
+}
+
 sub DB {
     return if (!$ready or $debugger_disabled);
 
@@ -305,16 +391,17 @@ sub DB {
         'no strict; no warnings; ($@, $!, $^E, $,, $/, $\, $^W) = @DB::saved;' . "package $package;";
 
     # Run any action associated with this line
-    local(*dbline) = $main::{'_<' . $filename};
-    my $action;
-    if ($dbline{$line}
-        && ($action = $dbline{$line}->{action})
-        && (! $dbline{$line}->{action_inactive})
-        && $action
-    ) {
-        $eval_string = $action;
-        &eval;
-    }
+    #local(*dbline) = $main::{'_<' . $filename};
+    #my $action;
+    #if ($dbline{$line}
+    #    && ($action = $dbline{$line}->{action})
+    #    && (! $dbline{$line}->{action_inactive})
+    #    && $action
+    #) {
+    #    $eval_string = $action;
+    #    &eval;
+    #}
+    _execute_actions($filename, $line);
 
     my(undef, undef, undef, $subroutine) = caller(1);
     $subroutine ||= 'MAIN';
@@ -422,102 +509,9 @@ sub get_var_at_level {
 sub postponed {
     my($filename) = ($_[0] =~ m/_\<(.*)$/);
 
-    our %postpone_until_loaded;
     if (my $actions = delete $postpone_until_loaded{$filename}) {
-        $_->() foreach @$actions;
+        $_->($filename) foreach @$actions;
     }
-}
-
-sub postpone_until_loaded {
-    my($class, $filename, $sub) = @_;
-
-    our %postpone_until_loaded;
-    $postpone_until_loaded{$filename} ||= [];
-
-    push @{ $postpone_until_loaded{$filename} }, $sub;
-}
-
-sub set_breakpoint {
-    my $class = shift;
-    my $filename = shift;
-    my $line = shift;
-    my %params = @_;
-
-    local(*dbline) = $main::{'_<' . $filename};
-
-    if (exists $params{condition}) {
-        if ($params{condition}) {
-            $dbline{$line}->{condition} = $params{condition};
-        } else {
-            delete $dbline{$line}->{condition};
-        }
-    }
-    if (exists $params{condition_inactive}) {
-        if ($params{condition_inactive}) {
-            $dbline{$line}->{condition_inactive} = 1;
-        } else {
-            delete $dbline{$line}->{condition_inactive}
-        }
-    }
-    if (exists $params{action}) {
-        if ($params{action}) {
-            $dbline{$line}->{action} = $params{action};
-        } else {
-            delete $dbline{$line}->{action};
-        }
-    }
-    if (exists $params{action_inactive}) {
-        if ($params{action_inactive}) {
-            $dbline{$line}->{action_inactive} = 1;
-        } else {
-            delete $dbline{$line}->{action_inactive}
-        }
-    }
-
-    unless (keys %{ $dbline{$line} }) {
-        $dbline{$line} = undef;
-    }
-
-    return 1;
-}
-
-sub get_breakpoint {
-    my $class = shift;
-
-    my $filename = shift;
-    unless ($filename) {
-        return map { $class->get_breakpoint($_) } $class->loaded_files;
-    }
-
-    #no strict 'refs';
-    local(*dbline) = $main::{'_<' . $filename};
-
-    my $line = shift;
-    if ($line) {
-        if ($dbline{$line}) {
-            my %bp = map { exists $dbline{$line}->{$_} ? ( $_ => $dbline{$line}->{$_} ) : () }
-                        qw(condition action condition_inactive action_inactive);
-            return { filename => $filename, lineno => $line, %bp };
-        }
-
-    } else {
-        my @bps;
-        while( my($line, $bpdata) = each( %dbline ) ) {
-            next unless $bpdata;
-            my %bp = map { exists $bpdata->{$_} ? ( $_ => $bpdata->{$_} ) : () }
-                        qw(condition action condition_inactive action_inactive);
-            push @bps, { filename => $filename, lineno => $line, %bp };
-        }
-        return @bps;
-    }
-}
-
-sub is_breakable {
-    my($class, $filename, $line) = @_;
-
-    #no strict 'refs';
-    local(*dbline) = $main::{'_<' . $filename};
-    return $dbline[$line] + 0;
 }
 
 sub is_loaded {
