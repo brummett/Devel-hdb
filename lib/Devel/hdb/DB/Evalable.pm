@@ -1,7 +1,7 @@
 package Devel::hdb::DB::Evalable;
 
-#use strict;
-#use warnings;
+use strict;
+use warnings;
 
 use Digest::MD5 qw(md5);
 use List::Util;
@@ -21,7 +21,7 @@ sub _new {
 sub __required {
     my $required_params = shift;
     my %params = @_;
-    do { exists($params{$_}) || Carp::croak("$_ is a required param") }
+    do { defined($params{$_}) || Carp::croak("$_ is a required param") }
         foreach @$required_params;
     return %params;
 }
@@ -32,18 +32,20 @@ sub _get {
 
     my %params = __required([qw(file type)], @_);
 
-    #local(*dbline) = $main::{'_<' . $self->file};
-    my %dbline = *{ $main::{'_<' . $self->file} }{HASH};
+    our %dbline;
+    local(*dbline) = $main::{'_<' . $params{file}};
     return unless %dbline;
 
     my @candidates;
 
+    my $type = $params{type};
     if (!$params{line}) {
         @candidates =
-              map { $_->{type} ? @{$_->{type}} : () } # only lines with the type we're looking for
-              grep { $_ }      # only lines with something 
+              map { $_->{$type} ? @{$_->{$type}} : () } # only lines with the type we're looking for
+              grep { $_ }      # only lines with something
               values %dbline;  # All action/breakpoint data for this file
     } else {
+        my $line = $params{line};
         @candidates = ($dbline{$line} && $dbline{$line}->{$type})
                     ? @{ $dbline{$line}->{$type}}
                     : ();
@@ -66,6 +68,7 @@ sub _insert {
     # data, other users will see them, but the debugger
     # won't stop
     package DB;
+    our %dbline;
     local(*dbline) = $main::{'_<' . $self->file};
 
     my $bp_info = $dbline{$self->line} ||= {};
@@ -91,6 +94,7 @@ sub _delete {
         ($file, $line, $code, $type) = @params{'file','line','code','type'};
     }
 
+    our %dbline;
     local(*dbline) = $main::{'_<' . $file};
     my $bp_info = $dbline{$line};
     return unless ($bp_info && $bp_info->{$type});
@@ -116,9 +120,9 @@ sub _delete {
         delete $bp_info->{$type};
     }
 
-    if (! %bp_info) {
+    if (! %$bp_info) {
         # No breakpoints or actions left on this line
-        $db_line{$line} = undef;
+        $dbline{$line} = undef;
     }
 }
 

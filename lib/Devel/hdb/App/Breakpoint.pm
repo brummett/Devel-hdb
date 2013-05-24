@@ -120,21 +120,6 @@ sub get_all_breakpoints {
     my $line = $req->param('l');
     my $rid = $req->param('rid');
 
-    # Purposefully not using a response object because there's not yet
-    # clean way to encode a list of them
-    #my @bp = map {  { type => 'breakpoint', data => $_, defined($rid) ? (rid => $rid) : () } }
-    #        DB->get_breakpoint($filename, $line);
-
-    #my @bp = map { {type => 'breakpoint',
-    #                defined($rid) ? (rid => $rid) : (),
-    #                data => {
-    #                    filename => $_->file,
-    #                    lineno => $_->line,
-    #                    condition => $_->code,
-    #                    $_->inactive && do { ( condition_inactive => 1 ) }
-    #                }
-    #            } }
-    #        $app->get_breaks(file => $filename, line => $line);
     my @bp;
     foreach my $bp ( $app->get_breaks( file => $filename, line => $line) ) {
         my $this = { type => 'breakpoint' };
@@ -144,6 +129,7 @@ sub get_all_breakpoints {
                             condition => $bp->code,
                         };
         $this->{data}->{condition_inactive} = 1 if $bp->inactive;
+        push @bp, $this;
     }
     return [ 200, ['Content-Type' => 'application/json'],
             [ JSON::encode_json( \@bp ) ]

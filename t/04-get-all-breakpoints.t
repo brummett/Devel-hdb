@@ -34,7 +34,7 @@ ok($resp->is_success, 'Set breakpoint for line 3');
 $resp = $mech->post("${url}breakpoint", { f => $filename, l => 4, c => 1});
 ok($resp->is_success, 'Set breakpoint for line 4');
 
-$resp = $mech->post("${url}breakpoint", { f => $filename, l => 5, c => 1, a => '$global = 1'});
+$resp = $mech->post("${url}breakpoint", { f => $filename, l => 5, c => 1 });
 ok($resp->is_success, 'Set breakpoint and action for line 5');
 
 $resp = $mech->post("${url}breakpoint", { f => 't/TestNothing.pm', l => 3, c => 1});
@@ -53,7 +53,7 @@ is_deeply( \@bp,
       {     type => 'breakpoint', 
             data => { filename => $filename, lineno => 4, condition => 1 } },
       {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 5, condition => 1, action => '$global = 1' } },
+            data => { filename => $filename, lineno => 5, condition => 1 } },
       {     type => 'breakpoint',
             data => { filename => 't/TestNothing.pm', lineno => 3, condition => 1 } },
     ],
@@ -70,7 +70,7 @@ is_deeply( \@bp,
       {     type => 'breakpoint',
             data => { filename => $filename, lineno => 4, condition => 1 } },
       {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 5, condition => 1, action => '$global = 1' } }
+            data => { filename => $filename, lineno => 5, condition => 1 } }
     ],
     'Got all set breakpoints'
 );
@@ -86,7 +86,7 @@ is_deeply( \@bp,
       {     type => 'breakpoint',
             data => { filename => $filename, lineno => 3, condition => 1 } },
       {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 5, condition => 1, action => '$global = 1' } }
+            data => { filename => $filename, lineno => 5, condition => 1 } }
     ],
     'Got all set breakpoints'
 );

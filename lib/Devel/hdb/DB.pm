@@ -57,6 +57,11 @@ sub is_loaded {
     return $main::{'_<' . $filename};
 }
 
+sub loaded_files {
+    my @files = grep /^_</, keys(%main::);
+    return map { substr($_,2) } @files; # remove the <_
+}
+
 sub is_breakable {
     my($class, $filename, $line) = @_;
 
@@ -72,7 +77,13 @@ sub add_break {
 
 sub get_breaks {
     my $self = shift;
-    Devel::hdb::DB::Breakpoint->get(@_);
+    my %params = @_;
+    if (defined $params{file}) {
+        return Devel::hdb::DB::Breakpoint->get(@_);
+    } else {
+        return map { Devel::hdb::DB::Breakpoint->get(@_, file => $_) }
+                $self->loaded_files;
+    }
 }
 
 sub remove_break {
@@ -512,17 +523,6 @@ sub postponed {
     if (my $actions = delete $postpone_until_loaded{$filename}) {
         $_->($filename) foreach @$actions;
     }
-}
-
-sub is_loaded {
-    my($class, $filename) = @_;
-    no strict 'refs';
-    return $main::{'_<' . $filename};
-}
-
-sub loaded_files {
-    my @files = grep /^_</, keys(%main::);
-    return map { substr($_,2) } @files; # remove the <_
 }
 
 sub long_call {
