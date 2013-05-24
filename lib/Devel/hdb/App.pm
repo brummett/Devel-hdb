@@ -170,7 +170,8 @@ sub app {
 
 sub run {
     my $self = shift;
-    return $self->{server}->run($self->app);
+    $self->{server}->run($self->app);
+    1;
 }
 *prompt = \&run;
 sub poll {1};

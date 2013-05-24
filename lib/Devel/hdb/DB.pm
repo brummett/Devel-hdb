@@ -345,8 +345,11 @@ sub DB {
 
         undef $eval_string;
 
-        my @ready_clients = grep { $_->poll } values %attached_clients;
-        $_->prompt() foreach @ready_clients;
+        my $should_continue = 0;
+        until ($should_continue) {
+            my @ready_clients = grep { $_->poll } values %attached_clients;
+            do { $should_continue |= $_->prompt() } foreach @ready_clients;
+        }
 
     } while ($finished || $eval_string);
     restore();
