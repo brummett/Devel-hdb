@@ -38,6 +38,8 @@ sub import {
         }
 
     }
+    my $self = Devel::hdb::App->get();
+    $self->attach();
 }
 1;
 __END__

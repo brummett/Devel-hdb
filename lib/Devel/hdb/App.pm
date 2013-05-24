@@ -21,11 +21,6 @@ use Devel::hdb::Response;
 
 use vars qw( $parent_pid ); # when running in the test harness
 
-INIT {
-    my $self = Devel::hdb::App->get();
-    $self->attach();
-}
-
 our $APP_OBJ;
 sub get {
     return $APP_OBJ if $APP_OBJ;  # get() is a singleton
