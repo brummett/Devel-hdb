@@ -23,6 +23,35 @@ sub _clients {
     return values %attached_clients;
 }
 
+## Methods callable from client code
+
+sub stepin {
+    $DB::single=1;
+}
+
+sub stepover {
+    $DB::single=1;
+    $DB::step_over_depth = $DB::stack_depth;
+}
+
+sub stepout {
+    $DB::single=0;
+    $DB::step_over_depth = $DB::stack_depth - 1;
+}
+
+sub continue {
+    $DB::single=0;
+}
+
+
+## Methods called by the DB core - override in clients
+
+sub stopped {}
+sub trace {}
+sub poll {}
+sub prompt {}
+sub cleanup {}
+
 package DB;
 
 use vars qw( %dbline @dbline );
@@ -305,7 +334,7 @@ sub DB {
         $package = 'main';
     }
 
-    $dbobj = Devel::hdb::App->get();
+    $_->stopped() foreach values %attached_clients;
 
     do {
         local($in_debugger) = 1;
@@ -315,7 +344,9 @@ sub DB {
         }
 
         undef $eval_string;
-        $dbobj->run();
+
+        my @ready_clients = grep { $_->poll } values %attached_clients;
+        $_->prompt() foreach @ready_clients;
 
     } while ($finished || $eval_string);
     restore();

@@ -7,6 +7,8 @@ BEGIN {
     our $ORIGINAL_PID = $$;
 }
 
+use Devel::hdb::DB;
+use base 'Devel::hdb::DB';
 use Devel::hdb::Server;
 use IO::File;
 use LWP::UserAgent;
@@ -18,6 +20,11 @@ use Devel::hdb::Router;
 use Devel::hdb::Response;
 
 use vars qw( $parent_pid ); # when running in the test harness
+
+INIT {
+    my $self = Devel::hdb::App->get();
+    $self->attach();
+}
 
 our $APP_OBJ;
 sub get {
@@ -170,6 +177,8 @@ sub run {
     my $self = shift;
     return $self->{server}->run($self->app);
 }
+*prompt = \&run;
+sub poll {1};
 
 sub notify_trace_diff {
     my($self, $trace_data) = @_;
