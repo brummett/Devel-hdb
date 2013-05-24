@@ -43,6 +43,12 @@ sub continue {
     $DB::single=0;
 }
 
+sub disable_debugger {
+    # Setting $^P disables single stepping and subrouting entry
+    # but if the program sets $DB::single explicitly, it'll still enter DB()
+    $^P = 0;  # Stops single-stepping
+    $DB::debugger_disabled = 1;
+}
 
 ## Methods called by the DB core - override in clients
 
@@ -548,13 +554,6 @@ sub prepare_eval {
         my $data = &eval;
         $cb->($data);
     }
-}
-
-sub disable_debugger {
-    # Setting $^P disables single stepping and subrouting entry
-    # but if the program sets $DB::single explicitly, it'll still enter DB()
-    $^P = 0;  # Stops single-stepping
-    $debugger_disabled = 1;
 }
 
 

@@ -16,23 +16,21 @@ __PACKAGE__->add_route('get', '/continue', \&continue);
 sub stepin {
     my($class, $app, $env) = @_;
 
-    $DB::single=1;
+    $app->stepin;
     return $class->_delay_stack_return_to_client($app, $env);
 }
 
 sub stepover {
     my($class, $app, $env) = @_;
 
-    $DB::single=1;
-    $DB::step_over_depth = $DB::stack_depth;
+    $app->stepover;
     return $class->_delay_stack_return_to_client($app, $env);
 }
 
 sub stepout {
     my($class, $app, $env) = @_;
 
-    $DB::single=0;
-    $DB::step_over_depth = $DB::stack_depth - 1;
+    $app->stepout;
     return $class->_delay_stack_return_to_client($app, $env);
 }
 
@@ -42,9 +40,9 @@ sub continue {
     my $req = Plack::Request->new($env);
     my $nostop = $req->param('nostop');
 
-    $DB::single=0;
+    $app->continue;
     if ($nostop) {
-        DB->disable_debugger();
+        $app->disable_debugger();
         my $resp = Devel::hdb::Response->new('continue', $env);
         $resp->data({ nostop => 1 });
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
