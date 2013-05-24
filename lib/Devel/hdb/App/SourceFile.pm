@@ -42,7 +42,7 @@ sub loaded_files {
 
     my $resp = Devel::hdb::Response->new('loadedfiles', $env);
 
-    my @files = DB->loaded_files();
+    my @files = $app->loaded_files();
     $resp->data(\@files);
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
