@@ -10,7 +10,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 13;
+    plan tests => 12;
 }
 
 my $url = start_test_program();
@@ -62,14 +62,13 @@ is_deeply($stack,
 
 $resp = $mech->get($url.'stepin');
 ok($resp->is_success, 'step in');
-# expecting 'stack' and 'termination' messages
-my @messages = sort { $a->{type} cmp $b->{type} } @{ $json->decode($resp->content) };
-is($messages[0]->{data}->[0]->{subroutine},
-    'DB::fake::at_exit',
-    'Stopped in at_exit()');
-is_deeply($messages[1],
-    { type => 'termination', data => { exit_code => 2 } },
-    'Got termination message');
+$stack = strip_stack($json->decode($resp->content));
+is_deeply($stack,
+    [ { line => 12, subroutine => 'main::END' },
+      { line => 2, subroutine => '(eval)' },
+      { line => 2, subroutine => 'MAIN' },
+    ],
+    'Stopped in END block');
 
 
 __DATA__
@@ -82,4 +81,7 @@ sub foo {
 sub bar {
     die "8";
     9;
+}
+END {
+    12;
 }
