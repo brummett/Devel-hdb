@@ -16,15 +16,12 @@ __PACKAGE__->add_route('get', '/breakpoints', \&get_all_breakpoints);
 sub set_breakpoint {
     my($class, $app, $env) = @_;
 
-    my $req = Plack::Request->new($env);
-    my $filename = $req->param('f');
-    my $line = $req->param('l');
-    my $condition = $req->param('c');
-    my $condition_inactive = $req->param('ci');
-    #my $action = $req->param('a');
-    #my $action_inactive = $req->param('ai');
+    my $params = Plack::Request->new($env)->parameters;
+    my($filename, $line) = @$params{'f','l'};
 
-    if (! $app->is_loaded($filename)) {
+
+
+    if (! $app->is_loaded($params->{f})) {
         return [ 404, ['Content-Type' => 'text/html'], ["$filename is not loaded"]];
     } elsif (! $app->is_breakable($filename, $line)) {
         return [ 403, ['Content-Type' => 'text/html'], ["line $line of $filename is not breakable"]];
@@ -32,14 +29,12 @@ sub set_breakpoint {
 
     my $resp = Devel::hdb::Response->new('breakpoint', $env);
 
-    my $params = $req->parameters;
     my %req;
-    $req{condition} = $condition if (exists $params->{'c'});
-    $req{condition_inactive} = $condition_inactive if (exists $params->{'ci'});
-    #$req{action} = $action if (exists $params->{'a'});
-    #$req{action_inactive} = $action_inactive if (exists $params->{'ai'});
+    @req{'file','line'} = @$params{'f','l'};
+    $req{code} = $params->{c} if (exists $params->{'c'});
+    $req{inactive} = $params->{ci} if (exists $params->{'ci'});
 
-    my $resp_data = $class->set_breakpoint_and_respond($app, $filename, $line, %req);
+    my $resp_data = $class->set_breakpoint_and_respond($app, %req);
     $resp->data( $resp_data );
 
     return [ 200,
@@ -51,47 +46,49 @@ sub set_breakpoint {
 my(%my_breakpoints, %my_actions);
 
 sub set_breakpoint_and_respond {
-    my($class, $app, $filename, $line, %params) = @_;
+    my($class, $app, %params) = @_;
 
-    my $set_inactive = exists($params{condition_inactive})
-                        ? sub { shift->inactive($params{condition_inactive}) }
+    my($file, $line, $code, $inactive) = @params{'file','line','code','inactive'};
+
+    my $set_inactive = exists($params{inactive})
+                        ? sub { shift->inactive($inactive) }
                         : sub {};
 
     my $changer;
     my $is_add;
-    if (exists $params{condition}) {
-        if ($params{condition}) {
+    if (exists $params{code}) {
+        if ($code) {
             # setting a breakpoint
             $is_add = 1;
             $changer = sub {
-                    my $bp = $app->add_break(file => $filename, line => $line, code => $params{condition});
+                    my $bp = $app->add_break(%params);
                     $set_inactive->($bp);
-                    $my_breakpoints{$filename}->{$line} = $bp;
+                    $my_breakpoints{$file}->{$line} = $bp;
                 };
         } else {
             # deleting a breakpoint
-            my $bp = $my_breakpoints{$filename}->{$line};
+            my $bp = $my_breakpoints{$file}->{$line};
             $changer = sub {
                     $app->remove_break($bp);
-                    delete $my_breakpoints{$filename}->{$line};
+                    delete $my_breakpoints{$file}->{$line};
                 };
         }
     } else {
         # changing a breakpoint
-        my $bp = $my_breakpoints{$filename}->{$line};
+        my $bp = $my_breakpoints{$file}->{$line};
         $changer = sub { $set_inactive->($bp); $bp };
     }
 
-    unless ($app->is_loaded($filename)) {
+    unless ($app->is_loaded($file)) {
         $app->postpone(
-                $filename,
+                $file,
                 $changer
         );
         return;
     }
 
     my $bp = $changer->();
-    my $resp_data = { filename => $filename, lineno => $line };
+    my $resp_data = { filename => $file, lineno => $line };
     if ($is_add) {
         @$resp_data{'condition','condition_inactive'} = ( $bp->code, $bp->inactive );
     }
