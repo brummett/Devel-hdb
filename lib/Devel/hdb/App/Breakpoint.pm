@@ -53,23 +53,33 @@ my(%my_breakpoints, %my_actions);
 sub set_breakpoint_and_respond {
     my($class, $app, $filename, $line, %params) = @_;
 
+    my $set_inactive = exists($params{condition_inactive})
+                        ? sub { shift->inactive($params{condition_inactive}) }
+                        : sub {};
+
     my $changer;
     my $is_add;
-    if (exists($params{condition}) and ! $params{condition}) {
-        # deleting a breakpoint
-        my $bp = $my_breakpoints{$filename}->{$line};
-        $changer = sub {
+    if (exists $params{condition}) {
+        if ($params{condition}) {
+            # setting a breakpoint
+            $is_add = 1;
+            $changer = sub {
+                    my $bp = $app->add_break(file => $filename, line => $line, code => $params{condition});
+                    $set_inactive->($bp);
+                    $my_breakpoints{$filename}->{$line} = $bp;
+                };
+        } else {
+            # deleting a breakpoint
+            my $bp = $my_breakpoints{$filename}->{$line};
+            $changer = sub {
                     $app->remove_break($bp);
                     delete $my_breakpoints{$filename}->{$line};
                 };
+        }
     } else {
-        # setting a breakpoint
-        $is_add = 1;
-        $changer = sub {
-                    my $bp = $app->add_break(file => $filename, line => $line, code => $params{condition});
-                    $my_breakpoints{$filename}->{$line} = $bp;
-                };
-
+        # changing a breakpoint
+        my $bp = $my_breakpoints{$filename}->{$line};
+        $changer = sub { $set_inactive->($bp); $bp };
     }
 
     unless ($app->is_loaded($filename)) {
@@ -80,7 +90,6 @@ sub set_breakpoint_and_respond {
         return;
     }
 
-    #my $resp_data = $app->get_breaks($filename, $line);
     my $bp = $changer->();
     my $resp_data = { filename => $filename, lineno => $line };
     if ($is_add) {
