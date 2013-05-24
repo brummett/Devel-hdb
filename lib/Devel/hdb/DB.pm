@@ -502,7 +502,7 @@ sub prepare_eval {
 
 sub disable_debugger {
     # Setting $^P disables single stepping and subrouting entry
-    # bug if the program sets $DB::single explicitly, it'll still enter DB()
+    # but if the program sets $DB::single explicitly, it'll still enter DB()
     $^P = 0;  # Stops single-stepping
     $debugger_disabled = 1;
 }
