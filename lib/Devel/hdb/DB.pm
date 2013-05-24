@@ -8,6 +8,21 @@ use IO::File;
 
 use Devel::hdb::DB::Eval;
 
+my %attached_clients;
+sub attach {
+    my $self = shift;
+    $attached_clients{$self} = $self;
+}
+
+sub detach {
+    my $self = shift;
+    delete $attached_clients{$self};
+}
+
+sub _clients {
+    return values %attached_clients;
+}
+
 package DB;
 
 use vars qw( %dbline @dbline );
@@ -517,14 +532,16 @@ END {
     $finished = 1;
     $in_debugger = 1;
 
-    if ($user_requested_exit) {
-        Devel::hdb::App->get()->notify_program_exit();
-    } else {
-        Devel::hdb::App->get()->notify_program_terminated($?, $uncaught_exception);
-        # These two will trigger DB::DB and the event loop
-        $in_debugger = 0;
-        $single=1;
-        DB::fake::at_exit();
+    eval {
+        if ($user_requested_exit) {
+            Devel::hdb::App->get()->notify_program_exit();
+        } else {
+            Devel::hdb::App->get()->notify_program_terminated($?, $uncaught_exception);
+            # These two will trigger DB::DB and the event loop
+            $in_debugger = 0;
+            $single=1;
+            DB::fake::at_exit();
+        }
     }
 }
 
