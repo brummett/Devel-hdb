@@ -12,7 +12,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 113;
+    plan tests => 121;
 }
 
 my $url = start_test_program();
@@ -56,6 +56,20 @@ check_resp($resp,
                     },
         },
         'Get value of bare pkg var $bare_var at level 0');
+
+$resp = $mech->post($url.'getvar', { l => 0, v => '@_' } );
+check_resp($resp,
+        { expr => '@_', level => 0,
+            result => { __reftype => 'ARRAY',
+                        __value => [1, 2, 3] }
+        },
+        'Get value of @_ at level 0');
+
+$resp = $mech->post($url.'getvar', { l => 0, v => '$_[1]' } );
+check_resp($resp,
+        { expr => '$_[1]', level => 0, result => 2 },
+        'Get value of $_[1] at level 0');
+
 
 $resp = $mech->post($url.'getvar', {l => 0, v => '$Other::Package::variable'});
 check_resp($resp,

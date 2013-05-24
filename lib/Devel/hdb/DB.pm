@@ -537,6 +537,7 @@ sub user_requested_exit {
 sub prepare_eval {
     my($class, $string, $cb) = @_;
 
+    () = caller(_first_program_frame() );
     my @db_args = @DB::args;
     return sub {
         $eval_string = $string;

@@ -10,7 +10,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 19;
+    plan tests => 21;
 }
 
 my $url = start_test_program();
@@ -108,10 +108,25 @@ is_deeply($answer,
               },
     },
     'Encoded bare typeglob');
-                    
 
 
-
+$resp = $mech->post("${url}eval", content => '@_');
+ok($resp->is_success, 'Get value of @_');
+$answer = $json->decode($resp->content);
+strip_refaddr($answer->{data}->{result});
+use Data::Dumper;
+print Data::Dumper::Dumper($answer);
+is_deeply($answer,
+    {   type => 'evalresult',
+        data => {
+            expr => '@_',
+            result => {
+                __reftype => 'ARRAY',
+                __value => [ 1, 2, 3 ],
+            }
+        }
+    },
+    '@_ is correct');
 
 
 
@@ -123,8 +138,11 @@ $global = 1;                # package global
 my %lexical = (key => 3);   # lexical
 my $ref = \$global;
 my $refref = \$ref;
-$DB::single=1;
-1;
+foo(1,2,3);
+sub foo {
+    $DB::single=1;
+    1;
+}
 sub do_die {
     die "in do_die\n";
 }
