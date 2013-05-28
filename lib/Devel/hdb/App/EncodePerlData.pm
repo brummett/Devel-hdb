@@ -15,7 +15,8 @@ sub encode_perl_data {
 
     if (!ref($value)) {
         my $ref = ref(\$value);
-        if ($ref eq 'GLOB' or $ref eq 'VSTRING') {
+        # perl 5.8 - ref() with a vstring returns SCALAR
+        if ($ref eq 'GLOB' or $ref eq 'VSTRING' or Scalar::Util::isvstring($value)) {
             my $copy = $value;
             $value = \$copy;
         }
@@ -68,15 +69,16 @@ sub encode_perl_data {
                     or ($reftype eq 'SCALAR' and defined($blesstype) and $blesstype eq 'Regexp')
         ) {
             $value = $value . '';
-        } elsif ($reftype eq 'SCALAR') {
-            $value = encode_perl_data($$value, &$_p, $seen);
         } elsif ($reftype eq 'CODE') {
             (my $copy = $value.'') =~ s/^(\w+)\=//;  # Hack to change CodeClass=CODE(0x123) to CODE=(0x123)
             $value = $copy;
         } elsif ($reftype eq 'REF') {
             $value = encode_perl_data($$value, &$_p, $seen );
-        } elsif ($reftype eq 'VSTRING') {
+        } elsif (($reftype eq 'VSTRING') or Scalar::Util::isvstring($$value)) {
+            $reftype = 'VSTRING';
             $value = [ unpack('c*', $$value) ];
+        } elsif ($reftype eq 'SCALAR') {
+            $value = encode_perl_data($$value, &$_p, $seen);
         }
 
         $value = { __reftype => $reftype, __refaddr => $refaddr, __value => $value };
