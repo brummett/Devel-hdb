@@ -31,16 +31,20 @@ is_deeply($stack,
     [ { line => 2, subroutine => 'MAIN' } ],
     'Stopped on line 2');
 
-my $breakpoints = { breakpoints => [
-        { filename => $program_file_name, lineno => 3, condition => '$a == 1' },  # This won't be triggered
-        { filename => $program_file_name, lineno => 5, condition => '$a == 1' },
-        { filename => $program_file_name, lineno => 7, action => '$a++' },
-        { filename => $program_file_name, lineno => 11, condition => '1' },
-        { filename => 't/TestNothing.pm', lineno => 6, condition => 1 }, # loaded at runtime
-]};
+my $config = {
+    breakpoints => [
+        { file => $program_file_name, line => 3, code => '$a == 1' },  # This won't be triggered
+        { file => $program_file_name, line => 5, code => '$a == 1' },
+        { file => $program_file_name, line => 11, code => '1' },
+        { file => 't/TestNothing.pm', line => 6, code => 1 }, # loaded at runtime
+    ],
+    actions => [
+        { file => $program_file_name, line => 7, code => '$a++' },
+    ]
+};
 
 my $fh = File::Temp->new(TEMPLATE => 'devel-hdb-config-XXXX', TMPDIR => 1);
-$fh->print(Data::Dumper->new([$breakpoints])->Terse(1)->Dump());
+$fh->print(Data::Dumper->new([$config])->Terse(1)->Dump());
 ok($fh->close(), 'Wrote settings file');
 
 $resp = $mech->post($url.'loadconfig', { f => $fh->filename });

@@ -98,8 +98,8 @@ sub remove_break {
 }
 
 sub add_action {
-    my($self, $file, $line, $code) = @_;
-    Devel::hdb::DB::Action->new(file => $file, line => $line, code => $code);
+    my $self = shift;
+    Devel::hdb::DB::Action->new(@_);
 }
 
 sub remove_action {
@@ -115,7 +115,13 @@ sub remove_action {
 
 sub get_actions {
     my $self = shift;
-    Devel::hdb::DB::Action->get(@_);
+    my %params = @_;
+    if (defined $params{file}) {
+        Devel::hdb::DB::Action->get(@_);
+    } else {
+        return map { Devel::hdb::DB::Action->get(@_, file => $_) }
+                $self->loaded_files;
+    }
 }
 
 sub postpone {

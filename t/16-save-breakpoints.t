@@ -7,12 +7,13 @@ use WWW::Mechanize;
 use JSON;
 use IO::File;
 use Data::Dumper;
+use Devel::hdb::DB::Evalable;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 11;
+    plan tests => 29;
 }
 
 my $url = start_test_program();
@@ -33,7 +34,7 @@ is_deeply($stack,
 $resp = $mech->post($url.'breakpoint', { f => $filename, l => 3, c => 1, ci => 1 });
 ok($resp->is_success, 'set breakpoint');
 
-$resp = $mech->post($url.'breakpoint', { f => $filename, l => 4, a => '123', ai => 1 });
+$resp = $mech->post($url.'action', { f => $filename, l => 4, c => '123', ci => 1 });
 ok($resp->is_success, 'set action');
 
 $resp = $mech->post($url.'saveconfig');
@@ -64,14 +65,20 @@ sub config_file_is_correct {
     my $content = <$fh>;
 
     my $config = eval $content;
-    $config->{breakpoints} = [ sort { $a->{lineno} <=> $b->{lineno} }
-                                  @{ $config->{breakpoints} } ];
-    is_deeply($config,
-            { breakpoints => [
-              { filename => $filename, lineno => 3, condition => 1, condition_inactive => 1 },
-              { filename => $filename, lineno => 4, action => 123, action_inactive => 1 },
-            ]},
-            'File contents ok');
+    is( scalar(@{$config->{breakpoints}}), 1, '1 saved breakpoint');
+    is( scalar(@{$config->{actions}}), 1, '1 saved action');
+
+    my $bp = $config->{breakpoints}->[0];
+    is( $bp->inactive, 1, 'Inactive');
+    is( $bp->code, '1', '    unconditional breakpoint');
+    is( $bp->line, 3, '    on line 3');
+    is ($bp->file, $filename, "    of $filename");
+
+    my $action = $config->{actions}->[0];
+    is( $action->inactive, 1, 'Inactive');
+    is( $action->code, 123, '    action code');
+    is( $action->line, 4, '    on line 4');
+    is( $action->file, $filename, "    of $filename");
 }
 
     

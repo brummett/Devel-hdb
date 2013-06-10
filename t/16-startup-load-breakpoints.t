@@ -17,15 +17,18 @@ if ($^O =~ m/^MS/) {
 }
 
 my $program_file_name = File::Temp::tmpnam();
-my $breakpoints = { breakpoints => [
-        { filename => $program_file_name, lineno => 3, condition => '$a == 1' },  # This won't be triggered
-        { filename => $program_file_name, lineno => 5, condition => '$a == 1' },
-        { filename => $program_file_name, lineno => 7, action => '$a++' },
-        { filename => $program_file_name, lineno => 11, condition => '1' },
-        { filename => 't/TestNothing.pm', lineno => 6, condition => 1 }, # loaded at runtime
-]};
+my $config = {
+    breakpoints => [
+        { file => $program_file_name, line => 3, code => '$a == 1' },  # This won't be triggered
+        { file => $program_file_name, line => 5, code => '$a == 1' },
+        { file => $program_file_name, line => 11, code => '1' },
+        { file => 't/TestNothing.pm', line => 6, code => 1 }, # loaded at runtime
+    ],
+    actions => [
+        { file => $program_file_name, line => 7, code => '$a++' },
+    ]
+};
 my $setting_file = Devel::hdb::App->settings_file($program_file_name);
-print "setting file $setting_file\n";
 like($setting_file,
     qr(^$program_file_name),
     'Settings file name starts with the program file name');
@@ -34,7 +37,7 @@ eval "END { unlink('$program_file_name', '$setting_file') }";
 isnt($program_file_name, $setting_file, 'Settings file name different than program filename');
 
 my $fh = IO::File->new($setting_file, 'w') || die "Can't open $setting_file: $!";
-$fh->print(Data::Dumper->new([$breakpoints])->Terse(1)->Dump());
+$fh->print(Data::Dumper->new([$config])->Terse(1)->Dump());
 ok($fh->close(), 'Wrote settings file');
 
 my $url = start_test_program('-file' => $program_file_name);

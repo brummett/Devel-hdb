@@ -89,6 +89,7 @@ sub init_debugger {
     require Devel::hdb::App::Terminate;
     require Devel::hdb::App::PackageInfo;
     require Devel::hdb::App::Breakpoint;
+    require Devel::hdb::App::Action;
     require Devel::hdb::App::SourceFile;
     require Devel::hdb::App::Eval;
     require Devel::hdb::App::AnnounceChild;
@@ -226,13 +227,12 @@ sub load_settings_from_file {
 
     my @set_breakpoints;
     foreach my $bp ( @{ $settings->{breakpoints}} ) {
-        my %req;
-        foreach my $key ( qw( condition condition_inactive action action_inactive ) ) {
-            $req{$key} = $bp->{$key} if (exists $bp->{$key});
-        }
         push @set_breakpoints,
-            Devel::hdb::App::Breakpoint->set_breakpoint_and_respond($self, $bp->{filename}, $bp->{lineno}, %req);
-        #$resp->data( $resp_data );
+            Devel::hdb::App::Breakpoint->set_breakpoint_and_respond($self, %$bp);
+    }
+    foreach my $action ( @{ $settings->{actions}} ) {
+        push @set_breakpoints,
+            Devel::hdb::App::Action->set_action_and_respond($self, %$action);
     }
     return @set_breakpoints;
 }
@@ -245,9 +245,11 @@ sub save_settings_to_file {
         $file = $self->settings_file();
     }
 
-    my @breakpoints = DB->get_breakpoint();
+    my @breakpoints = $self->get_breaks();
+    my @actions = $self->get_actions();
     my $fh = IO::File->new($file, 'w') || die "Can't open $file for writing: $!";
-    $fh->print( Data::Dumper->new([{ breakpoints => \@breakpoints}])->Terse(1)->Dump());
+    my $config = { breakpoints => \@breakpoints, actions => \@actions };
+    $fh->print( Data::Dumper->new([ $config ])->Terse(1)->Dump());
     return $file;
 }
 
