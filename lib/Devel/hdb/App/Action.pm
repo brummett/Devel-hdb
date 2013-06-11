@@ -102,6 +102,7 @@ sub set_action_and_respond {
     } else {
         # changing an action
         my $bp = $my_actions{$file}->{$line};
+        $bp ||= $app->add_action(file => $file, line => $line, code => sub {});
         $changer = sub { $set_inactive->($bp); $bp };
     }
 
