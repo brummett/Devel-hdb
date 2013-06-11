@@ -93,7 +93,6 @@ sub set_action_and_respond {
     my $is_add;
     if (exists $params{code}) {
         # setting an action
-        $is_add = 1;
         $changer = sub {
                 my $bp = $app->add_action(%params);
                 $set_inactive->($bp);
@@ -116,9 +115,7 @@ sub set_action_and_respond {
 
     my $bp = $changer->();
     my $resp_data = { filename => $file, lineno => $line };
-    if ($is_add) {
-        @$resp_data{'action','action_inactive'} = ( $bp->code, $bp->inactive );
-    }
+    @$resp_data{'action','action_inactive'} = ( $bp->code, $bp->inactive );
     return $resp_data;
 }
 

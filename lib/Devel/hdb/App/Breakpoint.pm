@@ -94,7 +94,6 @@ sub set_breakpoint_and_respond {
     my $is_add;
     if (exists $params{code}) {
         # setting a breakpoint
-        $is_add = 1;
         $changer = sub {
                 my $bp = $app->add_break(%params);
                 $set_inactive->($bp);
@@ -117,9 +116,7 @@ sub set_breakpoint_and_respond {
 
     my $bp = $changer->();
     my $resp_data = { filename => $file, lineno => $line };
-    if ($is_add) {
-        @$resp_data{'condition','condition_inactive'} = ( $bp->code, $bp->inactive );
-    }
+    @$resp_data{'condition','condition_inactive'} = ( $bp->code, $bp->inactive );
     return $resp_data;
 }
 
