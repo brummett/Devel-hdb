@@ -11,7 +11,20 @@ use JSON;
 
 __PACKAGE__->add_route('post', '/breakpoint', \&set_breakpoint);
 __PACKAGE__->add_route('get', '/breakpoint', \&get_breakpoint);
+__PACKAGE__->add_route('get', '/delete-breakpoint', \&delete_breakpoint);
 __PACKAGE__->add_route('get', '/breakpoints', \&get_all_breakpoints);
+
+
+sub _file_or_line_is_invalid {
+    my($class, $app, $filename, $line) = @_;
+
+    if (! $app->is_loaded($filename)) {
+        return [ 404, ['Content-Type' => 'text/html'], ["$filename is not loaded"]];
+    } elsif (! $app->is_breakable($filename, $line)) {
+        return [ 403, ['Content-Type' => 'text/html'], ["line $line of $filename is not breakable"]];
+    }
+    return;
+}
 
 sub set_breakpoint {
     my($class, $app, $env) = @_;
@@ -19,10 +32,8 @@ sub set_breakpoint {
     my $params = Plack::Request->new($env)->parameters;
     my($filename, $line) = @$params{'f','l'};
 
-    if (! $app->is_loaded($filename)) {
-        return [ 404, ['Content-Type' => 'text/html'], ["$filename is not loaded"]];
-    } elsif (! $app->is_breakable($filename, $line)) {
-        return [ 403, ['Content-Type' => 'text/html'], ["line $line of $filename is not breakable"]];
+    if (my $error = $class->_file_or_line_is_invalid($app, $filename, $line)) {
+        return $error;
     }
 
     my $resp = Devel::hdb::Response->new('breakpoint', $env);
@@ -43,6 +54,33 @@ sub set_breakpoint {
 
 my(%my_breakpoints);
 
+sub delete_breakpoint {
+    my($class, $app, $env) = @_;
+
+    my $params = Plack::Request->new($env)->parameters;
+    my($file, $line) = @$params{'f','l'};
+
+    if (my $error = $class->_file_or_line_is_invalid($app, $file, $line)) {
+        return $error;
+    }
+
+    my $bp = $my_breakpoints{$file}->{$line};
+    unless ($bp) {
+        return [ 404,
+                    ['Content-Type' => 'text/html'],
+                    ["No breakpoint on line $line of $file"]];
+    }
+    $app->remove_break($bp);
+    delete $my_breakpoints{$file}->{$line};
+
+    my $resp = Devel::hdb::Response->new('delete-breakpoint', $env);
+    $resp->data( { filename => $file, lineno => $line } );
+    return [ 200,
+            [ 'Content-Type' => 'application/json' ],
+            [ $resp->encode() ]
+          ];
+}
+
 sub set_breakpoint_and_respond {
     my($class, $app, %params) = @_;
 
@@ -55,22 +93,13 @@ sub set_breakpoint_and_respond {
     my $changer;
     my $is_add;
     if (exists $params{code}) {
-        if ($code) {
-            # setting a breakpoint
-            $is_add = 1;
-            $changer = sub {
-                    my $bp = $app->add_break(%params);
-                    $set_inactive->($bp);
-                    $my_breakpoints{$file}->{$line} = $bp;
-                };
-        } else {
-            # deleting a breakpoint
-            my $bp = $my_breakpoints{$file}->{$line};
-            $changer = sub {
-                    $app->remove_break($bp);
-                    delete $my_breakpoints{$file}->{$line};
-                };
-        }
+        # setting a breakpoint
+        $is_add = 1;
+        $changer = sub {
+                my $bp = $app->add_break(%params);
+                $set_inactive->($bp);
+                $my_breakpoints{$file}->{$line} = $bp;
+            };
     } else {
         # changing a breakpoint
         my $bp = $my_breakpoints{$file}->{$line};
@@ -102,7 +131,6 @@ sub get_breakpoint {
     my $line = $req->param('l');
 
     my $resp = Devel::hdb::Response->new('breakpoint', $env);
-    #$resp->data( DB->get_breakpoint($filename, $line) );
     my($bp) = $app->get_breaks(file => $filename, line => $line);
     my $resp_data = { filename => $filename, lineno => $line };
     if ($bp) {
@@ -191,6 +219,13 @@ Set a breakpoint.  Accepts these parameters:
 It responds with the same JSON-encoded hash as GET /breakpoint.  If the
 condition is empty/false (to clear the breakpoint) the response will only
 include the keys 'filename' and 'lineno'.
+
+=item GET /delete-breakpoint
+
+Delete a breakpoint on a particular file ane line number.  Requires these
+parameters:
+  f     File name
+  l     Line number
 
 =item GET /breakpoints
 

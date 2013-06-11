@@ -10,7 +10,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 15;
+    plan tests => 19;
 }
 
 my $url = start_test_program();
@@ -68,6 +68,20 @@ is_deeply($answer,
     },
     'value is correct - action incremented $a');
 
+
+$resp = $mech->get("${url}delete-action?f=${filename}&l=4");
+ok($resp->is_success, 'Delete action on line 4');
+is_deeply( $json->decode( $resp->content ),
+    { type => 'delete-action', data => { filename => $filename, lineno => 4 }},
+    'delete response ok');
+
+$resp = $mech->get("${url}actions");
+ok($resp->is_success, 'Get all actions');
+is_deeply($json->decode( $resp->content ),
+    [ { type => 'action',
+        data => { filename => $filename, lineno => 6, action => '$a++'}
+    } ],
+    'One action remaining');
 
 
 

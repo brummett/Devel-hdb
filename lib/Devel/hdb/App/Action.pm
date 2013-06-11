@@ -11,7 +11,19 @@ use JSON;
 
 __PACKAGE__->add_route('post', '/action', \&set_action);
 __PACKAGE__->add_route('get', '/action', \&get_action);
+__PACKAGE__->add_route('get', '/delete-action', \&delete_action);
 __PACKAGE__->add_route('get', '/actions', \&get_all_actions);
+
+sub _file_or_line_is_invalid {
+    my($class, $app, $filename, $line) = @_;
+
+    if (! $app->is_loaded($filename)) {
+        return [ 404, ['Content-Type' => 'text/html'], ["$filename is not loaded"]];
+    } elsif (! $app->is_breakable($filename, $line)) {
+        return [ 403, ['Content-Type' => 'text/html'], ["line $line of $filename is not breakable"]];
+    }
+    return;
+}
 
 sub set_action {
     my($class, $app, $env) = @_;
@@ -19,10 +31,8 @@ sub set_action {
     my $params = Plack::Request->new($env)->parameters;
     my($filename, $line) = @$params{'f','l'};
 
-    if (! $app->is_loaded($filename)) {
-        return [ 404, ['Content-Type' => 'text/html'], ["$filename is not loaded"]];
-    } elsif (! $app->is_breakable($filename, $line)) {
-        return [ 403, ['Content-Type' => 'text/html'], ["line $line of $filename is not breakable"]];
+    if (my $error = $class->_file_or_line_is_invalid($app, $filename, $line)) {
+        return $error;
     }
 
     my $resp = Devel::hdb::Response->new('action', $env);
@@ -43,6 +53,33 @@ sub set_action {
 
 my(%my_actions);
 
+sub delete_action {
+    my($class, $app, $env) = @_;
+
+    my $params = Plack::Request->new($env)->parameters;
+    my($file, $line) = @$params{'f','l'};
+
+    if (my $error = $class->_file_or_line_is_invalid($app, $file, $line)) {
+        return $error;
+    }
+
+    my $bp = $my_actions{$file}->{$line};
+    unless ($bp) {
+        return [ 404,
+                    ['Content-Type' => 'text/html'],
+                    ["No action on line $line of $file"]];
+    }
+    $app->remove_action($bp);
+    delete $my_actions{$file}->{$line};
+
+    my $resp = Devel::hdb::Response->new('delete-action', $env);
+    $resp->data( { filename => $file, lineno => $line } );
+    return [ 200,
+            [ 'Content-Type' => 'application/json' ],
+            [ $resp->encode() ]
+          ];
+}
+
 sub set_action_and_respond {
     my($class, $app, %params) = @_;
 
@@ -55,22 +92,13 @@ sub set_action_and_respond {
     my $changer;
     my $is_add;
     if (exists $params{code}) {
-        if ($code) {
-            # setting an action
-            $is_add = 1;
-            $changer = sub {
-                    my $bp = $app->add_action(%params);
-                    $set_inactive->($bp);
-                    $my_actions{$file}->{$line} = $bp;
-                };
-        } else {
-            # deleting an action
-            my $bp = $my_actions{$file}->{$line};
-            $changer = sub {
-                    $app->remove_action($bp);
-                    delete $my_actions{$file}->{$line};
-                };
-        }
+        # setting an action
+        $is_add = 1;
+        $changer = sub {
+                my $bp = $app->add_action(%params);
+                $set_inactive->($bp);
+                $my_actions{$file}->{$line} = $bp;
+            };
     } else {
         # changing an action
         my $bp = $my_actions{$file}->{$line};
@@ -102,7 +130,6 @@ sub get_action {
     my $line = $req->param('l');
 
     my $resp = Devel::hdb::Response->new('action', $env);
-    #$resp->data( DB->get_action($filename, $line) );
     my($bp) = $app->get_actions(file => $filename, line => $line);
     my $resp_data = { filename => $filename, lineno => $line };
     if ($bp) {
@@ -130,9 +157,9 @@ sub get_all_actions {
         $this->{rid} = 1 if (defined $rid);
         $this->{data} = {   filename => $bp->file,
                             lineno => $bp->line,
-                            condition => $bp->code,
+                            action => $bp->code,
                         };
-        $this->{data}->{condition_inactive} = 1 if $bp->inactive;
+        $this->{data}->{action_inactive} = 1 if $bp->inactive;
         push @bp, $this;
     }
     return [ 200, ['Content-Type' => 'application/json'],
@@ -186,6 +213,13 @@ Set an action.  Accepts these parameters:
 It responds with the same JSON-encoded hash as GET /action.  If both the
 action code is empty/false (to clear the action), the response will only
 include the keys 'filename' and 'lineno'.
+
+=item GET /delete-action
+
+Delete an action on a particular file ane line number.  Requires these
+parameters:
+  f     File name
+  l     Line number
 
 =item GET /actions
 

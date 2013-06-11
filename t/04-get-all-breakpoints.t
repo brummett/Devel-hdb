@@ -10,7 +10,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 13;
+    plan tests => 14;
 }
 
 my $url = start_test_program();
@@ -75,8 +75,11 @@ is_deeply( \@bp,
     'Got all set breakpoints'
 );
 
-$resp = $mech->post("${url}breakpoint", { f => $filename, l => 4, c => undef});
+$resp = $mech->get("${url}delete-breakpoint?f=${filename}&l=4");
 ok($resp->is_success, 'Remove breakpoint for line 4');
+is_deeply($json->decode($resp->content),
+    { type => 'delete-breakpoint', data => { filename => $filename, lineno => 4 }},
+    'delete response is ok');
 
 $resp = $mech->get('breakpoints?f='.$filename);
 ok($resp->is_success, 'Get all breakpoints for main file');
