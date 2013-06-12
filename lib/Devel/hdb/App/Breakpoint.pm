@@ -9,11 +9,21 @@ use Plack::Request;
 use Devel::hdb::Response;
 use JSON;
 
-__PACKAGE__->add_route('post', '/breakpoint', \&set_breakpoint);
-__PACKAGE__->add_route('get', '/breakpoint', \&get_breakpoint);
-__PACKAGE__->add_route('get', '/delete-breakpoint', \&delete_breakpoint);
-__PACKAGE__->add_route('get', '/breakpoints', \&get_all_breakpoints);
+__PACKAGE__->add_route('post', '/breakpoint', 'set');
+__PACKAGE__->add_route('get', '/breakpoint', 'get');
+__PACKAGE__->add_route('get', '/delete-breakpoint', 'delete');
+__PACKAGE__->add_route('get', '/breakpoints', 'get_all');
 
+sub response_type() { 'breakpoint' };
+sub delete_response_type { 'delete-breakpoint' }
+sub actionable_getter() { 'get_breaks' }
+sub actionable_adder() { 'add_break' }
+sub actionable_remover() { 'remove_break' }
+
+{
+    my(%my_breakpoints);
+    sub storage { \%my_breakpoints; }
+}
 
 sub _file_or_line_is_invalid {
     my($class, $app, $filename, $line) = @_;
@@ -26,7 +36,7 @@ sub _file_or_line_is_invalid {
     return;
 }
 
-sub set_breakpoint {
+sub set {
     my($class, $app, $env) = @_;
 
     my $params = Plack::Request->new($env)->parameters;
@@ -36,14 +46,14 @@ sub set_breakpoint {
         return $error;
     }
 
-    my $resp = Devel::hdb::Response->new('breakpoint', $env);
+    my $resp = Devel::hdb::Response->new($class->response_type, $env);
 
     my %req;
     @req{'file','line'} = @$params{'f','l'};
     $req{code} = $params->{c} if (exists $params->{'c'});
     $req{inactive} = $params->{ci} if (exists $params->{'ci'});
 
-    my $resp_data = $class->set_breakpoint_and_respond($app, %req);
+    my $resp_data = $class->set_and_respond($app, %req);
     $resp->data( $resp_data );
 
     return [ 200,
@@ -52,9 +62,7 @@ sub set_breakpoint {
           ];
 }
 
-my(%my_breakpoints);
-
-sub delete_breakpoint {
+sub delete {
     my($class, $app, $env) = @_;
 
     my $params = Plack::Request->new($env)->parameters;
@@ -64,16 +72,17 @@ sub delete_breakpoint {
         return $error;
     }
 
-    my $bp = $my_breakpoints{$file}->{$line};
+    my $bp = $class->get_stored($file, $line);
     unless ($bp) {
         return [ 404,
                     ['Content-Type' => 'text/html'],
                     ["No breakpoint on line $line of $file"]];
     }
-    $app->remove_break($bp);
-    delete $my_breakpoints{$file}->{$line};
+    my $remover = $class->actionable_remover;
+    $app->$remover($bp);
+    $class->delete_stored($file, $line);
 
-    my $resp = Devel::hdb::Response->new('delete-breakpoint', $env);
+    my $resp = Devel::hdb::Response->new($class->delete_response_type, $env);
     $resp->data( { filename => $file, lineno => $line } );
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
@@ -81,7 +90,7 @@ sub delete_breakpoint {
           ];
 }
 
-sub set_breakpoint_and_respond {
+sub set_and_respond {
     my($class, $app, %params) = @_;
 
     my($file, $line, $code, $inactive) = @params{'file','line','code','inactive'};
@@ -91,17 +100,17 @@ sub set_breakpoint_and_respond {
                         : sub {};
 
     my $changer;
-    my $is_add;
+    my $adder = $class->actionable_adder;
     if (exists $params{code}) {
         # setting a breakpoint
         $changer = sub {
-                my $bp = $app->add_break(%params);
+                my $bp = $app->$adder(%params);
                 $set_inactive->($bp);
-                $my_breakpoints{$file}->{$line} = $bp;
+                $class->set_stored($file, $line, $bp);
             };
     } else {
         # changing a breakpoint
-        my $bp = $my_breakpoints{$file}->{$line};
+        my $bp = $class->get_stored($file, $line);
         $bp ||= $app->$adder(file => $file, line => $line, code => '0');
         $changer = sub { $set_inactive->($bp); $bp };
     }
@@ -116,12 +125,12 @@ sub set_breakpoint_and_respond {
 
     my $bp = $changer->();
     my $resp_data = { filename => $file, lineno => $line };
-    @$resp_data{'condition','condition_inactive'} = ( $bp->code, $bp->inactive );
+    @$resp_data{'code','inactive'} = ( $bp->code, $bp->inactive );
     return $resp_data;
 }
 
 
-sub get_breakpoint {
+sub get {
     my($class, $app, $env) = @_;
 
     my $req = Plack::Request->new($env);
@@ -129,11 +138,12 @@ sub get_breakpoint {
     my $line = $req->param('l');
 
     my $resp = Devel::hdb::Response->new('breakpoint', $env);
-    my($bp) = $app->get_breaks(file => $filename, line => $line);
+    my $getter = $class->actionable_getter;
+    my($bp) = $app->$getter(file => $filename, line => $line);
     my $resp_data = { filename => $filename, lineno => $line };
     if ($bp) {
-        $resp_data->{condition} = $bp->code;
-        $bp->inactive and do { $resp_data->{condition_inactive} = 1 };
+        $resp_data->{code} = $bp->code;
+        $bp->inactive and do { $resp_data->{inactive} = 1 };
     }
     $resp->data($resp_data);
 
@@ -142,7 +152,7 @@ sub get_breakpoint {
           ];
 }
 
-sub get_all_breakpoints {
+sub get_all {
     my($class, $app, $env) = @_;
 
     my $req = Plack::Request->new($env);
@@ -151,20 +161,41 @@ sub get_all_breakpoints {
     my $rid = $req->param('rid');
 
     my @bp;
-    foreach my $bp ( $app->get_breaks( file => $filename, line => $line) ) {
-        my $this = { type => 'breakpoint' };
+    my $getter = $class->actionable_getter;
+    my $response_type = $class->response_type;
+    foreach my $bp ( $app->$getter( file => $filename, line => $line) ) {
+        my $this = { type => $response_type };
         $this->{rid} = 1 if (defined $rid);
         $this->{data} = {   filename => $bp->file,
                             lineno => $bp->line,
-                            condition => $bp->code,
+                            code => $bp->code,
                         };
-        $this->{data}->{condition_inactive} = 1 if $bp->inactive;
+        $this->{data}->{inactive} = 1 if $bp->inactive;
         push @bp, $this;
     }
     return [ 200, ['Content-Type' => 'application/json'],
             [ JSON::encode_json( \@bp ) ]
         ];
 }
+
+sub delete_stored {
+    my($class, $file, $line) = @_;
+    my $s = $class->storage;
+    delete $s->{$file}->{$line};
+}
+
+sub get_stored {
+    my($class, $file, $line) = @_;
+    my $s = $class->storage;
+    return $s->{$file}->{$line};
+}
+
+sub set_stored {
+    my($class, $file, $line, $item) = @_;
+    my $s = $class->storage;
+    $s->{$file}->{$line} = $item;
+}
+
 
 1;
 
@@ -199,8 +230,8 @@ these parameters:
 Returns a JSON-encoded hash with these keys:
   filename  => File name
   lineno    => Line number
-  condition => Breakpoint condition, or 1 for an unconditional break
-  condition_inactive => 1 (yes) or undef (no), whether this breakpoint
+  code      => Breakpoint condition, or 1 for an unconditional break
+  inactive  => 1 (yes) or undef (no), whether this breakpoint
                         is disabled/inactive
 
 =item POST /breakpoint

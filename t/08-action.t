@@ -79,7 +79,7 @@ $resp = $mech->get("${url}actions");
 ok($resp->is_success, 'Get all actions');
 is_deeply($json->decode( $resp->content ),
     [ { type => 'action',
-        data => { filename => $filename, lineno => 6, action => '$a++'}
+        data => { filename => $filename, lineno => 6, code => '$a++'}
     } ],
     'One action remaining');
 

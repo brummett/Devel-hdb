@@ -49,13 +49,13 @@ my @bp = sort { $a->{data}->{filename} cmp $b->{data}->{filename}
 is_deeply( \@bp,
     [
       {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 3, condition => 1 } },
+            data => { filename => $filename, lineno => 3, code => 1 } },
       {     type => 'breakpoint', 
-            data => { filename => $filename, lineno => 4, condition => 1 } },
+            data => { filename => $filename, lineno => 4, code => 1 } },
       {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 5, condition => 1 } },
+            data => { filename => $filename, lineno => 5, code => 1 } },
       {     type => 'breakpoint',
-            data => { filename => 't/TestNothing.pm', lineno => 3, condition => 1 } },
+            data => { filename => 't/TestNothing.pm', lineno => 3, code => 1 } },
     ],
     'Got all set breakpoints'
 );
@@ -66,11 +66,11 @@ ok($resp->is_success, 'Get all breakpoints for main file');
 is_deeply( \@bp,
     [
       {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 3, condition => 1 } },
+            data => { filename => $filename, lineno => 3, code => 1 } },
       {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 4, condition => 1 } },
+            data => { filename => $filename, lineno => 4, code => 1 } },
       {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 5, condition => 1 } }
+            data => { filename => $filename, lineno => 5, code => 1 } }
     ],
     'Got all set breakpoints'
 );
@@ -87,9 +87,9 @@ ok($resp->is_success, 'Get all breakpoints for main file');
 is_deeply( \@bp,
     [
       {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 3, condition => 1 } },
+            data => { filename => $filename, lineno => 3, code => 1 } },
       {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 5, condition => 1 } }
+            data => { filename => $filename, lineno => 5, code => 1 } }
     ],
     'Got all set breakpoints'
 );
