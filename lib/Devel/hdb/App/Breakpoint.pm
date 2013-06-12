@@ -102,7 +102,7 @@ sub set_breakpoint_and_respond {
     } else {
         # changing a breakpoint
         my $bp = $my_breakpoints{$file}->{$line};
-        $bp ||= $app->add_break(file => $file, line => $line, code => sub {});
+        $bp ||= $app->$adder(file => $file, line => $line, code => '0');
         $changer = sub { $set_inactive->($bp); $bp };
     }
 
