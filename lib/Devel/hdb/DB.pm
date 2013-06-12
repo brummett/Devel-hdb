@@ -299,9 +299,10 @@ sub is_breakpoint {
     local(*dbline)= $main::{'_<' . $filename};
 
     my $should_break = 0;
-    if ($dbline{$line} && $dbline{$line}->{condition}) {
+    my $breakpoint_key = Devel::hdb::DB::Breakpoint->type;
+    if ($dbline{$line} && $dbline{$line}->{$breakpoint_key}) {
         my @delete;
-        foreach my $condition ( @{ $dbline{$line}->{condition} }) {
+        foreach my $condition ( @{ $dbline{$line}->{$breakpoint_key} }) {
             next if $condition->inactive;
             my $code = $condition->code;
             if ($code eq '1') {

@@ -7,10 +7,10 @@ use Digest::MD5 qw(md5);
 use List::Util;
 use Carp;
 
-sub _new {
+sub new {
     my $class = shift;
 
-    my %params = __required([qw(file line code type)], @_);
+    my %params = __required([qw(file line code)], @_);
 
     my $self = \%params;
     bless $self, $class;
@@ -26,11 +26,11 @@ sub __required {
     return %params;
 }
 
-sub _get {
+sub get {
     my $class = shift;
     return $class if (ref $class);
 
-    my %params = __required([qw(file type)], @_);
+    my %params = __required([qw(file)], @_);
 
     our %dbline;
     local(*dbline) = $main::{'_<' . $params{file}};
@@ -38,7 +38,7 @@ sub _get {
 
     my @candidates;
 
-    my $type = $params{type};
+    my $type = $class->type;
     if (!$params{line}) {
         @candidates =
               map { $_->{$type} ? @{$_->{$type}} : () } # only lines with the type we're looking for
@@ -79,15 +79,16 @@ sub _insert {
 
 sub _id {
     my $self = shift;
-    md5(join('', @$self{'file', 'line', 'code', 'type'}));
+    md5(join('', @$self{'file', 'line', 'code'}, $self->type));
 }
 
-sub _delete {
+sub delete {
     my $self = shift;
 
     my($file, $line, $code, $type, $self_ref);
     if (ref $self) {
-        ($file, $line, $code, $type) = map { $self->$_ } qw(file line code type);
+        ($file, $line, $code) = map { $self->$_ } qw(file line code);
+        $type = $self->type;
         $self_ref = $self . '';
     } else {
         my %params = __required([qw(file line code type)], @_);
@@ -130,8 +131,8 @@ sub _delete {
 sub file    { return shift->{file} }
 sub line    { return shift->{line} }
 sub code    { return shift->{code} }
-sub type    { return shift->{type} }
 sub once    { return shift->{once} }
+sub type    { my $class = shift;  $class = ref($class) || $class; die "$class didn't implement method type" }
 
 sub inactive {
     my $self = shift;
@@ -145,34 +146,13 @@ package Devel::hdb::DB::Breakpoint;
 
 use base 'Devel::hdb::DB::Actionable';
 
-sub new {
-    shift->SUPER::_new(@_, type => 'condition');
-}
-
-sub delete {
-    shift->SUPER::_delete(@_, type => 'condition');
-}
-
-sub get {
-    shift->SUPER::_get(@_, type => 'condition');
-}
-
+sub type() { 'condition' };
 
 package Devel::hdb::DB::Action;
 
 use base 'Devel::hdb::DB::Actionable';
 
-sub new {
-    shift->SUPER::_new(@_, type => 'action');
-}
-
-sub delete {
-    shift->SUPER::_delete(@_, type => 'action');
-}
-
-sub get {
-    shift->SUPER::_get(@_, type => 'action');
-}
+sub type() { 'action' };
 
 1;
 
