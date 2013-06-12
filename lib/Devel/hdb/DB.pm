@@ -127,8 +127,13 @@ sub get_actions {
 sub postpone {
     my($class, $filename, $sub) = @_;
 
-    $DB::postpone_until_loaded{$filename} ||= [];
-    push @{ $DB::postpone_until_loaded{$filename} }, $sub;
+    if ($class->is_loaded($filename)) {
+        # already loaded, run immediately
+        $sub->($filename);
+    } else {
+        $DB::postpone_until_loaded{$filename} ||= [];
+        push @{ $DB::postpone_until_loaded{$filename} }, $sub;
+    }
 }
 
 
