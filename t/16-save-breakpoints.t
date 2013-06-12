@@ -7,7 +7,7 @@ use WWW::Mechanize;
 use JSON;
 use IO::File;
 use Data::Dumper;
-use Devel::hdb::DB::Evalable;
+use Devel::hdb::DB::Actionable;
 
 use Test::More;
 if ($^O =~ m/^MS/) {

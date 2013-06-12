@@ -1,4 +1,4 @@
-package Devel::hdb::DB::Evalable;
+package Devel::hdb::DB::Actionable;
 
 use strict;
 use warnings;
@@ -143,8 +143,7 @@ sub inactive {
 
 package Devel::hdb::DB::Breakpoint;
 
-#BEGIN { our @ISA = qw( Devel::hdb::DB::Evalable ); }
-use base 'Devel::hdb::DB::Evalable';
+use base 'Devel::hdb::DB::Actionable';
 
 sub new {
     shift->SUPER::_new(@_, type => 'condition');
@@ -161,8 +160,7 @@ sub get {
 
 package Devel::hdb::DB::Action;
 
-#BEGIN { our @ISA = qw( Devel::hdb::DB::Evalable ); }
-use base 'Devel::hdb::DB::Evalable';
+use base 'Devel::hdb::DB::Actionable';
 
 sub new {
     shift->SUPER::_new(@_, type => 'action');

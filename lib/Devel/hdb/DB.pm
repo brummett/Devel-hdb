@@ -6,7 +6,7 @@ package Devel::hdb::DB;
 use Scalar::Util;
 use IO::File;
 
-use Devel::hdb::DB::Evalable;  # Breakpoints and Actions
+use Devel::hdb::DB::Actionable;  # Breakpoints and Actions
 use Devel::hdb::DB::Eval;
 
 my %attached_clients;
