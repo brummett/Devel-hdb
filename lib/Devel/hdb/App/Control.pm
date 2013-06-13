@@ -5,7 +5,7 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 use Devel::hdb::Response;
-use Devel::hdb::App::Stack qw(_stack);
+use Devel::hdb::App::Stack qw(_serialize_stack);
 
 __PACKAGE__->add_route('get', '/stack', \&stack);
 __PACKAGE__->add_route('get', '/stepin', \&stepin);
@@ -69,7 +69,7 @@ sub _delay_stack_return_to_client {
 
         DB->long_call( sub {
             my $resp = Devel::hdb::Response->new('stack', $env);
-            $resp->data( $class->_stack($app) );
+            $resp->data( $class->_serialize_stack($app) );
             $writer->write( $resp->encode );
             $writer->close();
         });

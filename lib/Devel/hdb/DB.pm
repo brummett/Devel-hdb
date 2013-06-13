@@ -8,6 +8,7 @@ use IO::File;
 
 use Devel::hdb::DB::Actionable;  # Breakpoints and Actions
 use Devel::hdb::DB::Eval;
+use Devel::hdb::DB::Stack;
 
 my %attached_clients;
 sub attach {
@@ -42,6 +43,10 @@ sub stepout {
 
 sub continue {
     $DB::single=0;
+}
+
+sub stack {
+    return Devel::hdb::DB::Stack->new();
 }
 
 sub disable_debugger {
@@ -479,7 +484,7 @@ sub sub {
     if (index($sub, '::AUTOLOAD', -10) >= 0) {
         my $caller_pkg = substr($sub, 0, length($sub)-8);
         my $caller_AUTOLOAD = ${ $caller_pkg . 'AUTOLOAD'};
-        push @AUTOLOAD_names, $caller_AUTOLOAD;
+        unshift @AUTOLOAD_names, $caller_AUTOLOAD;
     }
     my $stack_tracker;
     unless ($in_debugger) {
