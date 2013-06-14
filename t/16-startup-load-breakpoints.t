@@ -52,14 +52,14 @@ $stack = $json->decode($resp->content);
 my $filename = $stack->{data}->[0]->{filename};
 $stack = strip_stack($stack);
 is_deeply($stack,
-    [ { line => 2, subroutine => 'MAIN' } ],
+    [ { line => 2, subroutine => 'main::MAIN' } ],
     'Stopped on line 2');
 
 $resp = $mech->get($url.'continue');
 ok($resp->is_success, 'continue');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
-    [ { line => 5, subroutine => 'MAIN' } ],
+    [ { line => 5, subroutine => 'main::MAIN' } ],
     'Stopped on line 5');
 
 $resp = $mech->get($url.'continue');
@@ -67,14 +67,14 @@ ok($resp->is_success, 'continue');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
     [ { line => 6, subroutine => 'TestNothing::a_sub' },
-      { line => 10, subroutine => 'MAIN' } ],
+      { line => 10, subroutine => 'main::MAIN' } ],
     'Stopped on line 6 of TestNothing');
 
 $resp = $mech->get($url.'continue');
 ok($resp->is_success, 'continue');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
-    [ { line => 11, subroutine => 'MAIN' } ],
+    [ { line => 11, subroutine => 'main::MAIN' } ],
     'Stopped on line 11');
 
 $resp = $mech->post($url.'eval', content => '$a');

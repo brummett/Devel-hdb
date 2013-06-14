@@ -23,14 +23,14 @@ my $resp = $mech->get($url.'stack');
 ok($resp->is_success, 'Request stack position');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
-    [ { line => 1, subroutine => 'MAIN' } ],
+    [ { line => 1, subroutine => 'main::MAIN' } ],
     'Stopped on line 1');
 
 $resp = $mech->get($url.'stepover');
 ok($resp->is_success, 'step over');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
-  [ { line => 2, subroutine => 'MAIN' } ],
+  [ { line => 2, subroutine => 'main::MAIN' } ],
     'Stopped on line 2');
 
 $resp = $mech->get($url.'stepover');

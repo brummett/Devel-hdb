@@ -23,14 +23,14 @@ my $resp = $mech->get($url.'stack');
 ok($resp->is_success, 'Request stack position');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
-    [ { line => 1, subroutine => 'MAIN' } ],
+    [ { line => 1, subroutine => 'main::MAIN' } ],
     'Stopped on line 1');
 
 $resp = $mech->get($url.'stepin');
 ok($resp->is_success, 'step in');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
-    [ { line => 2, subroutine => 'MAIN' } ],
+    [ { line => 2, subroutine => 'main::MAIN' } ],
     'Stopped on line 2');
 
 $resp = $mech->get($url.'stepin');
@@ -38,21 +38,21 @@ ok($resp->is_success, 'step in');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
   [ { line => 6, subroutine => 'main::foo' },
-    { line => 2, subroutine => 'MAIN' } ],
+    { line => 2, subroutine => 'main::MAIN' } ],
     'Stopped on line 6, frame above is line 2');
 
 $resp = $mech->get($url.'stepin');
 ok($resp->is_success, 'step in');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
-  [ { line => 3, subroutine => 'MAIN' } ],
+  [ { line => 3, subroutine => 'main::MAIN' } ],
     'Stopped on line 3');
 
 $resp = $mech->get($url.'stepin');
 ok($resp->is_success, 'step in');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
-  [ { line => 4, subroutine => 'MAIN' } ],
+  [ { line => 4, subroutine => 'main::MAIN' } ],
     'Stopped on line 4');
 
 $resp = $mech->get($url.'stepin');

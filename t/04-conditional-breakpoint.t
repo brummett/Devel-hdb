@@ -25,7 +25,7 @@ $stack = $json->decode($resp->content);
 my $filename = $stack->{data}->[0]->{filename};
 $stack = strip_stack($stack);
 is_deeply($stack,
-    [ { line => 1, subroutine => 'MAIN' } ],
+    [ { line => 1, subroutine => 'main::MAIN' } ],
     'Stopped on line 1');
 
 $resp = $mech->post("${url}breakpoint", { f => $filename, l => 2, c => '$a != 3'});
@@ -42,14 +42,14 @@ $resp = $mech->get($url.'continue');
 ok($resp->is_success, 'continue');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
-    [ { line => 2, subroutine => 'MAIN' } ],
+    [ { line => 2, subroutine => 'main::MAIN' } ],
     'Stopped on line 2');
 
 $resp = $mech->get($url.'continue');
 ok($resp->is_success, 'continue');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
-    [ { line => 6, subroutine => 'MAIN' } ],
+    [ { line => 6, subroutine => 'main::MAIN' } ],
     'Stopped on line 6');
 
 

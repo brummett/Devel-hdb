@@ -28,7 +28,7 @@ $stack = $json->decode($resp->content);
 my $filename = $stack->{data}->[0]->{filename};
 $stack = strip_stack($stack);
 is_deeply($stack,
-    [ { line => 2, subroutine => 'MAIN' } ],
+    [ { line => 2, subroutine => 'main::MAIN' } ],
     'Stopped on line 2');
 
 $resp = $mech->post($url.'breakpoint', { f => $filename, l => 3, c => 1, ci => 1 });

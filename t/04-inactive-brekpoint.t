@@ -25,7 +25,7 @@ $stack = $json->decode($resp->content);
 my $filename = $stack->{data}->[0]->{filename};
 $stack = strip_stack($stack);
 is_deeply($stack,
-    [ { line => 1, subroutine => 'MAIN' } ],
+    [ { line => 1, subroutine => 'main::MAIN' } ],
     'Stopped on line 1');
 
 $resp = $mech->post("${url}breakpoint", { f => $filename, l => 6, c => 1 });
@@ -36,7 +36,7 @@ ok($resp->is_success, 'continue');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
     [ { line => 6, subroutine => 'main::foo' },
-      { line => 1, subroutine => 'MAIN' } ],
+      { line => 1, subroutine => 'main::MAIN' } ],
     'Stopped on line 6 breakpoint');
 
 $resp = $mech->post("${url}breakpoint", { f => $filename, l => 6, ci => 1 });
@@ -47,7 +47,7 @@ $resp = $mech->get($url.'continue');
 ok($resp->is_success, 'continue');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
-    [ { line => 4, subroutine => 'MAIN' } ],
+    [ { line => 4, subroutine => 'main::MAIN' } ],
     'Stopped on line 4, in-code $DB::single');
 
 
@@ -60,7 +60,7 @@ ok($resp->is_success, 'continue');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
     [ { line => 6, subroutine => 'main::foo' },
-      { line => 4, subroutine => 'MAIN' } ],
+      { line => 4, subroutine => 'main::MAIN' } ],
     'Stopped on line 6 breakpoint');
 
 

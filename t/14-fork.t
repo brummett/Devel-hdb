@@ -35,7 +35,7 @@ my @responses = sort { $a->{type} cmp $b->{type} } @$response;
 
 $stack = strip_stack($responses[1]);
 is_deeply($stack,
-        [ { line => 5, subroutine => 'MAIN' } ],
+        [ { line => 5, subroutine => 'main::MAIN' } ],
         'Parent process stopped on line 6');
 
 eval qq(END { kill 'TERM', $child_pid }) if ($child_pid);
@@ -44,7 +44,7 @@ $resp = $mech->get($child_uri.'stack');
 ok($resp->is_success, 'Request stack from child process');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack,
-        [ { line => 3, subroutine => 'MAIN' } ],
+        [ { line => 3, subroutine => 'main::MAIN' } ],
         'Child process stopped immediately after fork');
 
 

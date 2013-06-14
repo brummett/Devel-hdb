@@ -26,7 +26,7 @@ $stack = $json->decode($resp->content);
 my $filename = $stack->{data}->[0]->{filename};
 $stack = strip_stack($stack);
 is_deeply($stack,
-    [ { line => 1, subroutine => 'MAIN' } ],
+    [ { line => 1, subroutine => 'main::MAIN' } ],
     'Stopped on line 1');
 
 $resp = $mech->get($url.'continue');
@@ -110,7 +110,7 @@ my @expected = (
     },
     {   package     => 'main',
         filename    => $filename,
-        subroutine  => 'MAIN',
+        subroutine  => 'main::MAIN',
         line        => 1,
         hasargs     => 1,
         wantarray   => 0,

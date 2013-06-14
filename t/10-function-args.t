@@ -23,7 +23,7 @@ my $resp = $mech->get($url.'stack');
 ok($resp->is_success, 'Request stack position');
 $stack = strip_stack_inc_args($json->decode($resp->content));
 is_deeply($stack,
-    [ { line => 1, subroutine => 'MAIN', args => ['arg1', 'arg2'] } ],
+    [ { line => 1, subroutine => 'main::MAIN', args => ['arg1', 'arg2'] } ],
     'Stopped on line 1');
 
 $resp = $mech->get($url.'continue');
@@ -34,7 +34,7 @@ ok(delete($stack->[0]->{args}->[2]->{__refaddr}), '3rd arg has a refaddr');
 is_deeply($stack,
   [ { line => 6, subroutine => 'main::foo',
         args => [1, 'one', { __reftype => 'HASH', __value => { two => 2 }} ] },
-    { line => 2, subroutine => 'MAIN', args => ['arg1','arg2'] } ],
+    { line => 2, subroutine => 'main::MAIN', args => ['arg1','arg2'] } ],
     'Stopped on line 6, frame above is line 2');
 
 

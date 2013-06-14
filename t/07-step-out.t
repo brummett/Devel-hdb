@@ -30,7 +30,7 @@ $resp = $mech->get($url.'stepout');
 ok($resp->is_success, 'step out');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack->[0],
-    { line => 2, subroutine => 'MAIN' },
+    { line => 2, subroutine => 'main::MAIN' },
     'Stopped on line 2');
 
 $resp = $mech->get($url.'continue');
@@ -52,7 +52,7 @@ $resp = $mech->get($url.'stepout');
 ok($resp->is_success, 'step out');
 $stack = strip_stack($json->decode($resp->content));
 is_deeply($stack->[0],
-  { line => 3, subroutine => 'MAIN' },
+  { line => 3, subroutine => 'main::MAIN' },
     'Stopped on line 3');
 
 
