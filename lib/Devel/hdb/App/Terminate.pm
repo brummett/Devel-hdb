@@ -15,7 +15,7 @@ __PACKAGE__->add_route('get', '/exit', \&do_terminate);
 sub do_terminate {
     my($class, $app, $env) = @_;
     my $json = $app->{json};
-    DB->user_requested_exit();
+    $app->user_requested_exit();
     return sub {
         my $responder = shift;
         my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);

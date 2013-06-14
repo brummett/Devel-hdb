@@ -22,7 +22,7 @@ sub sourcefile {
     my $filename = $req->param('f');
 
     my @rv;
-    if (my $file = DB->file_source($filename)) {
+    if (my $file = $app->file_source($filename)) {
         no warnings 'uninitialized';  # at program termination, the loaded file data can be undef
         no warnings 'numeric';        # eval-ed "sources" generate "not-numeric" warnings
         @rv = map { [ $_, $_ + 0 ] } @$file;

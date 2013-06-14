@@ -141,7 +141,17 @@ sub postpone {
     }
 }
 
+sub user_requested_exit {
+    $DB::user_requested_exit = 1;
+}
 
+sub file_source {
+    my($class, $file) = @_;
+
+    my $glob = $main::{'_<' . $file};
+    return unless $glob;
+    return *{$glob}{ARRAY};
+}
 
 ## Methods called by the DB core - override in clients
 
@@ -291,14 +301,6 @@ sub input_trace_file {
         return $should_stop;
     };
     $trace = 1;
-}
-
-sub file_source {
-    my($class, $file) = @_;
-
-    my $glob = $main::{'_<' . $file};
-    return unless $glob;
-    return *{$glob}{ARRAY};
 }
 
 sub is_breakpoint {
@@ -557,10 +559,6 @@ sub long_call {
         $DB::long_call = shift;
     }
     return $DB::long_call;
-}
-
-sub user_requested_exit {
-    $user_requested_exit = 1;
 }
 
 sub prepare_eval {
