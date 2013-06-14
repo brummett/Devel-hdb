@@ -468,7 +468,7 @@ sub DB {
 
         my $should_continue = 0;
         until ($should_continue) {
-            my @ready_clients = grep { $_->poll } values %attached_clients;
+            my @ready_clients = grep { $_->poll($filename, $line) } values %attached_clients;
             do { $should_continue |= $_->idle($filename, $line) } foreach @ready_clients;
         }
 
