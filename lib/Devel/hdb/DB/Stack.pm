@@ -58,11 +58,11 @@ sub new {
 
         $caller{level} = $level;
 
-        push @frames, Devel::hdb::DB::StackFrame->new(%caller);
+        push @frames, Devel::hdb::DB::StackFrame->_new(%caller);
     }
 
     # fab up a frame for the main program
-    push @frames, Devel::hdb::DB::StackFrame->new(
+    push @frames, Devel::hdb::DB::StackFrame->_new(
                     'package'   => 'main',
                     filename    => $prev_loc[0],
                     line        => $prev_loc[1],
@@ -111,7 +111,7 @@ sub frame {
 
 package Devel::hdb::DB::StackFrame;
 
-sub new {
+sub _new {
     my($class, %params) = @_;
     $params{subname} = 
     return bless \%params, $class;
