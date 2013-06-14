@@ -184,15 +184,22 @@ sub notify_trace_diff {
     $msg->{data} = $trace_data;
 }
 
+sub notify_uncaught_exception {
+    my $self = shift;
+    my $exception = shift;
+
+    $self->{__exception__} = $exception;
+}
+
 sub notify_program_terminated {
-    my $class = shift;
+    my $self = shift;
     my $exit_code = shift;
     my $exception_data = shift;
 
     print STDERR "Debugged program pid $$ terminated with exit code $exit_code\n" unless ($Devel::hdb::TESTHARNESS);
     my $msg = Devel::hdb::Response->queue('termination');
-    if ($exception_data) {
-        $msg->{data} = $exception_data;
+    if ($self->{__exception__}) {
+        $msg->{data} = $self->{__exception__};
     }
     $msg->{data}->{exit_code} = $exit_code;
 }

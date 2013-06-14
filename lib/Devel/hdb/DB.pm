@@ -587,6 +587,8 @@ END {
     $in_debugger = 1;
 
     eval {
+        Devel::hdb::DB::_do_each_client('notify_uncaught_exception', $uncaught_exception) if $uncaught_exception;
+
         if ($user_requested_exit) {
             Devel::hdb::DB::_do_each_client('notify_program_exit');
         } else {
