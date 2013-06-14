@@ -150,6 +150,7 @@ sub poll {}
 sub idle { 1;}
 sub cleanup {}
 sub notify_stopped {}
+sub notify_resumed {}
 
 package DB;
 
@@ -473,6 +474,7 @@ sub DB {
         }
 
     } while ($finished || $eval_string);
+    $_->notify_resumed($filename, $line) foreach (values %attached_clients);
     restore();
 }
 
