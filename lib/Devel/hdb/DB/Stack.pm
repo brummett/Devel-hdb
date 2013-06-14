@@ -54,7 +54,7 @@ sub new {
 
         # if it's a string eval, add info about what file and line the source string
         # came from
-        @caller{'evalfile','evalline'} = ($caller{filename} =~ m/\(eval \d+\)\[(.*?):(\d+)\]/);
+        @caller{'evalfile','evalline'} = ($caller{filename} || '')  =~ m/\(eval \d+\)\[(.*?):(\d+)\]/;
 
         $caller{level} = $level;
 
