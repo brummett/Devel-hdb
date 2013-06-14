@@ -145,11 +145,11 @@ sub postpone {
 
 ## Methods called by the DB core - override in clients
 
-sub stopped {}
 sub trace {}
 sub poll {}
 sub idle { 1;}
 sub cleanup {}
+sub notify_stopped {}
 
 package DB;
 
@@ -455,7 +455,7 @@ sub DB {
         $package = 'main';
     }
 
-    $_->stopped() foreach values %attached_clients;
+    $_->notify_stopped($filename, $line) foreach values %attached_clients;
 
     do {
         local($in_debugger) = 1;
