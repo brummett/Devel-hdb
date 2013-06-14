@@ -152,6 +152,7 @@ sub idle { 1;}
 sub cleanup {}
 sub notify_stopped {}
 sub notify_resumed {}
+sub notify_fork_parent {}
 
 package DB;
 
@@ -343,7 +344,7 @@ BEGIN {
         my $app = Devel::hdb::App->get();
         my $tracker;
         if ($pid) {
-            $app->notify_parent_child_was_forked($pid);
+            $app->notify_fork_parent($pid);
         } elsif (defined $pid) {
             $long_call = undef;   # Cancel any pending long call in the child
             $app->notify_child_process_is_forked();

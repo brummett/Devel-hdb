@@ -119,7 +119,7 @@ sub _announce {
 
 
 # Called in the parent process after a fork
-sub notify_parent_child_was_forked {
+sub notify_fork_parent {
     my($self, $child_pid) = @_;
 
     my $gotit = sub {
