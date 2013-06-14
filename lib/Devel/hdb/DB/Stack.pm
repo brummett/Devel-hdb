@@ -108,6 +108,11 @@ sub frame {
     return ($i < @$self) ? $self->[$i] : ();
 }
 
+sub frames {
+    my $self = shift;
+    return @$self;
+}
+
 
 package Devel::hdb::DB::StackFrame;
 
