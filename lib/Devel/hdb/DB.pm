@@ -154,6 +154,9 @@ sub notify_stopped {}
 sub notify_resumed {}
 sub notify_fork_parent {}
 sub notify_fork_child {}
+sub notify_program_terminated {}
+sub notify_program_exit {}
+sub notify_uncaught_exception {}
 
 package DB;
 
