@@ -14,7 +14,7 @@ sub new {
     my $class = shift;
 
     my @frames;
-    my $skip = 1;    # Don't include calls within the debugger
+    #my $skip = 1;    # Don't include calls within the debugger
     my $next_AUTOLOAD_idx = 0;
     my @prev_loc;
 
@@ -34,11 +34,13 @@ sub new {
         }
 
         if ($caller{subroutine} eq 'DB::DB') {
-            $skip = 0;
+            # entered the debugger here, start over recording frames
+            @frames = ();
+            #$skip = 0;
             next;
         }
 
-        next if $skip;
+        #next if $skip;
 
         $caller{args} = [ @DB::args ];
 
