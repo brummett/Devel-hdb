@@ -16,7 +16,7 @@ __PACKAGE__->add_route('get', '/continue', \&continue);
 sub stepin {
     my($class, $app, $env) = @_;
 
-    $app->stepin;
+    $app->step;
     return $class->_delay_stack_return_to_client($app, $env);
 }
 

@@ -27,7 +27,7 @@ sub _clients {
 
 ## Methods callable from client code
 
-sub stepin {
+sub step {
     $DB::single=1;
 }
 
