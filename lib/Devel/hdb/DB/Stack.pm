@@ -105,7 +105,7 @@ sub iterator {
 
 sub frame {
     my($self, $i) = @_;
-    return $self->[$i];
+    return ($i < @$self) ? $self->[$i] : ();
 }
 
 
