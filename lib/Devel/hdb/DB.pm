@@ -41,8 +41,17 @@ sub stepout {
     $DB::step_over_depth = $DB::stack_depth - 1;
 }
 
+# Should support running to a subname, or file+line
 sub continue {
     $DB::single=0;
+}
+
+sub trace {
+    my $class = shift;
+    if (@_) {
+        $DB::trace = shift;
+    }
+    return $DB::trace;
 }
 
 sub stack {
@@ -155,13 +164,13 @@ sub file_source {
 
 ## Methods called by the DB core - override in clients
 
-sub trace {}
 sub init {}
 sub poll {}
 sub idle { 1;}
 sub cleanup {}
 sub notify_stopped {}
 sub notify_resumed {}
+sub notify_trace {}
 sub notify_fork_parent {}
 sub notify_fork_child {}
 sub notify_program_terminated {}
