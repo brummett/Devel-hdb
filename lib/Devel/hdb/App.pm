@@ -174,7 +174,7 @@ sub run {
     $self->{server}->run($self->app);
     1;
 }
-*prompt = \&run;
+*idle = \&run;
 sub poll {1};
 
 sub notify_trace_diff {

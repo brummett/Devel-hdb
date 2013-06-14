@@ -148,7 +148,7 @@ sub postpone {
 sub stopped {}
 sub trace {}
 sub poll {}
-sub prompt {}
+sub idle { 1;}
 sub cleanup {}
 
 package DB;
@@ -469,7 +469,7 @@ sub DB {
         my $should_continue = 0;
         until ($should_continue) {
             my @ready_clients = grep { $_->poll } values %attached_clients;
-            do { $should_continue |= $_->prompt() } foreach @ready_clients;
+            do { $should_continue |= $_->idle($filename, $line) } foreach @ready_clients;
         }
 
     } while ($finished || $eval_string);
