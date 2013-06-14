@@ -153,6 +153,7 @@ sub cleanup {}
 sub notify_stopped {}
 sub notify_resumed {}
 sub notify_fork_parent {}
+sub notify_fork_child {}
 
 package DB;
 
@@ -347,7 +348,7 @@ BEGIN {
             $app->notify_fork_parent($pid);
         } elsif (defined $pid) {
             $long_call = undef;   # Cancel any pending long call in the child
-            $app->notify_child_process_is_forked();
+            $app->notify_fork_child();
 
         }
 

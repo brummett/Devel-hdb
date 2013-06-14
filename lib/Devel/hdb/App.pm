@@ -131,7 +131,7 @@ sub notify_fork_parent {
 }
 
 # called in the child process after a fork
-sub notify_child_process_is_forked {
+sub notify_fork_child {
     my $self = shift;
 
     $parent_pid = undef;
