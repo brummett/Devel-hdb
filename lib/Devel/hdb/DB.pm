@@ -146,6 +146,7 @@ sub postpone {
 ## Methods called by the DB core - override in clients
 
 sub trace {}
+sub init {}
 sub poll {}
 sub idle { 1;}
 sub cleanup {}
@@ -411,10 +412,16 @@ sub _execute_actions {
     }
 }
 
+my $is_initialized;
 sub DB {
     return if (!$ready or $debugger_disabled);
 
     my($package, $filename, $line) = caller;
+
+    unless ($is_initialized) {
+        $is_initialized = 1;
+        $_->init() foreach values %attached_clients;
+    }
 
     local $usercontext =
         'no strict; no warnings; ($@, $!, $^E, $,, $/, $\, $^W) = @DB::saved;' . "package $package;";
