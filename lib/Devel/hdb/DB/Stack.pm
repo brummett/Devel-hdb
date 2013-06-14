@@ -127,7 +127,7 @@ BEGIN {
     no strict 'refs';
     foreach my $acc ( qw(package filename line subroutine hasargs wantarray
                          evaltext is_require hints bitmask
-                         subname autoload level ) ) {
+                         subname autoload level evalfile evalline ) ) {
         *{$acc} = sub { return shift->{$acc} };
     }
 
