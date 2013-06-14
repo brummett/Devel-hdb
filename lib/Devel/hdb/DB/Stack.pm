@@ -18,11 +18,12 @@ sub new {
     my $next_AUTOLOAD_idx = 0;
     my @prev_loc;
 
-    for(my $i = 0; ; $i++) {
+    my $level;
+    for($level = 0; ; $level++) {
         my %caller;
         do {
             package DB;
-            @caller{@caller_values} = caller($i);
+            @caller{@caller_values} = caller($level);
         };
         last unless defined($caller{line});  # no more frames
 
@@ -55,7 +56,7 @@ sub new {
         # came from
         @caller{'evalfile','evalline'} = ($caller{filename} =~ m/\(eval \d+\)\[(.*?):(\d+)\]/);
 
-        $caller{level} = $i;
+        $caller{level} = $level;
 
         push @frames, Devel::hdb::DB::StackFrame->new(%caller);
     }
@@ -77,6 +78,7 @@ sub new {
                     autoload    => undef,
                     hasargs     => 1,
                     args        => \@saved_ARGV,
+                    level       => $level,
                 );
 
     return bless \@frames, $class;
