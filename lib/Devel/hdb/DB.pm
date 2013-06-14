@@ -617,3 +617,273 @@ package DB;
 BEGIN { $DB::ready = 1; }
 
 1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Devel::hdb::DB - Programmatic interface to the Perl debugging API
+
+=head1 SYNOPSIS
+
+  package CLIENT;
+  use base 'Devel::hdb::DB';
+
+  # These inherited methods can be called by the client class
+  CLIENT->attach();             # Register with the debugging system
+  CLIENT->detach();             # Un-register with the debugging system
+  CLIENT->step();               # single-step into subs
+  CLIENT->stepover();           # single-step over subs
+  CLIENT->stepout();            # Return from the current sub, then stop
+  CLIENT->continue();           # Run until the next breakpoint
+  CLIENT->trace([$flag]);       # Get/set the trace flag
+  CLIENT->disable_debugger();   # Deactivate the debugging system
+  CLIENT->is_loaded($file);     # Return true if the file is loaded
+  CLIENT->loaded_files();       # Return a list of loaded file names
+  CLIENT->postpone($file, $subref);     # Run $subref->() when $file is loaded
+  CLIENT->is_breakable($file, $line);   # Return true if the line is executable
+  CLIENT->stack();              # Return Devel::hdb::DB::Stack
+
+  CLIENT->add_break(%params);   # Create a breakpoint
+  CLIENT->get_breaks([%params]);# Get breakpoint info
+  CLIENT->remove_break(...);    # Remove a breakpoint
+  CLIENT->add_action(%params);  # Create a line-action
+  CLIENT->get_actions([%params]);  # Get line-action info
+  CLIENT->remove_action(...);   # Remove a line-action
+
+  # These methods are called by the debugging system at the appropriate time.
+  # Base-class methods do nothing.  These methods must not block.
+  CLIENT->init();                       # Called when the debugging system is ready
+  CLIENT->poll($file, $line);           # Return true if there is user input
+  CLIENT->idle($file, $line);           # Handle user interaction (can block)
+  CLIENT->notify_trace($file, $line)    # Called on each executable statement
+  CLIENT->notify_stopped($file, $line); # Called when a break has occured
+  CLIENT->notify_resumed($file, $line); # Called before the program gets control after a break
+  CLIENT->notify_fork_parent($pid);     # Called after fork() in parent
+  CLIENT->notify_fork_child();          # Called after fork() in child
+  CLIENT->notify_program_terminated($?);    # Called as the program is finishing 
+  CLIENT->notify_program_exit();        # Called as the program is exiting
+  CLIENT->notify_uncaught_exception($exc);  # Called after an uncaught exception
+
+=head1 DESCRIPTION
+
+This class is meant to expose the Perl debugger API used by debuggers,
+tracers, profilers, etc so they can all benefit from common code.  It
+supports multiple "front-ends" using the API together.
+
+=head1 CONSTRUCTOR
+
+This class does not supply a constructor.  Clients wishing to use this API
+must inherit from this class and call the C<attach> method.  They may use
+whatever mechanism they wish to implement their object or class.
+
+=head1 API Methods
+
+These methods are provided by the debugging API and may be called as inherited
+methods by clients.
+
+=over 4
+
+=item CLIENT->attach()
+
+Attaches a client to the debugging API.  May be called as a class or instance
+method.  When later client methods are called by the debugging API, the
+same invocant will be used.
+
+=item CLIENT->detach()
+
+Removes a client from the debugging API.  The invocant must match a previous
+C<attach> call.
+
+=item CLIENT->trace([1 | 0])
+
+Get or set the trace flag.  If trace is on, the client will get notified
+before every executable statement by having its C<notify_trace> method called.
+
+=item CLIENT->disable_debugger()
+
+Turn off the debugging system.  The debugged program will continue normally.
+The debugger system will not be triggered afterward.
+
+=item CLIENT->postpone($file, $subref)
+
+Causes C<$subref> to be called when $file is loaded.  If $file is already
+loaded, then $subref will be called immediately.
+
+
+=back
+
+=head2 Program control methods
+
+=over 4
+
+=item CLIENT->step()
+
+Single-step the next statement in the debugged program.  If the next statement
+is a subroutine call, the debugger will stop on its first executable statement.
+
+=item CLIENT->stepover()
+
+Single-step the next statement in the debugged program.  If the next statement
+is a subroutine call, the debugger will stop on its first executable statement
+after that subroutine call returns.
+
+=item CLIENT->stepout()
+
+Continue running the debugged program until the current subroutine returns
+or until the next breakpoint, whichever comes first.
+
+=item CLIENT->continue()
+
+Continue running the debugged program until the next breakpoint.
+
+=item CLIENT->user_requested_exit()
+
+Sets a flag that indicates the program should completely exit after the
+debugged program ends.  Normally, the debugger will regain control after the
+program ends.
+
+=back
+
+=head2 Informational methods
+
+=item CLIENT->is_loaded($file)
+
+Return true if the file is loaded
+
+=item CLIENT->loaded_files()
+
+Return a list of loaded file names
+
+=item CLIENT->is_breakable($file, $line)
+
+Return true if the line has an executable stament.  Only lines with executable
+statements may have breakpoints.  In particular, line containing only comments,
+whitespace or block delimiters are typically not breakable.
+
+=item CLIENT->stack()
+
+Return an instance of L<Devel::hdb::DB::Stack>.  This object represents the
+execution/call stack of the debugged program.
+
+=back
+
+=head2 Breakpoints and Actions
+
+=item CLIENT->add_break(%params)
+
+Create a breakpoint.  The %params are passed along to the
+L<Devel::hdb::DB::Breakpoint> constructor.  Returns the Breakpoint instance.
+
+Lines may contain more than one breakpoint.  The debugger will stop before
+the next statement on a line if that line contains a breakpoint, and one of
+the breakpoint conditions evaluates to true.  Unconditional breakpoints
+generally have the condition "1" so they are always true.
+
+=item  CLIENT->get_breaks([%params]);
+
+Return a list of L<Devel::hdb::DB::Breakpoint> instances.  This is a wrapper
+around the C<get> method of Devel::hdb::DB::Breakpoint
+
+=item CLIENT->remove_break(...)
+
+Remove a breakpoint.  This is a wrapper around the C<delete> method of
+L<Devel::hdb::DB::Breakpoint>.
+
+=item CLIENT->add_action(%params)
+
+Create a line-action.  The %params are passed along to the
+L<Devel::hdb::DB::Action> constructor.  Returns the Action instance.
+
+Lines may contain more than one action.  Before the next statement on a line,
+all the actions are executed and the values are ignored, though they may have
+other side-effects.
+
+=item CLIENT->get_actions([%params])
+
+Return a list of L<Devel::hdb::DB::Action> instances.  This is a wrapper
+around the C<get> method of Devel::hdb::DB::Action
+
+=item CLIENT->remove_action(...)
+
+Remove an action.  This is a wrapper around the C<delete> method of
+L<Devel::hdb::DB::Action>.
+
+=back
+
+=head CLIENT METHODS
+
+These methods exist in the base class, but only as empty stubs.  They are
+called at the appropriate time by the debugging system.  Clients should
+provide their own implementation.
+
+With the exception of C<idle>, these client-provided methods must not block
+so that other clients may get called.
+
+=over 4
+
+=item CLIENT->init()
+
+Called before the first breakpoint, usually before the first executable
+statement in the debugged program.  Its return value is ignored
+
+=item CLIENT->poll($file, $line)
+
+Called when the debugger is stopped on a line.  This method should return
+true to indicate that it wants its C<idle> method called.
+
+=item CLIENT->idle($file, $line)
+
+Called when the client can block, to accept and process user input, for
+example.  This method should return true to indicate to the debugger system
+that it has finished processing, and that it is OK to continue the debugged
+program.  The loop around calls to C<idle> will stop when all clients return
+true.
+
+=item CLIENT->notify_trace($file, $line)
+
+If a client has turned on the trace flag, this method will be called before
+each executable statement.  The return value is ignored.
+
+=item CLIENT->notify_stopped($file, $line)
+
+This method is called when a breakpoint has occured.  Its return value is
+ignored.
+
+=item CLIENT->notify_resumed($file, $line)
+
+This method is called after a breakpoint, after any calls to C<idle>, and
+just before the debugged program resumes execution.  The return value is
+ignored.
+
+=item CLIENT->notify_fork_parent($pid)
+
+This method is called immediately after the debugged program calls fork()
+in the context of the parent process.  C<$pid> is the child process ID
+created by the fork.  The return value is ignored
+
+=item CLIENT->notify_fork_child()
+
+This method is called immediately after the debugged program calls fork()
+in the context of the child process.  The return value is ignored.
+
+=item CLIENT->notify_program_terminated($?)
+
+This method is called after the last executable statement in the debugged
+program.  After all clients are notified, the debugger system emulates
+one final breakpoint inside a function called C<at_exit> and the program
+remains running, though stopped.
+
+=item CLIENT->notify_program_exit()
+
+If the user
+
+  CLIENT->notify_uncaught_exception
+package'   => $package,
+            line        => $line,
+            filename    => $filename,
+            exception   => $exception,
+            subroutine  => $subname,
+
