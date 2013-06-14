@@ -158,6 +158,12 @@ sub notify_program_terminated {}
 sub notify_program_exit {}
 sub notify_uncaught_exception {}
 
+sub _do_each_client {
+    my($method, @args) = @_;
+
+    $_->$method(@args) foreach values %attached_clients;
+}
+
 package DB;
 
 use vars qw( %dbline @dbline );
@@ -425,7 +431,7 @@ sub DB {
 
     unless ($is_initialized) {
         $is_initialized = 1;
-        $_->init() foreach values %attached_clients;
+        Devel::hdb::DB::_do_each_client('init');
     }
 
     local $usercontext =
@@ -457,7 +463,7 @@ sub DB {
         $package = 'main';
     }
 
-    $_->notify_stopped($filename, $line) foreach values %attached_clients;
+    Devel::hdb::DB::_do_each_client('notify_stopped', $filename, $line);
 
     do {
         local($in_debugger) = 1;
@@ -582,9 +588,9 @@ END {
 
     eval {
         if ($user_requested_exit) {
-            Devel::hdb::App->get()->notify_program_exit();
+            Devel::hdb::DB::_do_each_client('notify_program_exit');
         } else {
-            Devel::hdb::App->get()->notify_program_terminated($?, $uncaught_exception);
+            Devel::hdb::DB::_do_each_client('notify_program_terminated', $?);
             # These two will trigger DB::DB and the event loop
             $in_debugger = 0;
             $single=1;
