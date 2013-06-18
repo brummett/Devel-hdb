@@ -5,6 +5,7 @@ package Devel::hdb;
 
 use Devel::hdb::App;
 use Devel::hdb::DB;
+use Devel::hdb::TraceFollow;
 use IO::Socket::INET;
 use IO::File;
 
@@ -14,6 +15,8 @@ sub import {
     my $class = shift;
 
     our $TESTHARNESS;
+    my($trace, $follow);
+
     while (@_) {
         my $param = shift;
         if ($param =~ m/port:(\d+)/) {
@@ -25,20 +28,27 @@ sub import {
         } elsif ($param eq 'testharness') {
             $TESTHARNESS = 1;
         } elsif ($param =~ m/trace:(.*)/) {
-            print STDERR "Writing execution trace to $1...\n" unless $TESTHARNESS;
-            DB->disable_stopping(1);
-            unless($DB::trace = IO::File->new($1, 'w')) {
-                die "Can't open trace file for writing: $!";
-            }
+            $trace = $1;
         } elsif ($param =~ m/follow:(.*)/) {
-            DB->input_trace_file($1, sub { Devel::hdb::App->get()->notify_trace_diff(@_) });
+            $follow = $1;
         } elsif ($param =~ m/listenfd:(\d+)/) {
             our $LISTEN_SOCK = IO::Socket::INET->new();
             $LISTEN_SOCK->fdopen($1, 'r');
         }
 
     }
+
     my $self = Devel::hdb::App->get();
+    if ($trace) {
+        print STDERR "Writing execution trace to $trace...\n" unless $TESTHARNESS;
+        $self->{trace} = Devel::hdb::Trace->new($trace);
+    } elsif ($follow) {
+        $self->{follow} = Devel::hdb::Follow->new(
+                            $follow,
+                            sub { $self->notify_trace_diff(@_) }
+                        );
+    }
+
     $self->attach();
 }
 1;

@@ -244,7 +244,6 @@ our($stack_depth,
     @AUTOLOAD_names,
     $sub,
     $uncaught_exception,
-    $input_trace,
     %postpone_until_loaded,
 );
 
@@ -289,73 +288,8 @@ sub restore {
     ( $@, $!, $^E, $,, $/, $\, $^W ) = @saved;
 }
 
-sub _line_offset_for_sub {
-    my($line, $subroutine) = @_;
-    no warnings 'uninitialized';
-    if ($DB::sub{$subroutine} =~ m/(\d+)\-\d+$/) {
-        return $line - $1;
-    } else {
-        return undef;
-    }
-}
-
-sub _trace_report_line {
-    my($package, $filename, $line, $subroutine) = @_;
-
-    my $location;
-    if (my $offset = _line_offset_for_sub($line, $subroutine)) {
-        $location = "${subroutine}+${offset}";
-    } else {
-        $location = "${filename}:${line}";
-    }
-
-    return join("\t", $location, $package, $filename, $line, $subroutine);
-}
-
-sub input_trace_file {
-    my($class, $file, $cb) = @_;
-    my $fh = IO::File->new($file, 'r');
-    unless ($fh) {
-        warn "Can't open trace file $file for reading: $!";
-    }
-    $input_trace = sub {
-        my($package, $filename, $line, $subroutine) = @_;
-
-        my @line = split("\t", $fh->getline);
-        my($offset, $expected_sub, $expected_offset, $should_stop);
-
-        if (($expected_sub, $expected_offset) = $line[0] =~ m/(.*?)\+(\d+)/) {
-            $offset = _line_offset_for_sub($line, $subroutine);
-            $should_stop = ($expected_sub ne $subroutine or $expected_offset != $offset);
-        } else {
-            my($file, $fileline) = $line[0] =~ m/(.*)?\:(\d+)/;
-            $should_stop = ($file ne $filename or $fileline != $line);
-        }
-        if ($should_stop) {
-            my $diff_data = {
-                'package'   => $package,
-                filename    => $filename,
-                line        => $line,
-                subroutine  => $subroutine,
-                sub_offset  => _line_offset_for_sub($line, $subroutine),
-            };
-            @$diff_data{'expected_package', 'expected_filename', 'expected_line',
-                        'expected_subroutine','expected_sub_offset'}
-                = (@line[1, 2, 3, 4], $expected_offset);
-            $cb->($diff_data);
-            undef $input_trace; # It's likely _every_ line will now be different
-        }
-        return $should_stop;
-    };
-    $trace = 1;
-}
-
 sub is_breakpoint {
-    my($package, $filename, $line, $subroutine) = @_;
-
-    if ($input_trace && $input_trace->($package, $filename, $line, $subroutine)) {
-        return 1;
-    }
+    my($package, $filename, $line) = @_;
 
     if ($single and defined($step_over_depth) and $step_over_depth < $stack_depth) {
         # This is from a step-over
@@ -451,12 +385,6 @@ $SIG{__DIE__} = sub {
 };
 
 
-sub disable_stopping {
-    my $class = shift;
-    $no_stopping = shift;
-}
-
-
 sub _execute_actions {
     my($filename, $line) = @_;
     local(*dbline) = $main::{'_<' . $filename};
@@ -485,24 +413,19 @@ sub DB {
     local $usercontext =
         'no strict; no warnings; ($@, $!, $^E, $,, $/, $\, $^W) = @DB::saved;' . "package $package;";
 
-    _execute_actions($filename, $line);
-
     my(undef, undef, undef, $subroutine) = caller(1);
     $subroutine ||= 'MAIN';
-    if ($trace && ! $input_trace) {
-        my $fh = (ref($trace) and $trace->can('print')) ? $trace : \*STDERR;
-        $fh->print( _trace_report_line($package, $filename, $line, $subroutine), "\n");
-    }
 
     $_->notify_trace($filename, $line, $subroutine) foreach values(%trace_clients);
 
+    _execute_actions($filename, $line);
+
     return if $no_stopping;
 
-    if (! is_breakpoint($package, $filename, $line, $subroutine)) {
+    if (! is_breakpoint($package, $filename, $line)) {
         return;
     }
     $step_over_depth = undef;
-#    $DB::saved_stack_depth = $stack_depth;
 
     save();
 

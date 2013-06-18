@@ -170,10 +170,19 @@ sub run {
     1;
 }
 *idle = \&run;
-sub poll {1};
+
+# If we're in trace mode, then don't stop
+sub poll {
+    my $self = shift;
+    return ! $self->{trace};
+}
 
 sub notify_trace_diff {
     my($self, $trace_data) = @_;
+
+    my $follower = delete $self->{follow};
+    $follower->shutdown();
+    $self->step();
 
     my $msg = Devel::hdb::Response->queue('trace_diff');
     $msg->{data} = $trace_data;
