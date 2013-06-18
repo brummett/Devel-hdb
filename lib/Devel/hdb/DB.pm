@@ -474,7 +474,7 @@ sub DB {
         $package = 'main';
     }
 
-    Devel::hdb::DB::_do_each_client('notify_stopped', $filename, $line);
+    Devel::hdb::DB::_do_each_client('notify_stopped', $filename, $line, $subroutine);
 
     do {
         local($in_debugger) = 1;
@@ -487,12 +487,12 @@ sub DB {
 
         my $should_continue = 0;
         until ($should_continue) {
-            my @ready_clients = grep { $_->poll($filename, $line) } values %attached_clients;
-            do { $should_continue |= $_->idle($filename, $line) } foreach @ready_clients;
+            my @ready_clients = grep { $_->poll($filename, $line, $subroutine) } values %attached_clients;
+            do { $should_continue |= $_->idle($filename, $line, $subroutine) } foreach @ready_clients;
         }
 
     } while ($finished || $eval_string);
-    $_->notify_resumed($filename, $line) foreach (values %attached_clients);
+    Devel::hdb::DB::_do_each_client('notify_resumed', $filename, $line, $subroutine);
     restore();
 }
 
@@ -656,11 +656,11 @@ Devel::hdb::DB - Programmatic interface to the Perl debugging API
   # These methods are called by the debugging system at the appropriate time.
   # Base-class methods do nothing.  These methods must not block.
   CLIENT->init();                       # Called when the debugging system is ready
-  CLIENT->poll($file, $line);           # Return true if there is user input
-  CLIENT->idle($file, $line);           # Handle user interaction (can block)
-  CLIENT->notify_trace($file, $line)    # Called on each executable statement
-  CLIENT->notify_stopped($file, $line); # Called when a break has occured
-  CLIENT->notify_resumed($file, $line); # Called before the program gets control after a break
+  CLIENT->poll($file, $line, $sub);     # Return true if there is user input
+  CLIENT->idle($file, $line, $sub);     # Handle user interaction (can block)
+  CLIENT->notify_trace($file, $line, $sub);   # Called on each executable statement
+  CLIENT->notify_stopped($file, $line, $sub); # Called when a break has occured
+  CLIENT->notify_resumed($file, $line, $sub); # Called before the program gets control after a break
   CLIENT->notify_fork_parent($pid);     # Called after fork() in parent
   CLIENT->notify_fork_child();          # Called after fork() in child
   CLIENT->notify_program_terminated($?);    # Called as the program is finishing 
@@ -829,12 +829,12 @@ so that other clients may get called.
 Called before the first breakpoint, usually before the first executable
 statement in the debugged program.  Its return value is ignored
 
-=item CLIENT->poll($file, $line)
+=item CLIENT->poll($file, $line, $subroutine)
 
 Called when the debugger is stopped on a line.  This method should return
 true to indicate that it wants its C<idle> method called.
 
-=item CLIENT->idle($file, $line)
+=item CLIENT->idle($file, $line, $subroutine)
 
 Called when the client can block, to accept and process user input, for
 example.  This method should return true to indicate to the debugger system
@@ -842,17 +842,17 @@ that it has finished processing, and that it is OK to continue the debugged
 program.  The loop around calls to C<idle> will stop when all clients return
 true.
 
-=item CLIENT->notify_trace($file, $line)
+=item CLIENT->notify_trace($file, $line, $subroutine)
 
 If a client has turned on the trace flag, this method will be called before
 each executable statement.  The return value is ignored.
 
-=item CLIENT->notify_stopped($file, $line)
+=item CLIENT->notify_stopped($file, $line, $subroutine)
 
 This method is called when a breakpoint has occured.  Its return value is
 ignored.
 
-=item CLIENT->notify_resumed($file, $line)
+=item CLIENT->notify_resumed($file, $line, $subroutine)
 
 This method is called after a breakpoint, after any calls to C<idle>, and
 just before the debugged program resumes execution.  The return value is
