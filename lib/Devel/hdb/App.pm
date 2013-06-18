@@ -3,10 +3,6 @@ use strict;
 
 package Devel::hdb::App;
 
-BEGIN {
-    our $ORIGINAL_PID = $$;
-}
-
 use Devel::hdb::DB;
 use base 'Devel::hdb::DB';
 use Devel::hdb::Server;
@@ -135,7 +131,6 @@ sub notify_fork_child {
     my $self = shift;
 
     $parent_pid = undef;
-    our($ORIGINAL_PID) = $$;
     my $parent_base_url = $self->{base_url};
 
     my $announced;
