@@ -138,6 +138,17 @@ sub get_actions {
     }
 }
 
+sub subroutine_location {
+    my $class = shift;
+    my $subname = shift;
+
+    return () unless $DB::sub{$subname};
+    my($file, $start, $end) = $DB::sub{$subname} =~ m/(.*):(\d+)-(\d+)$/;
+    return ($file, $start, $end);
+}
+
+# NOTE: This postpones until a named file is loaded.
+# Have another interface for postponing until a module is loaded
 sub postpone {
     my($class, $filename, $sub) = @_;
 
@@ -762,6 +773,14 @@ Return a list of loaded file names
 Return true if the line has an executable stament.  Only lines with executable
 statements may have breakpoints.  In particular, line containing only comments,
 whitespace or block delimiters are typically not breakable.
+
+=item CLIENT->subroutine_location($subroutine)
+
+Return a list containing ($filename, $start_line, $end_line) for where the
+named subroutine was defined.  Can be called either with a fullt qualified
+function name or with the package and name separate.
+
+IF the named function does not exist, it returns a nempty list.
 
 =item CLIENT->stack()
 
