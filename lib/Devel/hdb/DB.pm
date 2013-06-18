@@ -11,9 +11,14 @@ use Devel::hdb::DB::Eval;
 use Devel::hdb::DB::Stack;
 
 my %attached_clients;
+my $is_initialized;
 sub attach {
     my $self = shift;
     $attached_clients{$self} = $self;
+    if ($is_initialized) {
+        $self->init();
+    }
+    return $self;
 }
 
 sub detach {
@@ -445,7 +450,6 @@ sub _execute_actions {
     }
 }
 
-my $is_initialized;
 sub DB {
     return if (!$ready or $debugger_disabled);
 
