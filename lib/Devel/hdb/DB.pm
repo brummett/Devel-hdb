@@ -515,7 +515,8 @@ sub DB {
 
     Devel::hdb::DB::_do_each_client('notify_stopped', $filename, $line, $subroutine);
 
-    do {
+    STOPPED_LOOP:
+    foreach (1) {
         local($in_debugger) = 1;
         if ($DB::long_call) {
             $DB::long_call->();
@@ -527,10 +528,12 @@ sub DB {
         my $should_continue = 0;
         until ($should_continue) {
             my @ready_clients = grep { $_->poll($filename, $line, $subroutine) } values %attached_clients;
+            last STOPPED_LOOP unless (@ready_clients);
             do { $should_continue |= $_->idle($filename, $line, $subroutine) } foreach @ready_clients;
         }
 
-    } while ($finished || $eval_string);
+        redo if ($finished || $eval_string);
+    }
     Devel::hdb::DB::_do_each_client('notify_resumed', $filename, $line, $subroutine);
     restore();
 }
