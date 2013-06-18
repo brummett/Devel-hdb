@@ -11,6 +11,7 @@ use Devel::hdb::DB::Eval;
 use Devel::hdb::DB::Stack;
 
 my %attached_clients;
+my %trace_clients;
 my $is_initialized;
 sub attach {
     my $self = shift;
@@ -24,6 +25,8 @@ sub attach {
 sub detach {
     my $self = shift;
     delete $attached_clients{$self};
+    delete $trace_clients{$self};
+    $DB::trace = %trace_clients ? 1 : 0;
 }
 
 sub _clients {
@@ -53,10 +56,29 @@ sub continue {
 
 sub trace {
     my $class = shift;
+    my $rv;
     if (@_) {
-        $DB::trace = shift;
+        my $new_val = shift;
+        if ($new_val) {
+            # turning trace on
+            $trace_clients{$class} = $class;
+            $DB::trace = 1;
+            $rv = 1;
+        } else {
+            # turning it off
+            delete $trace_clients{$class};
+            if (%trace_clients) {
+                # No more clients requesting trace
+                $DB::trace = 0;
+            }
+            $rv = 0;
+        }
+
+    } else {
+        # Checking value
+        $rv = exists $trace_clients{$class};
     }
-    return $DB::trace;
+    return $rv;
 }
 
 sub stack {
@@ -472,6 +494,8 @@ sub DB {
         $fh->print( _trace_report_line($package, $filename, $line, $subroutine), "\n");
     }
 
+    $_->notify_trace($filename, $line, $subroutine) foreach values(%trace_clients);
+
     return if $no_stopping;
 
     if (! is_breakpoint($package, $filename, $line, $subroutine)) {
@@ -869,6 +893,9 @@ true.
 
 If a client has turned on the trace flag, this method will be called before
 each executable statement.  The return value is ignored.
+
+notify_trace() will be called only on clients that have requested tracing by
+calling CLIENT->trace(1).
 
 =item CLIENT->notify_stopped($file, $line, $subroutine)
 
