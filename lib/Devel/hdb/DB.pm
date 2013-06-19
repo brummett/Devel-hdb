@@ -250,7 +250,6 @@ our($stack_depth,
     $in_debugger,
     $finished,
     $user_requested_exit,
-    $long_call,
     @AUTOLOAD_names,
     $sub,
     $uncaught_exception,
@@ -273,9 +272,6 @@ BEGIN {
     # Controlling program end of life
     $finished       = 0;
     $user_requested_exit = 0;
-
-    # Used to postpone some action between calls to DB::DB:
-    $long_call      = undef;
 
     # Remember AUTOLOAD sub names
     @AUTOLOAD_names = ();
@@ -346,7 +342,6 @@ BEGIN {
         if ($pid) {
             $app->notify_fork_parent($pid);
         } elsif (defined $pid) {
-            $long_call = undef;   # Cancel any pending long call in the child
             $app->notify_fork_child();
 
         }
@@ -447,10 +442,6 @@ sub DB {
     STOPPED_LOOP:
     foreach (1) {
         local($in_debugger) = 1;
-        if ($DB::long_call) {
-            $DB::long_call->();
-            undef $DB::long_call;
-        }
 
         while (my $e = shift @pending_eval) {
             _eval_in_program_context(@$e);
@@ -520,15 +511,6 @@ sub postponed {
         $_->($filename) foreach @$actions;
     }
 }
-
-sub long_call {
-    my $class = shift;
-    if (@_) {
-        $DB::long_call = shift;
-    }
-    return $DB::long_call;
-}
-
 
 END {
     $trace = 0;

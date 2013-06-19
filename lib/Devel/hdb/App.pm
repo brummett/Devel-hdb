@@ -114,6 +114,13 @@ sub _announce {
 }
 
 
+sub notify_stopped {
+    my($self, $file, $line, $subname) = @_;
+
+    my $cb = delete $self->{at_next_breakpoint};
+    $cb && $cb->();
+}
+
 # Called in the parent process after a fork
 sub notify_fork_parent {
     my($self, $child_pid) = @_;
@@ -129,6 +136,8 @@ sub notify_fork_parent {
 # called in the child process after a fork
 sub notify_fork_child {
     my $self = shift;
+
+    delete $self->{at_next_breakpoint};
 
     $parent_pid = undef;
     my $parent_base_url = $self->{base_url};

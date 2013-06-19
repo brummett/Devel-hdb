@@ -9,9 +9,7 @@ use Devel::hdb::Response;
 
 __PACKAGE__->add_route('get', '/exit', \&do_terminate);
 
-# Exit the running program
-# Sets up as a long_call so we can send the 'hangup' response
-# and then exit()
+# Exit the running program and then exit()
 sub do_terminate {
     my($class, $app, $env) = @_;
     my $json = $app->{json};

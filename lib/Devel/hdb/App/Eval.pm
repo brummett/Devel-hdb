@@ -15,9 +15,6 @@ __PACKAGE__->add_route('post', '/getvar', \&do_getvar);
 # It works because when string-eval is used, and it's run from
 # inside package DB, then magic happens where it's evaluate in
 # the first non-DB-pacakge call frame.
-# We're setting up a long_call so we can return back from all the
-# web-handler code (which are non-DB packages) before actually
-# evaluating the string.
 sub do_eval {
     my($class, $app, $env) = @_;
 
