@@ -22,13 +22,14 @@ sub do_eval {
     my($class, $app, $env) = @_;
 
     my $req = Plack::Request->new($env);
-    my $eval_string = $req->content();
+    my $expr = $req->content();
+    my $eval_string = _fixup_expr_for_eval($expr);
 
     my $resp = Devel::hdb::Response->new('evalresult', $env);
 
     my $result_packager = sub {
         my $data = shift;
-        $data->{expr} = $eval_string;
+        $data->{expr} = $expr;
         return $data;
     };
     return _eval_plumbing_closure($eval_string,$resp, $env, $result_packager);
@@ -71,20 +72,22 @@ sub do_getvar {
     my $value = eval { DB->get_var_at_level($varname, $level + $adjust - 1) };
     my $exception = $@;
 
+    my $resp_data = { expr => $varname, level => $level };
     if ($exception) {
         if ($exception =~ m/Can't locate PadWalker/) {
             $resp->{type} = 'error';
             $resp->data('Not implemented - PadWalker module is not available');
 
         } elsif ($exception =~ m/Not nested deeply enough/) {
-            $resp->data( { expr => $varname, level => $level, result => undef } );
+            $resp_data->{result} = undef;
         } else {
             die $exception
         }
     } else {
         $value = encode_perl_data($value);
-        $resp->data( { expr => $varname, level => $level, result => $value } );
+        $resp_data->{result} = $value;
     }
+    $resp->data($resp_data);
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
             [ $resp->encode() ]
@@ -94,7 +97,7 @@ sub do_getvar {
 sub _eval_plumbing_closure {
     my($eval_string, $resp, $env, $result_packager) = @_;
 
-    $DB::eval_string = $eval_string;
+    $DB::eval_string = _fixup_expr_for_eval($eval_string);
     return sub {
         my $responder = shift;
         my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
@@ -116,6 +119,17 @@ sub _eval_plumbing_closure {
         );
     };
 }
+
+# This substitution is done so that we return HASH, as opposed to a list
+# An expression of %hash results in a list of key/value pairs that can't
+# be distinguished from a list.  A glob gets replaced by a glob ref.
+sub _fixup_expr_for_eval {
+    my($expr) = @_;
+
+    $expr =~ s/^\s*(?<!\\)([%*])/\\$1/o;
+    return $expr;
+}
+
 
 
 1;

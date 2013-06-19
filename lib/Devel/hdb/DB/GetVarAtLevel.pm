@@ -96,12 +96,10 @@ sub get_var_at_level {
             $package ||= 'main';
 
             my $expanded_varname = $sigil . $package . '::' . $bare_varname;
-            $expanded_varname = Devel::hdb::DB::Eval::_fixup_expr_for_eval($expanded_varname);
             my @value = eval( $expanded_varname );
             return @value < 2 ? $value[0] : \@value;
 
         } elsif ($varname =~ m/^[\$\@\%\*]\w+(::\w+)*(::)?$/) {
-            $varname = Devel::hdb::DB::Eval::_fixup_expr_for_eval($varname);
             my @value = eval($varname);
             return @value < 2 ? $value[0] : \@value;
         }

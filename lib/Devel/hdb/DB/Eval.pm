@@ -1,15 +1,5 @@
 package Devel::hdb::DB::Eval;
 
-# This substitution is done so that we return HASH, as opposed to a list
-# An expression of %hash results in a list of key/value pairs that can't
-# be distinguished from a list.  A glob gets replaced by a glob ref.
-sub _fixup_expr_for_eval {
-    my($expr) = @_;
-
-    $expr =~ s/^\s*([%*])/\\$1/o;
-    return $expr;
-}
-
 package DB;
 
 # Needs to live in package DB because of the way eval works.
@@ -19,8 +9,6 @@ package DB;
 sub eval {
 
     local($^W) = 0;  # no warnings
-
-    $eval_string = Devel::hdb::DB::Eval::_fixup_expr_for_eval($eval_string);
 
     my @result;
     {
