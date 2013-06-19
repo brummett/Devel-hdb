@@ -1,12 +1,18 @@
 package Devel::hdb::DB::Eval;
 
+use strict;
+use warnings;
+
 package DB;
+
+our($single, $trace, $usercontext, @saved);
 
 # Needs to live in package DB because of the way eval works.
 # when run on package DB, it searches back for the first stack
 # frame that's _not_ package DB, and evaluates the expr there.
 
-sub eval {
+sub _eval_in_program_context {
+    my($eval_string, $wantarray, $cb) = @_;
 
     local($^W) = 0;  # no warnings
 
@@ -24,7 +30,20 @@ sub eval {
         # Untaint the incoming eval() argument.
         { ($eval_string) = $eval_string =~ /(.*)/s; }
 
-        @result = eval "$usercontext $eval_string;\n";
+        # Fill in the appropriate @_
+        () = caller(_first_program_frame() );
+        @_ = @DB::args;
+
+        if ($wantarray) {
+            my @eval_result = eval "$usercontext $eval_string;\n";
+            $result[0] = \@eval_result;
+        } elsif (defined $wantarray) {
+            my $eval_result = eval "$usercontext $eval_string;\n";
+            $result[0] = $eval_result;
+        } else {
+            eval "$usercontext $eval_string;\n";
+            $result[0] = undef;
+        }
 
         # restore old values
         $trace  = $orig_trace;
@@ -32,19 +51,28 @@ sub eval {
         $^D     = $orig_cd;
     }
 
-    my $exception = $@;  # exception from the eval
+    $result[1] = $@;  # exception from the eval
     # Since we're only saving $@, we only have to localize the array element
     # that it will be stored in.
     local $saved[0];    # Preserve the old value of $@
     eval { &DB::save };
 
-    if ($exception) {
-        return { exception => $exception };
-    } elsif (@result == 1) {
-        return { result => $result[0] };
-    } else {
-        return { result => \@result };
+    $cb->(@result) if $cb;
+    return @result;
+}
+
+# Count how many stack frames we should discard when we're
+# interested in the debugged program's stack frames
+sub _first_program_frame {
+    for(my $level = 1;
+        my ($package, $filename, $line, $subroutine) = caller($level);
+        $level++
+    ) {
+        if ($subroutine eq 'DB::DB') {
+            return $level;
+        }
     }
+    return;
 }
 
 1;

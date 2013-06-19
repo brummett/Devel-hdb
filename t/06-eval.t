@@ -114,8 +114,6 @@ $resp = $mech->post("${url}eval", content => '@_');
 ok($resp->is_success, 'Get value of @_');
 $answer = $json->decode($resp->content);
 strip_refaddr($answer->{data}->{result});
-use Data::Dumper;
-print Data::Dumper::Dumper($answer);
 is_deeply($answer,
     {   type => 'evalresult',
         data => {

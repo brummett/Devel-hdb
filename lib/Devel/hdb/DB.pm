@@ -10,9 +10,12 @@ use Devel::hdb::DB::Actionable;  # Breakpoints and Actions
 use Devel::hdb::DB::Eval;
 use Devel::hdb::DB::Stack;
 
-my %attached_clients;
-my %trace_clients;
-my $is_initialized;
+# lexicals shared between the interface package and the DB package
+my(%attached_clients,
+   %trace_clients,
+   $is_initialized,
+   @pending_eval,
+);
 sub attach {
     my $self = shift;
     $attached_clients{$self} = $self;
@@ -80,6 +83,14 @@ sub trace {
     }
     return $rv;
 }
+
+
+
+sub eval {
+    my($class, $eval_string, $wantarray, $cb) = @_;
+    push @pending_eval, [ $eval_string, $wantarray, $cb ];
+}
+
 
 sub stack {
     return Devel::hdb::DB::Stack->new();
@@ -240,7 +251,6 @@ our($stack_depth,
     $finished,
     $user_requested_exit,
     $long_call,
-    $eval_string,
     @AUTOLOAD_names,
     $sub,
     $uncaught_exception,
@@ -266,7 +276,6 @@ BEGIN {
 
     # Used to postpone some action between calls to DB::DB:
     $long_call      = undef;
-    $eval_string    = undef;
 
     # Remember AUTOLOAD sub names
     @AUTOLOAD_names = ();
@@ -314,9 +323,7 @@ sub is_breakpoint {
             if ($code eq '1') {
                 $should_break = 1;
             } else {
-                $eval_string = $condition->code;
-                my $rv = &eval;
-                $should_break = 1 if ($rv and $rv->{result});
+                ($should_break) = _eval_in_program_context($condition->code, 0);
             }
             push @delete, $condition if $condition->once;
         }
@@ -392,8 +399,7 @@ sub _execute_actions {
         my @delete;
         foreach my $action ( @{ $dbline{$line}->{action}} ) {
             next if $action->inactive;
-            $eval_string = $action->code;
-            &eval;
+            _eval_in_program_context($action->code, undef);
             push @delete, $action if $action->once;
         }
         $_->delete for @delete;
@@ -446,7 +452,9 @@ sub DB {
             undef $DB::long_call;
         }
 
-        undef $eval_string;
+        while (my $e = shift @pending_eval) {
+            _eval_in_program_context(@$e);
+        }
 
         my $should_continue = 0;
         until ($should_continue) {
@@ -455,7 +463,7 @@ sub DB {
             do { $should_continue |= $_->idle($filename, $line, $subroutine) } foreach @ready_clients;
         }
 
-        redo if ($finished || $eval_string);
+        redo if ($finished || @pending_eval);
     }
     Devel::hdb::DB::_do_each_client('notify_resumed', $filename, $line, $subroutine);
     restore();
@@ -491,20 +499,6 @@ sub hdbStackTracker::DESTROY {
     $single = 1 if (defined($step_over_depth) and $step_over_depth >= $stack_depth);
 }
 
-# Count how many stack frames we should discard when we're
-# interested in the debugged program's stack frames
-sub _first_program_frame {
-    for(my $level = 1;
-        my ($package, $filename, $line, $subroutine) = caller($level);
-        $level++
-    ) {
-        if ($subroutine eq 'DB::DB') {
-            return $level;
-        }
-    }
-    return;
-}
-
 
 sub get_var_at_level {
     my($class, $varname, $level) = @_;
@@ -533,19 +527,6 @@ sub long_call {
         $DB::long_call = shift;
     }
     return $DB::long_call;
-}
-
-sub prepare_eval {
-    my($class, $string, $cb) = @_;
-
-    () = caller(_first_program_frame() );
-    my @db_args = @DB::args;
-    return sub {
-        $eval_string = $string;
-        @_ = @db_args;
-        my $data = &eval;
-        $cb->($data);
-    }
 }
 
 
@@ -709,6 +690,19 @@ Continue running the debugged program until the next breakpoint.
 Sets a flag that indicates the program should completely exit after the
 debugged program ends.  Normally, the debugger will regain control after the
 program ends.
+
+=item CLIENT->eval($string, $wantarray, $coderef);
+
+Evaluate the given string in the context of the most recent stack frame of
+the program being debugged.  Because of the limitations of Perl's debugging
+hooks, this function does not return the value directly.  Instead, the
+caller must cede control back to the debugger system and the eval will be
+done before the next statement in the program being debugged.  If the
+debugged program is currently stopped at a breakpoint, then the eval will be
+done before resuming.
+
+The result is delivered by calling the given $coderef with two arguments:
+the $result and $exception.
 
 =back
 

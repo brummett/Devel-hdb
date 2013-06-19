@@ -32,7 +32,7 @@ sub do_eval {
         $data->{expr} = $expr;
         return $data;
     };
-    return _eval_plumbing_closure($eval_string,$resp, $env, $result_packager);
+    return _eval_plumbing_closure($app, $eval_string,$resp, $env, $result_packager);
 }
 
 my %perl_special_vars = map { $_ => 1 }
@@ -65,7 +65,7 @@ sub do_getvar {
             $data->{level} = $level;
             return $data;
         };
-        return _eval_plumbing_closure($varname, $resp, $env, $result_packager);
+        return _eval_plumbing_closure($app,$varname, $resp, $env, $result_packager);
     }
 
     my $adjust = DB->_first_program_frame();
@@ -95,27 +95,31 @@ sub do_getvar {
 }
 
 sub _eval_plumbing_closure {
-    my($eval_string, $resp, $env, $result_packager) = @_;
+    my($app, $eval_string, $resp, $env, $result_packager) = @_;
 
-    $DB::eval_string = _fixup_expr_for_eval($eval_string);
+    $eval_string = _fixup_expr_for_eval($eval_string);
     return sub {
         my $responder = shift;
         my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
 
-        DB->long_call(
-            DB->prepare_eval(
-                $eval_string,
-                sub {
-                    my $data = shift;
-                    $data->{result} = encode_perl_data($data->{result}) if ($data->{result});
-                    $data = $result_packager->($data);
-
-                    $resp->data($data);
-                    $writer->write($resp->encode());
-                    $writer->close();
+        $app->eval(
+            $eval_string,
+            1,
+            sub {
+                my($result, $exception) = @_;
+                my $data;
+                if ($exception) {
+                    $data->{exception} = encode_perl_data($exception);
+                } else {
+                    $data->{result} = encode_perl_data(@$result < 2 ? $result->[0] : $result );
                 }
-            )
+                $data = $result_packager->($data);
+
+                $resp->data($data);
+                $writer->write($resp->encode());
+                $writer->close();
+            }
         );
     };
 }
