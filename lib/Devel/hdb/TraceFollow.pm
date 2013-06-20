@@ -74,17 +74,21 @@ sub _open_fh {
 }
 
 sub notify_trace {
-    my($self, $file, $line, $subname) = @_;
+    my($self, $location) = @_;
 
-    my $location;
+    my $line    = $location->line;
+    my $subname = $location->subroutine;
+    my $file    = $location->filename;
+    my $package = $location->package;
+
+    my $loc_string;
     if (my $offset = $self->_line_offset_for_sub($line, $subname)) {
-        $location = "${subname}+${offset}";
+        $loc_string = "${subname}+${offset}";
     } else {
-        $location = "${file}:${line}";
+        $loc_string = "${file}:${line}";
     }
-    my($package) = $subname =~ m/(.*)::(\w+)$/;
     $package ||= 'main';
-    $self->fh->print( join("\t", $location, $package, $file, $line, $subname), "\n");
+    $self->fh->print( join("\t", $loc_string, $package, $file, $line, $subname), "\n");
 }
 
 sub notify_program_terminated {
@@ -109,7 +113,11 @@ sub _next_trace_line {
 }
 
 sub notify_trace {
-    my($self, $at_file, $at_line, $at_subname) = @_;
+    my($self, $at_location) = @_;
+
+    my $at_line     = $at_location->line;
+    my $at_file     = $at_location->filename;
+    my $at_subname  = $at_location->subroutine;
 
     # The expected next location
     my($exp_location, $exp_package, $exp_file, $exp_line, $exp_subname) = split("\t", $self->_next_trace_line);
