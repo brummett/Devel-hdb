@@ -548,12 +548,12 @@ END {
             # These two will trigger DB::DB and the event loop
             $in_debugger = 0;
             $single=1;
-            DB::fake::at_exit();
+            Devel::hdb::DB::exiting::at_exit();
         }
     }
 }
 
-package DB::fake;
+package Devel::hdb::DB::exiting;
 sub at_exit {
     1;
 }
