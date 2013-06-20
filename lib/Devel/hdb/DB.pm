@@ -610,8 +610,8 @@ Devel::hdb::DB - Programmatic interface to the Perl debugging API
   # These methods are called by the debugging system at the appropriate time.
   # Base-class methods do nothing.  These methods must not block.
   CLIENT->init();                       # Called when the debugging system is ready
-  CLIENT->poll($file, $line, $sub);     # Return true if there is user input
-  CLIENT->idle($file, $line, $sub);     # Handle user interaction (can block)
+  CLIENT->poll($location);              # Return true if there is user input
+  CLIENT->idle($location);              # Handle user interaction (can block)
   CLIENT->notify_trace($location);      # Called on each executable statement
   CLIENT->notify_stopped($location);    # Called when a break has occured
   CLIENT->notify_resumed($location);    # Called before the program gets control after a break
