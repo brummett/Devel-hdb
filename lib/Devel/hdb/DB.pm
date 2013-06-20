@@ -250,7 +250,6 @@ our($stack_depth,
     $debugger_disabled,
     $no_stopping,
     $step_over_depth,
-    $dbobj,
     $ready,
     @saved,
     $usercontext,
@@ -270,7 +269,6 @@ BEGIN {
     $debugger_disabled = 0;
     $no_stopping    = 0;
     $step_over_depth = undef;
-    $dbobj          = undef;
     $ready          = 0;
     @saved          = ();
     $usercontext    = '';
