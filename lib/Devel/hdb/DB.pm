@@ -748,7 +748,7 @@ Return a list containing ($filename, $start_line, $end_line) for where the
 named subroutine was defined.  Can be called either with a fullt qualified
 function name or with the package and name separate.
 
-IF the named function does not exist, it returns a nempty list.
+IF the named function does not exist, it returns an empty list.
 
 =item CLIENT->stack()
 
