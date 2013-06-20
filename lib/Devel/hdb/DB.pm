@@ -95,6 +95,15 @@ sub eval {
 }
 
 
+sub eval_at {
+    my($class, $eval_string, $level) = @_;
+
+    {   no warnings 'numeric';
+        $level = 0 if ($level < 1);
+    }
+
+}
+
 sub stack {
     return Devel::hdb::DB::Stack->new();
 }
@@ -702,6 +711,16 @@ done before resuming.
 
 The result is delivered by calling the given $coderef with two arguments:
 the $result and $exception.
+
+=item CLIENT->eval_at($string [, $level]);
+
+Evaluate the given string in the context of the program being debugged.  If
+$level is omitted, the string is run in the context of the most recent stack
+frame of the debugged program.  Otherwise, $level is the number of stack
+frames before the most recent to evaluate the code in.  Negative numbers are
+treated as 0.  eval_at returns a list of two items, the result and exception.
+
+This method requires the PadWalker module.
 
 =back
 
