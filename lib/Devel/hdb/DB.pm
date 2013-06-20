@@ -337,20 +337,9 @@ BEGIN {
     *CORE::GLOBAL::fork = sub {
         my $pid = CORE::fork();
         return $pid unless $ready;
-        my $app = Devel::hdb::App->get();
-        my $tracker;
-        if ($pid) {
-            $app->notify_fork_parent($pid);
-        } elsif (defined $pid) {
-            $app->notify_fork_child();
 
-        }
-
-        # These should make it stop after returning from the fork
-        # It's cut-and-paste from Devel::hdb::App::stepout()
-        $DB::single=0;
-        $DB::step_over_depth = $DB::stack_depth - 1;
-        $tracker = _new_stack_tracker($pid);
+        my $notify = $pid ? 'notify_fork_parent' : 'notify_fork_child';
+        Devel::hdb::DB::_do_each_client($notify, $pid);
         return $pid;
     };
 };

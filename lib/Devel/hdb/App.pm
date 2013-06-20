@@ -131,6 +131,7 @@ sub notify_fork_parent {
     };
     $self->{router}->once_after('POST','/announce_child', $gotit);
     $self->run();
+    $self->step;
 }
 
 # called in the child process after a fork
@@ -159,6 +160,7 @@ sub notify_fork_child {
 
     # Force it to pick a new port
     $self->_make_listen_socket(port => undef, server_ready => $when_ready);
+    $self->step;
 }
 
 
