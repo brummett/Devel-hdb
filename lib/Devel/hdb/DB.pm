@@ -9,12 +9,15 @@ use IO::File;
 use Devel::hdb::DB::Actionable;  # Breakpoints and Actions
 use Devel::hdb::DB::Eval;
 use Devel::hdb::DB::Stack;
+use Devel::hdb::DB::Location;
+use Devel::hdb::DB::Exception;
 
 # lexicals shared between the interface package and the DB package
 my(%attached_clients,
    %trace_clients,
    $is_initialized,
    @pending_eval,
+   $current_location,
 );
 sub attach {
     my $self = shift;
@@ -94,6 +97,10 @@ sub eval {
 
 sub stack {
     return Devel::hdb::DB::Stack->new();
+}
+
+sub current_location {
+    return $current_location;
 }
 
 sub disable_debugger {
@@ -332,14 +339,30 @@ sub is_breakpoint {
     return $should_break;
 }
 
+
+sub _parent_stack_location {
+    my($package, $filename, undef, $subname) = caller(2);
+    my(undef, undef, $line, undef) = caller(1);
+    $subname ||= 'MAIN';
+    return ($package, $filename, $line, $subname);
+}
+
 BEGIN {
     # Code to get control when the debugged process forks
     *CORE::GLOBAL::fork = sub {
         my $pid = CORE::fork();
         return $pid unless $ready;
 
+        my($package, $filename, $line, $subname) = _parent_stack_location();
+        my $location = Devel::hdb::DB::Location->new(
+            'package'   => $package,
+            line        => $line,
+            filename    => $filename,
+            subroutine  => $subname,
+        );
+
         my $notify = $pid ? 'notify_fork_parent' : 'notify_fork_child';
-        Devel::hdb::DB::_do_each_client($notify, $pid);
+        Devel::hdb::DB::_do_each_client($notify, $location, $pid);
         return $pid;
     };
 };
@@ -360,16 +383,15 @@ $SIG{__DIE__} = sub {
         # (which it correctly does with no args), it returns the line which
         # called the function which threw the exception.
         # We'll work around it by calling it twice
-        my($package, $filename, undef, $subname) = caller(1);
-        my(undef, undef, $line, undef) = caller(0);
-        $subname = 'MAIN' unless defined($subname);
-        $uncaught_exception = {
+        my($package, $filename, $line, $subname) = _parent_stack_location();
+
+        $uncaught_exception = Devel::hdb::DB::Exception->new(
             'package'   => $package,
             line        => $line,
             filename    => $filename,
             exception   => $exception,
             subroutine  => $subname,
-        };
+        );
         # After we fall off the end, the interpreter will try and exit,
         # triggering the END block that calls DB::fake::at_exit()
     }
@@ -406,7 +428,14 @@ sub DB {
     my(undef, undef, undef, $subroutine) = caller(1);
     $subroutine ||= 'MAIN';
 
-    $_->notify_trace($filename, $line, $subroutine) foreach values(%trace_clients);
+    $current_location = Devel::hdb::DB::Location->new(
+        'package'   => $package,
+        filename    => $filename,
+        line        => $line,
+        subroutine  => $subroutine,
+    );
+
+    $_->notify_trace($current_location) foreach values(%trace_clients);
 
     _execute_actions($filename, $line);
 
@@ -426,7 +455,7 @@ sub DB {
         $package = 'main';
     }
 
-    Devel::hdb::DB::_do_each_client('notify_stopped', $filename, $line, $subroutine);
+    Devel::hdb::DB::_do_each_client('notify_stopped', $current_location);
 
     STOPPED_LOOP:
     foreach (1) {
@@ -438,14 +467,15 @@ sub DB {
 
         my $should_continue = 0;
         until ($should_continue) {
-            my @ready_clients = grep { $_->poll($filename, $line, $subroutine) } values %attached_clients;
+            my @ready_clients = grep { $_->poll($current_location) } values %attached_clients;
             last STOPPED_LOOP unless (@ready_clients);
-            do { $should_continue |= $_->idle($filename, $line, $subroutine) } foreach @ready_clients;
+            do { $should_continue |= $_->idle($current_location) } foreach @ready_clients;
         }
 
         redo if ($finished || @pending_eval);
     }
-    Devel::hdb::DB::_do_each_client('notify_resumed', $filename, $line, $subroutine);
+    Devel::hdb::DB::_do_each_client('notify_resumed', $current_location);
+    undef $current_location;
     restore();
 }
 
@@ -575,13 +605,13 @@ Devel::hdb::DB - Programmatic interface to the Perl debugging API
   CLIENT->init();                       # Called when the debugging system is ready
   CLIENT->poll($file, $line, $sub);     # Return true if there is user input
   CLIENT->idle($file, $line, $sub);     # Handle user interaction (can block)
-  CLIENT->notify_trace($file, $line, $sub);   # Called on each executable statement
-  CLIENT->notify_stopped($file, $line, $sub); # Called when a break has occured
-  CLIENT->notify_resumed($file, $line, $sub); # Called before the program gets control after a break
-  CLIENT->notify_fork_parent($pid);     # Called after fork() in parent
-  CLIENT->notify_fork_child();          # Called after fork() in child
+  CLIENT->notify_trace($location);      # Called on each executable statement
+  CLIENT->notify_stopped($location);    # Called when a break has occured
+  CLIENT->notify_resumed($location);    # Called before the program gets control after a break
+  CLIENT->notify_fork_parent($location,$pid);   # Called after fork() in parent
+  CLIENT->notify_fork_child($location);         # Called after fork() in child
   CLIENT->notify_program_terminated($?);    # Called as the program is finishing 
-  CLIENT->notify_program_exit();        # Called as the program is exiting
+  CLIENT->notify_program_exit();            # Called as the program is exiting
   CLIENT->notify_uncaught_exception($exc);  # Called after an uncaught exception
 
 =head1 DESCRIPTION
@@ -706,6 +736,11 @@ IF the named function does not exist, it returns a nempty list.
 Return an instance of L<Devel::hdb::DB::Stack>.  This object represents the
 execution/call stack of the debugged program.
 
+=item CLIENT->current_location()
+
+Return an instance of L<Devel::hdb::DB::Location> representing the currently
+stopped location in the debugged program.
+
 =back
 
 =head2 Breakpoints and Actions
@@ -767,12 +802,12 @@ so that other clients may get called.
 Called before the first breakpoint, usually before the first executable
 statement in the debugged program.  Its return value is ignored
 
-=item CLIENT->poll($file, $line, $subroutine)
+=item CLIENT->poll($location)
 
 Called when the debugger is stopped on a line.  This method should return
 true to indicate that it wants its C<idle> method called.
 
-=item CLIENT->idle($file, $line, $subroutine)
+=item CLIENT->idle($location)
 
 Called when the client can block, to accept and process user input, for
 example.  This method should return true to indicate to the debugger system
@@ -780,35 +815,43 @@ that it has finished processing, and that it is OK to continue the debugged
 program.  The loop around calls to C<idle> will stop when all clients return
 true.
 
-=item CLIENT->notify_trace($file, $line, $subroutine)
+=item CLIENT->notify_trace($location)
 
 If a client has turned on the trace flag, this method will be called before
-each executable statement.  The return value is ignored.
+each executable statement.  The return value is ignored.  $location is an
+instance of L<Devel::hdb::DB::Location> indicating the next statement to be
+executed in the debugged program.
 
 notify_trace() will be called only on clients that have requested tracing by
 calling CLIENT->trace(1).
 
-=item CLIENT->notify_stopped($file, $line, $subroutine)
+=item CLIENT->notify_stopped($location)
 
 This method is called when a breakpoint has occured.  Its return value is
 ignored.
 
-=item CLIENT->notify_resumed($file, $line, $subroutine)
+=item CLIENT->notify_resumed($location)
 
 This method is called after a breakpoint, after any calls to C<idle>, and
 just before the debugged program resumes execution.  The return value is
 ignored.
 
-=item CLIENT->notify_fork_parent($pid)
+=item CLIENT->notify_fork_parent($location, $pid)
 
 This method is called immediately after the debugged program calls fork()
 in the context of the parent process.  C<$pid> is the child process ID
-created by the fork.  The return value is ignored
+created by the fork.  The return value is ignored.
 
-=item CLIENT->notify_fork_child()
+Note that the $location will be the first executable statement _after_ the
+fork() in the parent process.
+
+=item CLIENT->notify_fork_child($location)
 
 This method is called immediately after the debugged program calls fork()
 in the context of the child process.  The return value is ignored.
+
+Note that the $location will be the first executable statement _after_ the
+fork() in the parent process.
 
 =item CLIENT->notify_program_terminated($?)
 
@@ -819,12 +862,25 @@ remains running, though stopped.
 
 =item CLIENT->notify_program_exit()
 
-If the user
+If the a client has requested that the program terminate completely by calling
+CLIENT->user_requested_exit(), then this method will be called during the
+debugger's END block as the interpreter is cleaning up.
 
-  CLIENT->notify_uncaught_exception
-package'   => $package,
-            line        => $line,
-            filename    => $filename,
-            exception   => $exception,
-            subroutine  => $subname,
+=item CLIENT->notify_uncaught_exception($exception)
+
+The debugger system installs a __DIE__ handler to trap exceptions that are
+not otherwise handled by the debugged program.  When an uncaught exception
+occurs, this method is called.  $exception is an instance of
+L<Devel::hdb::DB::Exception>.
+
+=back
+
+=head1 AUTHOR
+
+Anthony Brummett <brummett@cpan.org>
+
+=head1 COPYRIGHT
+
+Copyright 2013, Anthony Brummett.  This module is free software. It may
+be used, redistributed and/or modified under the same terms as Perl itself.
 

@@ -115,7 +115,7 @@ sub _announce {
 
 
 sub notify_stopped {
-    my($self, $file, $line, $subname) = @_;
+    my($self, $location) = @_;
 
     my $cb = delete $self->{at_next_breakpoint};
     $cb && $cb->();
@@ -123,7 +123,7 @@ sub notify_stopped {
 
 # Called in the parent process after a fork
 sub notify_fork_parent {
-    my($self, $child_pid) = @_;
+    my($self, $location, $child_pid) = @_;
 
     my $gotit = sub {
         my($rv,$env) = @_;
@@ -137,6 +137,7 @@ sub notify_fork_parent {
 # called in the child process after a fork
 sub notify_fork_child {
     my $self = shift;
+    my $location = shift;
 
     delete $self->{at_next_breakpoint};
 
@@ -209,14 +210,17 @@ sub notify_uncaught_exception {
 sub notify_program_terminated {
     my $self = shift;
     my $exit_code = shift;
-    my $exception_data = shift;
 
     print STDERR "Debugged program pid $$ terminated with exit code $exit_code\n" unless ($Devel::hdb::TESTHARNESS);
     my $msg = Devel::hdb::Response->queue('termination');
+    my $data = { exit_code => $exit_code };
+
     if ($self->{__exception__}) {
-        $msg->{data} = $self->{__exception__};
+        foreach my $prop ( qw(package line filename exception subroutine)) {
+            $data->{$prop} = $self->{__exception__}->$prop;
+        }
     }
-    $msg->{data}->{exit_code} = $exit_code;
+    $msg->data($data);
 }
 
 sub notify_program_exit {
