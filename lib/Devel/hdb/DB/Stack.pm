@@ -132,8 +132,11 @@ BEGIN {
                          subname autoload level evalfile evalline ) ) {
         *{$acc} = sub { return shift->{$acc} };
     }
+}
 
-    *args = sub { my $args = shift->{args}; return @$args };
+sub args {
+    my $args = shift->{args};
+    return @$args;
 }
 
 1;
