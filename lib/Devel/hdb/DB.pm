@@ -878,6 +878,11 @@ L<Devel::hdb::DB::Exception>.
 
 =back
 
+=head1 SEE ALSO
+
+L<Devel::hdb::DB::Location>, L<Devel::hdb::DB::Exception>,
+L<Devel::hdb::DB::Stack>, L<Devel::hdb::DB::Actionable>
+
 =head1 AUTHOR
 
 Anthony Brummett <brummett@cpan.org>
