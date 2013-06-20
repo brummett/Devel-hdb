@@ -709,6 +709,8 @@ the $result and $exception.
 
 =head2 Informational methods
 
+=over 4
+
 =item CLIENT->is_loaded($file)
 
 Return true if the file is loaded
@@ -739,11 +741,14 @@ execution/call stack of the debugged program.
 =item CLIENT->current_location()
 
 Return an instance of L<Devel::hdb::DB::Location> representing the currently
-stopped location in the debugged program.
+stopped location in the debugged program.  This method returns undef if
+called when the debugged program is actively running.
 
 =back
 
 =head2 Breakpoints and Actions
+
+=over 4
 
 =item CLIENT->add_break(%params)
 
@@ -786,11 +791,11 @@ L<Devel::hdb::DB::Action>.
 
 =back
 
-=head CLIENT METHODS
+=head2 CLIENT METHODS
 
 These methods exist in the base class, but only as empty stubs.  They are
-called at the appropriate time by the debugging system.  Clients should
-provide their own implementation.
+called at the appropriate time by the debugging system.  Clients may provide
+their own implementation.
 
 With the exception of C<idle>, these client-provided methods must not block
 so that other clients may get called.
