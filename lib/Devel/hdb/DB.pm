@@ -423,17 +423,23 @@ sub DB {
     return if (!$ready or $debugger_disabled);
 
     my($package, $filename, $line) = caller;
+    my(undef, undef, undef, $subroutine) = caller(1);
+    if ($package eq 'DB::fake') {
+        $package = 'main';
+    }
+    $subroutine ||= 'MAIN';
 
     unless ($is_initialized) {
         $is_initialized = 1;
         Devel::hdb::DB::_do_each_client('init');
     }
 
+    # set up the context for DB::eval, so it can properly execute
+    # code on behalf of the user. We add the package in so that the
+    # code is eval'ed in the proper package (not in the debugger!).
+    save();
     local $usercontext =
         'no strict; no warnings; ($@, $!, $^E, $,, $/, $\, $^W) = @DB::saved;' . "package $package;";
-
-    my(undef, undef, undef, $subroutine) = caller(1);
-    $subroutine ||= 'MAIN';
 
     $current_location = Devel::hdb::DB::Location->new(
         'package'   => $package,
@@ -452,15 +458,6 @@ sub DB {
         return;
     }
     $step_over_depth = undef;
-
-    save();
-
-    # set up the context for DB::eval, so it can properly execute
-    # code on behalf of the user. We add the package in so that the
-    # code is eval'ed in the proper package (not in the debugger!).
-    if ($package eq 'DB::fake') {
-        $package = 'main';
-    }
 
     Devel::hdb::DB::_do_each_client('notify_stopped', $current_location);
 
