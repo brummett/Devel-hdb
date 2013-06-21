@@ -117,7 +117,7 @@ showing where in the original source code the text came from, and
 
 =head1 SEE ALSO
 
-Devel::hdb, Devel::hdb::DB::PackageInfo
+Devel::hdb
 
 =head1 AUTHOR
 

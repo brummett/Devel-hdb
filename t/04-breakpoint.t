@@ -51,7 +51,7 @@ $resp = $mech->get($url.'continue');
 ok($resp->is_success, 'continue');
 my $message = $json->decode($resp->content);
 is($message->[0]->{data}->[0]->{subroutine},
-    'Devel::hdb::DB::exiting::at_exit',
+    'Devel::CommonDB::exiting::at_exit',
     'Stopped in at_exit()');
 is_deeply($message->[1],
     { type => 'termination', data => { exit_code => 0 } },

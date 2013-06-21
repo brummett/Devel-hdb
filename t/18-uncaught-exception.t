@@ -30,7 +30,7 @@ ok($resp->is_success, 'continue');
 my @messages = sort { $a->{type} cmp $b->{type} } @{ $json->decode($resp->content) };
 
 is($messages[0]->{data}->[0]->{subroutine},
-    'Devel::hdb::DB::exiting::at_exit',
+    'Devel::CommonDB::exiting::at_exit',
     'Stopped in at_exit()');
 
 is_deeply($messages[1],

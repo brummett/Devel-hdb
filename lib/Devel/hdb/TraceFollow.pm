@@ -3,7 +3,7 @@ package Devel::hdb::TraceFollow;
 use strict;
 use warnings;
 
-use base 'Devel::hdb::DB';
+use base 'Devel::CommonDB';
 use IO::File;
 
 sub new {

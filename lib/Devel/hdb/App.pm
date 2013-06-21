@@ -3,8 +3,8 @@ use strict;
 
 package Devel::hdb::App;
 
-use Devel::hdb::DB;
-use base 'Devel::hdb::DB';
+use Devel::CommonDB;
+use base 'Devel::CommonDB';
 use Devel::hdb::Server;
 use IO::File;
 use LWP::UserAgent;
