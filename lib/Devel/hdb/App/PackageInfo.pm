@@ -6,7 +6,6 @@ use warnings;
 use base 'Devel::hdb::App::Base';
 
 use Devel::hdb::Response;
-use Devel::hdb::DB::PackageInfo;
 
 __PACKAGE__->add_route('get', qr(/pkginfo/((\w+)(::\w+)*)), \&pkginfo);
 __PACKAGE__->add_route('get', qr(/subinfo/((\w+)(::\w+)*)), \&subinfo);
@@ -16,9 +15,9 @@ sub pkginfo {
     my($class, $app, $env, $package) = @_;
 
     my $resp = Devel::hdb::Response->new('pkginfo', $env);
-    my $sub_packages = Devel::hdb::DB::PackageInfo::namespaces_in_package($package);
-    my @subs = grep { Devel::hdb::DB::PackageInfo::sub_is_debuggable($package, $_) }
-                    @{ Devel::hdb::DB::PackageInfo::subs_in_package($package) };
+    my $sub_packages = _namespaces_in_package($package);
+    my @subs = grep { $app->subroutine_location("${package}::$_") }
+                    @{ _subs_in_package($package) };
 
     $resp->data({ packages => $sub_packages, subs => \@subs });
     return [ 200,
@@ -32,12 +31,47 @@ sub subinfo {
     my($class, $app, $env, $subname) = @_;
 
     my $resp = Devel::hdb::Response->new('subinfo', $env);
-    $resp->data( Devel::hdb::DB::PackageInfo::sub_info($subname));
+    my($file, $start, $end) = $app->subroutine_location($subname);
+    # string evals are treated as files with names like
+    # "(eval 123)[/some/file/name:456]"
+    my($source, $source_line) = $file =~ m/\[(.*):(\d+)\]$/;
+    $resp->data({
+        file    => $file,
+        start   => $start,
+        end     => $end,
+        source  => $source || $file,
+        source_line => $source_line || $start,
+    });
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
             [ $resp->encode() ]
         ];
 }
+
+sub _namespaces_in_package {
+    my $pkg = shift;
+
+    no strict 'refs';
+    return undef unless %{"${pkg}::"};
+
+    my @packages =  sort
+                    map { substr($_, 0, -2) }  # remove '::' at the end
+                    grep { m/::$/ }
+                    keys %{"${pkg}::"};
+    return \@packages;
+}
+
+sub _subs_in_package {
+    my $pkg = shift;
+
+    no strict 'refs';
+    my @subs =  sort
+                grep { defined &{"${pkg}::$_"} }
+                keys %{"${pkg}::"};
+    return \@subs;
+}
+
+
 
 1;
 
