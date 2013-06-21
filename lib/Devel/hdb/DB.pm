@@ -758,6 +758,10 @@ Return an instance of L<Devel::hdb::DB::Location> representing the currently
 stopped location in the debugged program.  This method returns undef if
 called when the debugged program is actively running.
 
+=item CLIENT->file_source($filename)
+
+Return a list of strings containing the source code for a loaded file.
+
 =back
 
 =head2 Breakpoints and Actions
