@@ -48,6 +48,15 @@ sub encode_perl_data {
             return sprintf('%s->%s%s%s', $path_expr, $bracket[0], $_, $bracket[1]);
         };
 
+        if (my $tied = _is_tied($value, $reftype)) {
+            local $_ = 'tied';  # &$_p needs this
+            my $rv = {  __reftype => $reftype,
+                        __refaddr => $refaddr,
+                        __tied    => encode_perl_data($tied, &$_p, $seen) };
+            $rv->{__blessed} = $blesstype if $blesstype;
+            return $rv;
+        }
+
         if ($reftype eq 'HASH') {
             $value = { map { $_ => encode_perl_data($value->{$_}, &$_p, $seen) } keys(%$value) };
 
@@ -86,6 +95,18 @@ sub encode_perl_data {
     }
 
     return $value;
+}
+
+sub _is_tied {
+    my($ref, $reftype) = @_;
+
+    my $tied;
+    if    ($reftype eq 'HASH')   { $tied = tied %$ref }
+    elsif ($reftype eq 'ARRAY')  { $tied = tied @$ref }
+    elsif ($reftype eq 'SCALAR') { $tied = tied $$ref }
+    elsif ($reftype eq 'GLOB')   { $tied = tied *$ref }
+
+    return $tied;
 }
 
 1;
