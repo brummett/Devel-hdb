@@ -1,3 +1,9 @@
+17 Oct 2013 - v0.10
+    * Fix keybinding problems on multiple browsers
+    * Fix rendering of HTML-like strings in code and data
+    * Send tied values over the wire and render them on the web frontend
+    * Fix undeclared test dependancy on WWW::Mechanize
+
 23 May 2013 - v0.09
     * After a fork(), the always stop the parent process
     * Add key bindings similar to the command-line debugger
