@@ -873,7 +873,7 @@ This method is called immediately after the debugged program calls fork()
 in the context of the child process.  The return value is ignored.
 
 Note that the $location will be the first executable statement _after_ the
-fork() in the parent process.
+fork() in the child process.
 
 =item CLIENT->notify_program_terminated($?)
 
