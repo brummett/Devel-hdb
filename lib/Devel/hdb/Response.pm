@@ -103,6 +103,8 @@ to the list of queued messages to be included in some future call to L<encode>.
 
 =head2 Methods
 
+=over 4
+
 =item $resp->data($data)
 
 Mutator for getting or setting the 'data' field of the message.  Accepts only
