@@ -4,7 +4,6 @@ use strict;
 package Devel::hdb;
 
 use Devel::hdb::App;
-use Devel::hdb::DB;
 use Devel::hdb::TraceFollow;
 use IO::Socket::INET;
 use IO::File;
