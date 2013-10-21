@@ -1,5 +1,8 @@
 package Devel::hdb::DB::Eval;
 
+use strict;
+use warnings;
+
 # This substitution is done so that we return HASH, as opposed to a list
 # An expression of %hash results in a list of key/value pairs that can't
 # be distinguished from a list.  A glob gets replaced by a glob ref.
@@ -17,6 +20,9 @@ package DB;
 # frame that's _not_ package DB, and evaluates the expr there.
 
 sub eval {
+
+    # vars set in the main DB package
+    our($single, $trace, $eval_string, $usercontext, @saved);
 
     local($^W) = 0;  # no warnings
 

@@ -1,5 +1,8 @@
 package Devel::hdb::Server;
 
+use strict;
+use warnings;
+
 use HTTP::Server::PSGI;
 our @ISA = qw( HTTP::Server::PSGI );
 

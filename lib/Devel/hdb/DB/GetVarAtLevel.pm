@@ -1,5 +1,8 @@
 package Devel::hdb::DB::GetVarAtLevel;
 
+use strict;
+use warnings;
+
 use Devel::hdb::DB::Eval;
 
 sub evaluate_complex_var_at_level {
