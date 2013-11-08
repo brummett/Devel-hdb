@@ -126,7 +126,7 @@ Devel::hdb::App::EncodePerlData - Encode Perl values in a -friendly way
 
 =head1 DESCRIPTION
 
-This utility module is used to take an artitrarily nested data structure, and
+This utility module is used to take an arbitrarily nested data structure, and
 return a value that may be safely JSON-encoded.
 
 =head2 Functions
@@ -144,7 +144,7 @@ returns a hashref with these keys
                 by Scalar::Util::reftype()
   __refaddr     Memory address of the reference, as returned by
                 Scalar::Util::refaddr()
-  __blessed     Package this reference is blessed into, as reurned
+  __blessed     Package this reference is blessed into, as returned
                 by Scalar::Util::blessed.
   __value       Reference to the unblessed data.
 
@@ -157,7 +157,7 @@ __value will be the stringified reference, like "CODE=(0x12345678)".  For
 v-strings and v-string refs, __value will by an arrayref containing the
 integers making up the v-string.
 
-encode_perl_data() handles arbitrarily neste data strucures, meaning that
+encode_perl_data() handles arbitrarily nested data structures, meaning that
 values in the __values slot may also be encoded this way.
 
 =back

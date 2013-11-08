@@ -108,7 +108,7 @@ next.  If the current statement involves function calls, these functions
 are run to completion and execution stops before the next statement at
 the current stack level.  If execution of these functions leaves the current
 stack frame, usually from an exception caught at a higher frame or a goto,
-execution pauses at the first staement following the unwinding.
+execution pauses at the first statement following the unwinding.
 
 =item /steoput
 

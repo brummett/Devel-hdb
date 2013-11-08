@@ -94,7 +94,7 @@ within the debugger.  The currently executing frame is the first element in
 the list.  Returns a JSON-encoded array where each item is a hash
 with the following keys:
   package       Package/namespace
-  subroutine    Fully-qualified subroutine name.  Includes the pacakge
+  subroutine    Fully-qualified subroutine name.  Includes the package
   subname       Subroutine name without the package included
   filename      File where the subroutine was defined
   lineno        Line execution is stopped on

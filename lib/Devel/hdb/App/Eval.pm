@@ -14,7 +14,7 @@ __PACKAGE__->add_route('post', '/getvar', \&do_getvar);
 # Evaluate some expression in the debugged program's context.
 # It works because when string-eval is used, and it's run from
 # inside package DB, then magic happens where it's evaluate in
-# the first non-DB-pacakge call frame.
+# the first non-DB-package call frame.
 # We're setting up a long_call so we can return back from all the
 # web-handler code (which are non-DB packages) before actually
 # evaluating the string.
@@ -128,7 +128,7 @@ Devel::hdb::App::Eval - Evaluate data in the debugged program's context
 
 =head1 DESCRIPTION
 
-Registers routes for evaluating artitrary Perl code and for inspecting
+Registers routes for evaluating arbitrary Perl code and for inspecting
 variables in the debugged program.
 
 =head2 Routes
@@ -140,7 +140,7 @@ variables in the debugged program.
 Evaluate a string of Perl code in the context of the debugged process.
 The Perl code to evaluate is in the body of the POST request.
 
-The code is evaluated in the contet of the nearest stack frame that
+The code is evaluated in the content of the nearest stack frame that
 is not part of the debugger.
 
 =item POST /getvar
