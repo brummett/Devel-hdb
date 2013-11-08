@@ -209,7 +209,7 @@ BEGIN {
     };
 };
 
-# NOTE: Look into trapping $SIG{__DIE__} se we can report
+# NOTE: Look into trapping $SIG{__DIE__} so we can report
 # untrapped exceptions back to the debugger.
 # inside the handler, note the value for $^S:
 # undef - died while parsing something
@@ -221,7 +221,7 @@ $SIG{__DIE__} = sub {
         my $exception = $_[0];
         # It's interesting to note that if we pass an arg to caller() to
         # find out the offending subroutine name, then the line reported
-        # changes.  Instead of reporting the line the exception occured
+        # changes.  Instead of reporting the line the exception occurred
         # (which it correctly does with no args), it returns the line which
         # called the function which threw the exception.
         # We'll work around it by calling it twice
