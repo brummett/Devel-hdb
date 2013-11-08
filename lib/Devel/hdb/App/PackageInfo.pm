@@ -51,7 +51,7 @@ Devel::hdb::App::PackageInfo - Get information about packages and subroutines
 
 =over 4
 
-=item /pkginfo/<pacakge>
+=item /pkginfo/<package>
 
 Returns a JSON-encoded hash with two keys: "packages" containing a list of
 namespaces within the requested package, and "subs" containing a list of
