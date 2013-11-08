@@ -132,7 +132,7 @@ are blue.  Lines with actions have a circle outline, and are dimmed when the
 breakpoint is inactive.
 
 The banner at the top of the Code Pane shows the current function and its
-arguments.  Clicking on the banner will scoll the Code Pane to show the
+arguments.  Clicking on the banner will scroll the Code Pane to show the
 currently executing line.
 
 Hover the mouse over a variable to see its value.  It shows the value in
@@ -145,7 +145,7 @@ The right side of the GUI shows watch expressions.  To add a new expression to
 the watch window, click on the "+".  To remove a watched expression, click on
 the "x" next to its name.  Composite types like Hashes and arrays have a blue
 circled number indicating how many elements belong to it.  To collapse/expand
-them, click the blue cicle.
+them, click the blue circle.
 
 =head3 Key bindings
 
