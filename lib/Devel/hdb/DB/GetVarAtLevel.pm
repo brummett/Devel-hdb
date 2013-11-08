@@ -93,7 +93,7 @@ sub get_var_at_level {
         # last chance, see if it's a package var
 
         if (my($sigil, $bare_varname) = ($varname =~ m/^([\$\@\%\*])(\w+)$/)) {
-            # a varname without a pacakge, try in the package at
+            # a varname without a package, try in the package at
             # that caller level
             my($package) = caller($level+1);
             $package ||= 'main';
