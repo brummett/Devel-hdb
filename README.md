@@ -50,6 +50,8 @@ debugger is currently stopped in is always at the top of the list.  Mousing
 over the function name will pop up information showing the full name of the
 function and what line execution has reached in that frame.
 
+Function names are prepended by a sigil indicating their context/wantarray-ness.
+
 Clicking on the yellow bar at the top of a code pane will scroll the code to
 show the currently executing line in that frame.
 
