@@ -64,7 +64,8 @@ sub _stack {
     }
     # TODO: put this into the above loop
     for (my $i = 0; $i < @stack-1; $i++) {
-        @{$stack[$i]}{'subroutine','subname','args'} = @{$stack[$i+1]}{'subroutine','subname','args'};
+        @{$stack[$i]}{qw(subroutine subname args wantarray evaltext hasargs is_require)}
+            = @{$stack[$i+1]}{qw(subroutine subname args wantarray evaltext hasargs is_require)};
     }
     $stack[-1]->{subroutine} = 'MAIN';
     $stack[-1]->{subname} = 'MAIN';
