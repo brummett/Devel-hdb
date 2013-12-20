@@ -22,10 +22,11 @@ tie %tied_hash, 'HdbHelper::Tied';
 my $encoded = encode_perl_data(\%tied_hash);
 ok($encoded, 'Encode a tied hash directly');
 ok(delete $encoded->{__refaddr}, 'encoded has a refaddr');
-ok(delete $encoded->{__tied}->{__refaddr}, 'tie object has a refaddr');
+ok(delete $encoded->{__value}->{__refaddr}, 'tie object has a refaddr');
 is_deeply($encoded,
     {   __reftype => 'HASH',
-        __tied => {
+        __tied => 1,
+        __value => {
             __reftype => 'SCALAR',
             __blessed => 'HdbHelper::Tied',
             __value => 'HdbHelper::Tied',
@@ -38,11 +39,12 @@ tie *$tied_handle, 'HdbHelper::Tied';
 $encoded = encode_perl_data($tied_handle);
 ok($encoded, 'Encode a tied handle directly');
 ok(delete $encoded->{__refaddr}, 'encoded has a refaddr');
-ok(delete $encoded->{__tied}->{__refaddr}, 'tie object has a refaddr');
+ok(delete $encoded->{__value}->{__refaddr}, 'tie object has a refaddr');
 is_deeply($encoded,
     {   __reftype => 'GLOB',
         __blessed => 'IO::Handle',
-        __tied => {
+        __tied  => 1,
+        __value => {
             __reftype => 'HASH',
             __blessed => 'HdbHelper::Tied',
             __value => { is_tied_handle => 'HdbHelper::Tied' },
@@ -64,11 +66,12 @@ $resp = $mech->post("${url}eval", content => '%tied_hash');
 ok($resp->is_success, 'Get value of a tied hash through api');
 my $answer = $json->decode($resp->content);
 ok(delete $answer->{data}->{result}->{__refaddr}, 'encoded has a refaddr');
-ok(delete $answer->{data}->{result}->{__tied}->{__refaddr}, 'tie object has a refaddr');
+ok(delete $answer->{data}->{result}->{__value}->{__refaddr}, 'tie object has a refaddr');
 is_deeply($answer->{data},
     {   expr => '%tied_hash',
         result => { __reftype => 'HASH',
-                    __tied => {
+                    __tied => 1,
+                    __value => {
                         __reftype => 'SCALAR',
                         __blessed => 'HdbHelper::Tied',
                         __value   => 'HdbHelper::Tied',
@@ -81,12 +84,13 @@ $resp = $mech->post("${url}eval", content => '$tied_handle');
 ok($resp->is_success, 'Get value of a tied handle through api');
 $answer = $json->decode($resp->content);
 ok(delete $answer->{data}->{result}->{__refaddr}, 'encoded has a refaddr');
-ok(delete $answer->{data}->{result}->{__tied}->{__refaddr}, 'encoded has a refaddr');
+ok(delete $answer->{data}->{result}->{__value}->{__refaddr}, 'encoded has a refaddr');
 is_deeply($answer->{data},
     { expr => '$tied_handle',
       result => { __blessed => 'IO::Handle',
                   __reftype => 'GLOB',
-                  __tied => {
+                  __tied => 1,
+                  __value => {
                         __blessed => 'HdbHelper::Tied',
                         __reftype => 'HASH',
                         __value => { is_tied_handle => 'HdbHelper::Tied' },

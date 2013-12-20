@@ -52,7 +52,8 @@ sub encode_perl_data {
             local $_ = 'tied';  # &$_p needs this
             my $rv = {  __reftype => $reftype,
                         __refaddr => $refaddr,
-                        __tied    => encode_perl_data($tied, &$_p, $seen) };
+                        __tied    => 1,
+                        __value   => encode_perl_data($tied, &$_p, $seen) };
             $rv->{__blessed} = $blesstype if $blesstype;
             return $rv;
         }
@@ -147,6 +148,8 @@ returns a hashref with these keys
   __blessed     Package this reference is blessed into, as returned
                 by Scalar::Util::blessed.
   __value       Reference to the unblessed data.
+  __tied        Flag indicating this variable is tied
+  __recursive   Flag indicating this reference was seen before
 
 If the reference was not blessed, then the __blessed key will not be present.
 __value is generally a copy of the underlying data.  For example, if the input
@@ -155,7 +158,11 @@ value's kays and values.  For typeblobs and glob refs, __value will be a
 hashref with the keys SCALAR, ARRAY, HASH, IO and CODE.  For coderefs,
 __value will be the stringified reference, like "CODE=(0x12345678)".  For
 v-strings and v-string refs, __value will by an arrayref containing the
-integers making up the v-string.
+integers making up the v-string.  For tied objects, __tied will be true
+and __value will contain the underlying tied data.
+
+if __recursive is true, then __value will contain a string representation
+of the first place this reference was seen in the data structure.
 
 encode_perl_data() handles arbitrarily nested data structures, meaning that
 values in the __values slot may also be encoded this way.
