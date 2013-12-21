@@ -6,7 +6,7 @@ use HdbHelper;
 use WWW::Mechanize;
 use JSON;
 
-use Test::More tests => 26;
+use Test::More tests => 28;
 
 use_ok('Devel::hdb::DB::GetVarAtLevel');
 *get_var_at_level = \&Devel::hdb::DB::GetVarAtLevel::get_var_at_level;
@@ -90,6 +90,10 @@ sub do_test_vars {
     is_var('@my_hash{@my_list, 2}', 1,
             [undef,'one','two','two'],
             'Get value of @my_hash{@my_list,2} one level up');
+    is_var('@my_hash{$one,"2"}', 1, ['one','two'],
+            'Get value of @my_hash{"1","2"} one level up');
+    is_var('@my_hash{qw( 1 2 )}', 1, ['one','two'],
+            'Get value of @my_hash{$one,2} one level up');
 
     test_sub_args(1,2,3);
 }

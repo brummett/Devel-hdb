@@ -12,7 +12,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 113;
+    plan tests => 121;
 }
 
 my $url = start_test_program();
@@ -165,6 +165,24 @@ check_resp($resp,
                     },
         },
         q(Get value of @my_hash{@my_list,2} at level 0));
+
+$resp = $mech->post($url.'getvar', {l => 0, v => q(@my_hash{'1', 2}) });
+check_resp($resp,
+        { expr => q(@my_hash{'1', 2}), level => 0,
+                result => { __reftype => 'ARRAY',
+                        __value => ['one','two'],
+                    },
+        },
+        q(Get value of @my_hash{'1',2} at level 0));
+
+$resp = $mech->post($url.'getvar', {l => 0, v => q(@my_hash{qw(2 1 )}) });
+check_resp($resp,
+        { expr => q(@my_hash{qw(2 1 )}), level => 0,
+                result => { __reftype => 'ARRAY',
+                        __value => ['two','one'],
+                    },
+        },
+        q(Get value of @my_hash{qw(2 1 )} at level 0));
 
 $resp = $mech->post($url.'getvar', {l => 0, v => '$@'});
 check_resp($resp,

@@ -18,17 +18,7 @@ sub evaluate_complex_var_at_level {
     my $var_value = get_var_at_level($varname, $level);
     return unless $var_value;
 
-    my @indexes = split(/\s*,\s*/, $index);
-    @indexes = map {
-        if (m/(\S+)\s*\.\.\s*(\S+)/) {
-            # it's a range
-            my($first,$last) = ($1, $2);
-            (get_var_at_level($first, $level) .. get_var_at_level($last, $level));
-        } else {
-            my $val = get_var_at_level($_, $level);
-            ref($val) ? @$val : $val;
-        }
-    } @indexes;
+    my @indexes = _parse_index_expression($index, $level);
 
     my @retval;
     if ($open eq '[') {
@@ -39,6 +29,55 @@ sub evaluate_complex_var_at_level {
         @retval = @$var_value{@indexes};
     }
     return (@retval == 1) ? $retval[0] : \@retval;
+}
+
+# Parse out things that could go between the brackets/braces in
+# an array/hash expression.  Hopefully this will be good enough,
+# otherwise we'll need a real grammar
+my %matched_close = ( '(' => '\)', '[' => '\]', '{' => '\}');
+sub _parse_index_expression {
+    my($string, $level) = @_;
+
+    $level++;  # don't count this level
+    my @indexes;
+    if ($string =~ m/qw([([{])\s*(.*)$/) {       # @list[qw(1 2 3)]
+        my $close = $matched_close{$1};
+        $2 =~ m/(.*)\s*$close/;
+        @indexes = split(/\s+/, $1);
+    } elsif ($string =~ m/(\S+)\s*\.\.\s*(\S+)/) { # @list[1 .. 4]
+        @indexes = (_parse_index_element($1, $level) .. _parse_index_element($2, $level));
+    } else {                            # @list[1,2,3]
+        @indexes = map { _parse_index_element($_, $level) }
+                    split(/\s*,\s*/, $string);
+    }
+    return @indexes;
+}
+
+sub _parse_index_element {
+    my($string, $level) = @_;
+
+    if ($string =~ m/^(\$|\@|\%)/) {
+        my $value = get_var_at_level($string, $level+1);
+        return _dereferenced_value($string, $value);
+    } elsif ($string =~ m/('|")(\w+)\1/) {
+        return $2;
+    } else {
+        return $string;
+    }
+}
+
+sub _dereferenced_value {
+    my($string, $value) = @_;
+    my $sigil = substr($string, 0, 1);
+    if (($sigil eq '@') and (ref($value) eq 'ARRAY')) {
+        return @$value;
+
+    } elsif (($sigil eq '%') and (ref($value) eq 'HASH')) {
+        return %$value;
+
+    } else {
+        return $value;
+    }
 }
 
 sub get_var_at_level {
