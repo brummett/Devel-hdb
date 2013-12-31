@@ -10,7 +10,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 14;
+    plan tests => 20;
 }
 
 my($url, $pid, $filename) = start_test_program();
@@ -104,7 +104,18 @@ for (my $i = 0; $i < @expected; $i++) {
         is($frame_filename, $filename, "Filename stack frame $i");
     }
 
-    is_deeply($stack->[$i], $expected[$i], "Stack frame $i");
+    # Some perls use 0 for false, others use ''
+    my($expected_hasargs, $hasargs) = ( delete($expected[$i]->{hasargs}), delete $stack->[$i]->{hasargs});
+    $hasargs = $expected_hasargs ? $hasargs : !$hasargs;
+    ok($hasargs, "Stack frame $i hasargs");
+
+    my($expected_wantarray, $wantarray) = ( delete($expected[$i]->{wantarray}), delete $stack->[$i]->{wantarray});
+    if (defined $expected_wantarray) {
+        $wantarray = $expected_wantarray ? $wantarray : !$wantarray;
+        ok($wantarray, "Stack frame $i wantarray");
+    } else {
+        ok(! defined($wantarray), "Stack frame $i wantarray");
+    }
 }
 
 
