@@ -1,3 +1,10 @@
+31 Dec 2013 - v0.11
+    * Documentation and typo fixes
+    * Stack now shows wantarray-ness
+    * Improved mouseover for hash keys
+    * Bug fixes for scrolling code windows, editing breakpoints, debugging
+        child processes
+
 17 Oct 2013 - v0.10
     * Fix keybinding problems on multiple browsers
     * Fix rendering of HTML-like strings in code and data
