@@ -75,11 +75,22 @@ sub restore {
     ( $@, $!, $^E, $,, $/, $\, $^W ) = @saved;
 }
 
-sub _line_offset_for_sub {
-    my($line, $subroutine) = @_;
+sub _sub_start_line {
+    my $subroutine = shift;
     no warnings 'uninitialized';
     if ($DB::sub{$subroutine} =~ m/(\d+)\-\d+$/) {
-        return $line - $1;
+        return $1;
+    } else {
+        return undef;
+    }
+}
+
+
+sub _line_offset_for_sub {
+    my($line, $subroutine) = @_;
+    my $sub_start_line = _sub_start_line($subroutine);
+    if (defined $sub_start_line) {
+        return $line - $sub_start_line;
     } else {
         return undef;
     }
@@ -108,26 +119,30 @@ sub input_trace_file {
         my($package, $filename, $line, $subroutine) = @_;
 
         my @line = split("\t", $fh->getline);
-        my($offset, $expected_sub, $expected_offset, $should_stop);
+        my($offset, $expected_sub, $expected_offset, $should_stop, $expected_line);
 
         if (($expected_sub, $expected_offset) = $line[0] =~ m/(.*?)\+(\d+)/) {
             $offset = _line_offset_for_sub($line, $subroutine);
             $should_stop = ($expected_sub ne $subroutine or $expected_offset != $offset);
+            $expected_line = _sub_start_line($subroutine) + $expected_offset;
         } else {
             my($file, $fileline) = $line[0] =~ m/(.*)?\:(\d+)/;
             $should_stop = ($file ne $filename or $fileline != $line);
+            $expected_line = $line[3];
         }
         if ($should_stop) {
+            my $sub_offset = _line_offset_for_sub($line, $subroutine);
             my $diff_data = {
                 'package'   => $package,
                 filename    => $filename,
                 line        => $line,
                 subroutine  => $subroutine,
-                sub_offset  => _line_offset_for_sub($line, $subroutine),
+                sub_offset  => $sub_offset,
+                expected_line => $expected_line,
             };
-            @$diff_data{'expected_package', 'expected_filename', 'expected_line',
+            @$diff_data{'expected_package', 'expected_filename',
                         'expected_subroutine','expected_sub_offset'}
-                = (@line[1, 2, 3, 4], $expected_offset);
+                = (@line[1, 2, 4], $expected_offset);
             $cb->($diff_data);
             undef $input_trace; # It's likely _every_ line will now be different
         }
