@@ -56,10 +56,10 @@ BEGIN {
 
 sub _line_offset_for_sub {
     my($self, $line, $subroutine) = @_;
-    my(undef, $start, undef) = $self->subroutine_location($subroutine);
+    my $loc = $self->subroutine_location($subroutine);
 
-    return defined $start
-            ? $line - $start
+    return $loc
+            ? $line - $loc->line
             : undef;
 }
 

@@ -31,21 +31,24 @@ sub subinfo {
     my($class, $app, $env, $subname) = @_;
 
     my $resp = Devel::hdb::Response->new('subinfo', $env);
-    my($file, $start, $end) = $app->subroutine_location($subname);
-    # string evals are treated as files with names like
-    # "(eval 123)[/some/file/name:456]"
-    my($source, $source_line) = $file =~ m/\[(.*):(\d+)\]$/;
-    $resp->data({
-        file    => $file,
-        start   => $start,
-        end     => $end,
-        source  => $source || $file,
-        source_line => $source_line || $start,
-    });
-    return [ 200,
-            [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
-        ];
+    my $loc = $app->subroutine_location($subname);
+
+    if ($loc) {
+        my @keys = qw( filename line end source source_line );
+        my %data;
+        @data{@keys} = map { $loc->$_ } @keys;
+        $resp->data(\%data);
+
+        return [ 200,
+                [ 'Content-Type' => 'application/json' ],
+                [ $resp->encode() ],
+            ];
+    } else {
+        return [ 404,
+                [ 'Content-Type' => 'text/html' ],
+                [ "$subname not found" ],
+            ];
+    }
 }
 
 sub _namespaces_in_package {

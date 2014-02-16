@@ -10,12 +10,12 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 61;
+    plan tests => 63;
 }
 
 my $json = JSON->new();
 my $url = start_test_program();
-my $mech = WWW::Mechanize->new();
+my $mech = WWW::Mechanize->new(autocheck => 0);
 
 my $resp = $mech->get($url.'continue');
 ok($resp->is_success, 'Run to breakpoint');
@@ -81,8 +81,8 @@ foreach my $test ( @tests ) {
         ok($resp->is_success, "Get source location about $subname in $package");
         my $sub_info = $json->decode($resp->content);
         is_deeply($sub_info->{data},
-                {   file    => $filename,
-                    start   => $sub_locations{$subname},
+                {   filename => $filename,
+                    line   => $sub_locations{$subname},
                     end     => $sub_locations{$subname},
                     source  => $filename,
                     source_line => $sub_locations{$subname},
@@ -95,16 +95,20 @@ $resp = $mech->get("${url}subinfo/main::on_the_fly");
 ok($resp->is_success, 'Get info about main::on_the_fly');
 my $sub_info = $json->decode($resp->content);
 
-my $file = delete $sub_info->{data}->{file};
+my $file = delete $sub_info->{data}->{filename};
 like($file, qr{\(eval \d+\)\[$filename:1\]}, 'file matches expected');
 is_deeply($sub_info->{data},
-    {   start   => 1,
+    {   line   => 1,
         end     => 4,
         source  => $filename,
         source_line => 1,
     },
     'location matches expected');
     
+
+$resp = $mech->get("${url}subinfo/non::existent::sub");
+ok($resp->is_error, 'Get info about nonexistent sub is an error');
+is($resp->code, 404, 'Error was 404');
 
 sub is_in {
     my($target, $list, $msg) = @_;
