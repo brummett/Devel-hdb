@@ -8,8 +8,8 @@ use JSON;
 
 use Test::More tests => 26;
 
-use_ok('Devel::CommonDB::GetVarAtLevel');
-*get_var_at_level = \&Devel::CommonDB::GetVarAtLevel::get_var_at_level;
+use_ok('Devel::Chitin::GetVarAtLevel');
+*get_var_at_level = \&Devel::Chitin::GetVarAtLevel::get_var_at_level;
 
 test_vars();
 

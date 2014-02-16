@@ -7,7 +7,7 @@ use WWW::Mechanize;
 use JSON;
 use IO::File;
 use Data::Dumper;
-use Devel::CommonDB::Actionable;
+use Devel::Chitin::Actionable;
 
 use Test::More;
 if ($^O =~ m/^MS/) {

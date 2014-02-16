@@ -37,7 +37,7 @@ $resp = $mech->get($url.'stepover');
 ok($resp->is_success, 'step over');
 my $message = $json->decode($resp->content);
 is($message->[0]->{data}->[0]->{subroutine},
-    'Devel::CommonDB::exiting::at_exit',
+    'Devel::Chitin::exiting::at_exit',
     'Stopped in at_exit()');
 is_deeply($message->[1],
     { type => 'termination', data => { exit_code => 2 } },

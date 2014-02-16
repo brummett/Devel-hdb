@@ -3,8 +3,8 @@ use strict;
 
 package Devel::hdb::App;
 
-use Devel::CommonDB;
-use base 'Devel::CommonDB';
+use Devel::Chitin;
+use base 'Devel::Chitin';
 use Devel::hdb::Server;
 use IO::File;
 use LWP::UserAgent;
