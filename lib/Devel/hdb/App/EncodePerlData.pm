@@ -72,7 +72,7 @@ sub encode_perl_data {
                 $tmpvalue{CODE} = *{$value}{CODE};
             }
             if (*{$value}{IO}) {
-                $tmpvalue{IO} = 'fileno '.fileno(*{$value}{IO});
+                $tmpvalue{IO} = encode_perl_data(fileno(*{$value}{IO}));
             }
             $value = \%tmpvalue;
         } elsif (($reftype eq 'REGEXP')

@@ -147,6 +147,11 @@ the "x" next to its name.  Composite types like Hashes and arrays have a blue
 circled number indicating how many elements belong to it.  To collapse/expand
 them, click the blue circle.
 
+A watched typeglob will show all the used slots within the glob.  Older
+versions of perl will always create an undefined value in the SCALAR slot.
+The value for the IO slot will be the file descriptor number of the
+filehandle, or undef if it is closed.
+
 =head3 Key bindings
 
 The debugger responds to these keys, which are generally the same as the

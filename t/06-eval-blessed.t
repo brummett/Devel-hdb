@@ -94,7 +94,7 @@ ok($resp->is_success, 'Get value of an IO::File instance');
 $answer = $json->decode($resp->content);
 ok(delete $answer->{data}->{result}->{__refaddr}, 'encoded has a refaddr');
 my $handle_info = delete $answer->{data}->{result}->{__value}->{IO};
-like($handle_info, qr(fileno \d+), 'Filehandle looks ok');
+like($handle_info, qr(^\d+$), 'Filehandle looks ok');
 ok(delete $answer->{data}->{result}->{__value}->{SCALAR}->{__refaddr}, 'embedded SCALAR has a refaddr');
 is_deeply($answer->{data},
     { expr => '$file',
