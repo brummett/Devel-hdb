@@ -65,8 +65,7 @@ sub do_getvar {
         return _eval_plumbing_closure($app,$varname, $resp, $env, $result_packager);
     }
 
-    my $adjust = DB->_first_program_frame();
-    my $value = eval { DB->get_var_at_level($varname, $level + $adjust - 1) };
+    my $value = eval { $app->get_var_at_level($varname, $level) };
     my $exception = $@;
 
     my $resp_data = { expr => $varname, level => $level };
