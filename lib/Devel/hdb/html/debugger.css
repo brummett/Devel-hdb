@@ -250,6 +250,10 @@ div#watch-expressions-title {
     padding-bottom: 0.25em;
 }
 
+.expr-collapse-button.collapsed:after {
+    content: '...';
+}
+
 /* The right-click breakpoint menu */
 .breakpoint-condition {
     display: inline-block;

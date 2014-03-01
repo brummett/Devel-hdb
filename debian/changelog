@@ -1,3 +1,19 @@
+libdevel-hdb-perl (0.10-1) unstable; urgency=low
+  * Documentation and typo fixes
+  * Stack now shows wantarray-ness
+  * Improved mouseover for hash keys
+  * Bug fixes for scrolling code windows, editing breakpoints, debugging child processes
+
+ -- Anthony Brummett <brummett@cpan.org>  Fri, 31 Dec 2013 14:55:00 -0500
+
+libdevel-hdb-perl (0.10-1) unstable; urgency=low
+  * Fix keybinding problems on multiple browsers
+  * Fix rendering of HTML-like strings in code and data
+  * Send tied values over the wire and render them on the web frontend
+  * Fix undeclared test dependancy on WWW::Mechanize
+
+ -- Anthony Brummett <brummett@cpan.org>  Thu, 17 Oct 2013 15:25:00 -0500
+
 libdevel-hdb-perl (0.09-1) unstable; urgency=low
   * After a fork(), the always stop the parent process
   * Add key bindings similar to the command-line debugger

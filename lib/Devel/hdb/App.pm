@@ -35,7 +35,7 @@ sub _make_listen_socket {
     my $self = shift;
     my %server_params = @_;
 
-    $server_params{host} = $Devel::hdb::HOST || '127.0.0.1';
+    $Devel::hdb::HOST = $server_params{host} = $Devel::hdb::HOST || '127.0.0.1';
     if (!exists($server_params{port}) and defined($Devel::hdb::PORT)) {
         $server_params{port} = $Devel::hdb::PORT;
     }
@@ -46,7 +46,7 @@ sub _make_listen_socket {
         $server_params{server_ready} = sub { $self->init_debugger };
     }
 
-    $Devel::hdb::HOST = $Devel::hdb::PORT = $Devel::hdb::LISTEN_SOCK = undef;
+    $Devel::hdb::LISTEN_SOCK = undef;
     $self->{server} = Devel::hdb::Server->new( %server_params );
 }
 

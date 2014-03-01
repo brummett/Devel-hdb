@@ -20,9 +20,12 @@ my $out_fh;
 my $program_source;
 sub start_test_program {
 
-    my($program_file, $module_args);
+    my($program_file, $module_args, $given_source);
     if ($_[0] and $_[0] eq '-file') {
         (undef, $program_file) = splice(@_,0,2);
+    }
+    if ($_[0] and $_[0] eq '-source') {
+        (undef, $program_source) = splice(@_,0,2);
     }
     if ($_[0] and $_[0] eq '-module_args') {
         (undef, $module_args) = splice(@_,0,2);
@@ -82,7 +85,7 @@ sub start_test_program {
     $HdbHelper::child_pid = $pid;
 
     if (wantarray) {
-        return ("http://localhost:${port}/", $pid);
+        return ("http://localhost:${port}/", $pid, $program_file);
     } else {
         return "http://localhost:${port}/";
     }

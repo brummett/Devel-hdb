@@ -98,7 +98,7 @@ is_deeply($answer,
                   result => {
                       __reftype => 'GLOB',
                       __value => {
-                        IO => 'fileno 1',
+                        IO => 1,
                         SCALAR => {
                             __reftype => 'SCALAR',
                             __value => undef

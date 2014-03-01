@@ -41,6 +41,26 @@ Double-click on an existing expression to edit the expression.
 
 For arrays, hashes and globs, click on the blue circle to collapse/expand it
 
+### Stack
+
+The current stack is shown to the left of the code pane.  The inital program
+frame, not part of any function, is called "MAIN".  Entering into a function
+will add a new function name to the top of the list, so that the function the
+debugger is currently stopped in is always at the top of the list.  Mousing
+over the function name will pop up information showing the full name of the
+function and what line execution has reached in that frame.
+
+Function names are prepended by a sigil indicating their context/wantarray-ness.
+
+Clicking on the yellow bar at the top of a code pane will scroll the code to
+show the currently executing line in that frame.
+
+### Mouseover variables
+
+Resting the pointer on a Perl variable in the code pane will show its value.
+When looking at a stack frame other than the most recent, it will show the
+value from that stack frame.
+
 ### Child Processes
 
 If the debugged program forks, it will pop up a dialog giving the option to

@@ -96,17 +96,19 @@ its value is copied to the Response instance.
 
 =item $resp = queue($type [, $env])
 
-Creates a new message jsut as new() does.  The newly created message is added
+Creates a new message just as new() does.  The newly created message is added
 to the list of queued messages to be included in some future call to L<encode>.
 
 =back
 
 =head2 Methods
 
+=over 4
+
 =item $resp->data($data)
 
 Mutator for getting or setting the 'data' field of the message.  Accepts only
-a single scalar, which may be a reference to a more complicated tyoe.
+a single scalar, which may be a reference to a more complicated type.
 
 =item $string = $resp->encode();
 

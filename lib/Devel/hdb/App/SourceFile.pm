@@ -78,7 +78,7 @@ second element is 0 if the line is not breakable, and true if it is.
 
 =item /loadedfiles
 
-Returns a JSON-encoded array of files names loaded by the debuged program.
+Returns a JSON-encoded array of files names loaded by the debugged program.
 This list also contains the files used by the debugger, and the file-like
 entities for "eval"ed strings.
 

@@ -8,7 +8,7 @@ use Devel::hdb::TraceFollow;
 use IO::Socket::INET;
 use IO::File;
 
-our $VERSION = 0.09;
+our $VERSION = 0.11;
 
 sub import {
     my $class = shift;
@@ -72,7 +72,7 @@ To debug a Perl program, start it like this:
     perl -d:hdb youprogram.pl
 
 It will print a message on STDERR with the URL the debugger is listening to.
-Point your web browser at this URL and it will being up the debugger GUI.
+Point your web browser at this URL and it will bring up the debugger GUI.
 It defaults to listening on localhost port 8080; to use a different port,
 start it like this:
 
@@ -143,7 +143,7 @@ are blue.  Lines with actions have a circle outline, and are dimmed when the
 breakpoint is inactive.
 
 The banner at the top of the Code Pane shows the current function and its
-arguments.  Clicking on the banner will scoll the Code Pane to show the
+arguments.  Clicking on the banner will scroll the Code Pane to show the
 currently executing line.
 
 Hover the mouse over a variable to see its value.  It shows the value in
@@ -156,7 +156,12 @@ The right side of the GUI shows watch expressions.  To add a new expression to
 the watch window, click on the "+".  To remove a watched expression, click on
 the "x" next to its name.  Composite types like Hashes and arrays have a blue
 circled number indicating how many elements belong to it.  To collapse/expand
-them, click the blue cicle.
+them, click the blue circle.
+
+A watched typeglob will show all the used slots within the glob.  Older
+versions of perl will always create an undefined value in the SCALAR slot.
+The value for the IO slot will be the file descriptor number of the
+filehandle, or undef if it is closed.
 
 =head3 Key bindings
 

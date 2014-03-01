@@ -48,6 +48,16 @@ sub encode_perl_data {
             return sprintf('%s->%s%s%s', $path_expr, $bracket[0], $_, $bracket[1]);
         };
 
+        if (my $tied = _is_tied($value, $reftype)) {
+            local $_ = 'tied';  # &$_p needs this
+            my $rv = {  __reftype => $reftype,
+                        __refaddr => $refaddr,
+                        __tied    => 1,
+                        __value   => encode_perl_data($tied, &$_p, $seen) };
+            $rv->{__blessed} = $blesstype if $blesstype;
+            return $rv;
+        }
+
         if ($reftype eq 'HASH') {
             $value = { map { $_ => encode_perl_data($value->{$_}, &$_p, $seen) } keys(%$value) };
 
@@ -62,7 +72,7 @@ sub encode_perl_data {
                 $tmpvalue{CODE} = *{$value}{CODE};
             }
             if (*{$value}{IO}) {
-                $tmpvalue{IO} = 'fileno '.fileno(*{$value}{IO});
+                $tmpvalue{IO} = encode_perl_data(fileno(*{$value}{IO}));
             }
             $value = \%tmpvalue;
         } elsif (($reftype eq 'REGEXP')
@@ -88,6 +98,18 @@ sub encode_perl_data {
     return $value;
 }
 
+sub _is_tied {
+    my($ref, $reftype) = @_;
+
+    my $tied;
+    if    ($reftype eq 'HASH')   { $tied = tied %$ref }
+    elsif ($reftype eq 'ARRAY')  { $tied = tied @$ref }
+    elsif ($reftype eq 'SCALAR') { $tied = tied $$ref }
+    elsif ($reftype eq 'GLOB')   { $tied = tied *$ref }
+
+    return $tied;
+}
+
 1;
 
 =pod
@@ -105,7 +127,7 @@ Devel::hdb::App::EncodePerlData - Encode Perl values in a -friendly way
 
 =head1 DESCRIPTION
 
-This utility module is used to take an artitrarily nested data structure, and
+This utility module is used to take an arbitrarily nested data structure, and
 return a value that may be safely JSON-encoded.
 
 =head2 Functions
@@ -123,9 +145,11 @@ returns a hashref with these keys
                 by Scalar::Util::reftype()
   __refaddr     Memory address of the reference, as returned by
                 Scalar::Util::refaddr()
-  __blessed     Package this reference is blessed into, as reurned
+  __blessed     Package this reference is blessed into, as returned
                 by Scalar::Util::blessed.
   __value       Reference to the unblessed data.
+  __tied        Flag indicating this variable is tied
+  __recursive   Flag indicating this reference was seen before
 
 If the reference was not blessed, then the __blessed key will not be present.
 __value is generally a copy of the underlying data.  For example, if the input
@@ -134,9 +158,13 @@ value's kays and values.  For typeblobs and glob refs, __value will be a
 hashref with the keys SCALAR, ARRAY, HASH, IO and CODE.  For coderefs,
 __value will be the stringified reference, like "CODE=(0x12345678)".  For
 v-strings and v-string refs, __value will by an arrayref containing the
-integers making up the v-string.
+integers making up the v-string.  For tied objects, __tied will be true
+and __value will contain the underlying tied data.
 
-encode_perl_data() handles arbitrarily neste data strucures, meaning that
+if __recursive is true, then __value will contain a string representation
+of the first place this reference was seen in the data structure.
+
+encode_perl_data() handles arbitrarily nested data structures, meaning that
 values in the __values slot may also be encoded this way.
 
 =back
