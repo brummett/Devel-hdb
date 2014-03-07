@@ -63,6 +63,15 @@ sub _line_offset_for_sub {
             : undef;
 }
 
+sub _line_from_sub_and_offset {
+    my($self, $subroutine, $offset) = @_;
+    my $loc = $self->subroutine_location($subroutine);
+
+    return $loc
+            ? $loc->line + $offset
+            : undef;
+}
+
 package Devel::hdb::Trace;
 use base 'Devel::hdb::TraceFollow';
 
@@ -125,7 +134,10 @@ sub notify_trace {
     my $should_stop;
     if (my ($expected_sub, $expected_offset) = $exp_location =~ m/(.*)\+(\d+)$/) {
         my $offset = $self->_line_offset_for_sub($at_line, $at_subname);
-        $should_stop = ($expected_sub ne $at_subname or $expected_offset != $offset);
+        if ($expected_sub ne $at_subname or $expected_offset != $offset) {
+            $should_stop = 1;
+            $exp_line = $self->_line_from_sub_and_offset($expected_sub, $expected_offset);
+        }
 
     } elsif( my($file, $line) = $exp_location =~ m/(.*):(\d+)$/) {
         $should_stop = ($file ne $at_file or $line != $at_line);
