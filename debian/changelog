@@ -1,4 +1,10 @@
-libdevel-hdb-perl (0.10-1) unstable; urgency=low
+libdevel-hdb-perl (0.12-1) unstable; urgency=low
+  * Extracted debugger infrastructure into a separate module: Devel::Chitin
+  * Fix a bug when a difference is found in follow mode
+
+ -- Anthony Brummett <brummett@cpan.org>  Tue, 4 Mar 2014 14:55:00 -0500
+
+libdevel-hdb-perl (0.11-1) unstable; urgency=low
   * Documentation and typo fixes
   * Stack now shows wantarray-ness
   * Improved mouseover for hash keys

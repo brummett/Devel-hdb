@@ -1,3 +1,7 @@
+4 Mar 2014 - v0.12
+    * Extracted debugger infrastructure into a separate module: Devel::Chitin
+    * Fix a bug when a difference is found in follow mode
+
 31 Dec 2013 - v0.11
     * Documentation and typo fixes
     * Stack now shows wantarray-ness
