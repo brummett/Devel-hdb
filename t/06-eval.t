@@ -98,7 +98,10 @@ is_deeply($answer,
                   result => {
                       __reftype => 'GLOB',
                       __value => {
+                        NAME => 'STDOUT',
+                        PACKAGE => 'main',
                         IO => 1,
+                        IOseek => undef,
                         SCALAR => {
                             __reftype => 'SCALAR',
                             __value => undef

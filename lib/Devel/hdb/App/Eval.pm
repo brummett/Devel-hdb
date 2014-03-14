@@ -3,10 +3,11 @@ package Devel::hdb::App::Eval;
 use strict;
 use warnings;
 
+use Data::Transform::ExplicitMetadata qw(encode);
+
 use base 'Devel::hdb::App::Base';
 
 use Devel::hdb::Response;
-use Devel::hdb::App::EncodePerlData qw(encode_perl_data);
 
 __PACKAGE__->add_route('post', '/eval', \&do_eval);
 __PACKAGE__->add_route('post', '/getvar', \&do_getvar);
@@ -83,7 +84,7 @@ sub do_getvar {
             die $exception
         }
     } else {
-        $value = encode_perl_data($value);
+        $value = encode($value);
         $resp_data->{result} = $value;
     }
     $resp->data($resp_data);
@@ -109,9 +110,9 @@ sub _eval_plumbing_closure {
                 my($result, $exception) = @_;
                 my $data;
                 if ($exception) {
-                    $data->{exception} = encode_perl_data($exception);
+                    $data->{exception} = encode($exception);
                 } else {
-                    $data->{result} = encode_perl_data(@$result < 2 ? $result->[0] : $result );
+                    $data->{result} = encode(@$result < 2 ? $result->[0] : $result );
                 }
                 $data = $result_packager->($data);
 

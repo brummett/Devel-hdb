@@ -98,8 +98,7 @@ my @expected = (
 for (my $i = 0; $i < @expected; $i++) {
     my $frame_filename = delete($stack->[$i]->{filename});
     if ($stack->[$i]->{evaltext}) {
-        my $escaped_filename = quotemeta($filename);
-        like($frame_filename, qr(\(eval \d+\)[$escaped_filename:\d+]), "Filename stack frame $i");
+        like($frame_filename, qr(\(eval \d+\)[\Q$filename\E:\d+]), "Filename stack frame $i");
     } else {
         is($frame_filename, $filename, "Filename stack frame $i");
     }

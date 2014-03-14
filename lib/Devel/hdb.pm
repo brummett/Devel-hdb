@@ -161,7 +161,7 @@ them, click the blue circle.
 A watched typeglob will show all the used slots within the glob.  Older
 versions of perl will always create an undefined value in the SCALAR slot.
 The value for the IO slot will be the file descriptor number of the
-filehandle, or undef if it is closed.
+filehandle and its position as reported by sysseek(), or undef if it is closed.
 
 =head3 Key bindings
 

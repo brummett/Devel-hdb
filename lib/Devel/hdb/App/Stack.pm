@@ -14,7 +14,7 @@ use Devel::hdb::Response;
 use Exporter 'import';
 our @EXPORT_OK = qw(_serialize_stack);
 
-use Devel::hdb::App::EncodePerlData qw(encode_perl_data);
+use Data::Transform::ExplicitMetadata qw(encode);
 
 __PACKAGE__->add_route('get', '/stack', \&stack);
 
@@ -41,7 +41,7 @@ sub _serialize_stack {
             $frame{subname} .= "($frame{autoload})";
         }
 
-        my @encoded_args = map { encode_perl_data($_) } @{$frame{args}};
+        my @encoded_args = map { encode($_) } @{$frame{args}};
         $frame{args} = \@encoded_args;
 
         push @stack, \%frame;

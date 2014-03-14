@@ -8,27 +8,12 @@ use JSON;
 use Devel::hdb::App;
 use Scalar::Util;
 
-use Devel::hdb::App::EncodePerlData qw(encode_perl_data);
-
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 32;
+    plan tests => 29;
 }
-
-my $encoded = encode_perl_data(bless { a => [1,2,3]}, 'Foo');
-ok($encoded, 'Encode a blessed hashref directly');
-ok(delete $encoded->{__refaddr}, 'encoded has a refaddr');
-ok(delete $encoded->{__value}->{a}->{__refaddr}, 'sub-array has a refaddr');
-is_deeply($encoded,
-    {   __blessed => 'Foo',
-        __reftype => 'HASH',
-        __value => { a => {
-                        __reftype => 'ARRAY',
-                        __value => [1,2,3] }
-                    } },
-    'Encoded blessed hash directly');
 
 my $url = start_test_program();
 
@@ -96,11 +81,14 @@ ok(delete $answer->{data}->{result}->{__refaddr}, 'encoded has a refaddr');
 my $handle_info = delete $answer->{data}->{result}->{__value}->{IO};
 like($handle_info, qr(^\d+$), 'Filehandle looks ok');
 ok(delete $answer->{data}->{result}->{__value}->{SCALAR}->{__refaddr}, 'embedded SCALAR has a refaddr');
+like(delete $answer->{data}->{result}->{__value}->{NAME}, qr(GEN\d), 'glob name');
 is_deeply($answer->{data},
     { expr => '$file',
       result => { __blessed => 'IO::File',
                   __reftype => 'GLOB',
                   __value => {
+                        PACKAGE => 'Symbol',
+                        IOseek => '0 but true',
                         SCALAR => {
                             __reftype => 'SCALAR',
                             __value => undef,
@@ -113,13 +101,10 @@ $resp = $mech->post("${url}eval", content => '$re');
 ok($resp->is_success, 'Get value of a Regex instance');
 $answer = $json->decode($resp->content);
 ok(delete $answer->{data}->{result}->{__refaddr}, 'encoded has a refaddr');
-my $expected_re = qr(abc) . '';
-my $expected_reftype = Scalar::Util::reftype(qr(abc));
 is_deeply($answer->{data},
     { expr => '$re',
-      result => { __blessed => 'Regexp',
-                  __reftype => $expected_reftype,
-                  __value => $expected_re,
+      result => { __reftype => 'REGEXP',
+                  __value => [ 'abc', 'i' ],
                 }
     },
     'value is correct');
@@ -163,7 +148,7 @@ my $string = "a string";
 my $scalar = bless \$string, 'ScalarThing';
 my $code = bless sub { 1; }, 'CodeThing';
 my $file = IO::File->new(__FILE__);
-my $re = qr(abc);
+my $re = qr(abc)i;
 my $complex = bless [ $hash, $array, $scalar ], 'ComplexThing';
 $DB::single=1;
 1;
