@@ -1,0 +1,316 @@
+GET /
+Return some basic data about the currently stopped program
+
+Returns 200 and JSON in the body
+{
+    program_name: String - What $0 was when the program started
+    perl_version: String - $^V
+    db: url - where to get the debugger application (/db)
+    source: url - Where to get the source for $0 (/source/...)
+    loaded_files: url - Where to get the list of all loaded files (/source)
+    location: url - Where to get the current stack frame (/stack/...)
+    stack: url - where to get the whole stack (/stack)
+    breakpoints: url - where to the breakpoint info (/breakpoints)
+    actions: url - where to get action info (/actions)
+    config: url - where to get config file info (/config)
+    stepin: url - URL to make the debugger step-in
+    stepover: url - URL to make the debugger step-over
+    stepout: url - URL to make the debugger step-out
+    continue: url - URL to make the debugger continue
+    eval: URL - where to make an eval request
+    getvar: URL - where to make a getvar request
+    packageinfo: URL - get info about packages
+    subinfo: URL - get info about subroutines
+    exit: URL - request the program terminate
+}
+
+----------------------------------------------------------
+
+GET /program_name
+Get what $0 was set to when the program started
+
+Returns 200 and text in the body
+
+----------------------------------------------------------
+
+GET /perl_version
+$^V
+
+Returns 200 and text in the body
+
+-----------------------------------------------------------
+
+GET /source
+Get a list of all the source code files loaded by the application
+
+Returns 200 and JSON in the body
+[
+    { filename: String - File name
+      href: URL - Where to get the source for this file (/source/...)
+    },
+    { filename:
+      href:
+    },
+    ...
+]
+
+-----------------------------------------------------------
+
+GET /source/<pathname>
+Get the source code for one file
+
+Returns 200 if the file is loaded and exists, JSON in the body
+{
+    filename: String - file name
+    lines: Array of strings, one per line
+    breakable: Array of bools, one per line, indicating whether that line
+                is breakable
+}
+
+Return 404 if the file is not loaded, or does not exist, or the user does not
+have permission to read it
+
+---------------------------------------------------------------
+
+GET /stack
+Get the current execution stack
+
+Returns 200 and JSON in the body
+[
+    { filename: String - File name
+      line: Integer - What line it's stopped on
+      subname: String - Subroutine it's stopped in
+      href: URL - url for this stack frame
+    },
+    ...
+]
+
+----------------------------------------------------------------
+
+GET /stack/<id>
+HEAD /stack/<id>
+
+Get info about one particular stack frame.  <id> is an integer representing
+the requested depth.  0 is the most recent stack frame.
+
+If the requested stack frame exists, returns 200 and JSON in the body.
+The header X-Stack-Hash will be an md5 of the file+line+args for this
+frame.  The caller may request the HEAD to retrieve the header and avoid
+re-getting data it already knows.
+
+{   filename: String - File name
+    file_href: URL - url for this file
+    line: Integer - Line the debugger is stopped on
+    subname: String - Short name for this subroutine
+    subroutine: String - Fully qualified package::subroutine
+    args: [...] List of arguments to this sub, encoded
+    wantarray: 1, 0, undef - wantarray for this stack level
+    hasargs: boolean - if this sub call had arguments
+    package: String - Name of the package at this stack level
+    evaltext: String - the text of the "eval EXPR" statement
+    is_require: boolean - true if the frame is created by a "require" or "use"
+                            statement
+}
+
+Returns 404 if that stack frame does not exist
+
+------------------------------------------------------------------
+
+GET /breakpoints
+GET /actions
+
+Get the list of breakpoints/actions set in the program
+
+Returns 200 and JSON in the body
+[
+    { filename: String - File name
+      file_href: URL for this file
+      line: Integer
+      code: String - Condition for the breakpoint (1 if unconditional)
+      inactive: boolean - True if the breakpoint is inactive
+      href: URL for this breakpoint
+    },
+    ...
+]
+
+----------------------------------------------------------------------
+
+PUT /breakpoints
+PUT /actions
+
+Set a breakpoint/action.  Body contains JSON
+{ filename: String
+  line: Integer
+  code: String
+  inactive: boolean
+}
+
+Returns 201 if successful, and JSON in the body
+{ filename: String
+  line: Integer
+  code: String
+  inactive: boolean
+  href: URL (/breakpoints/...)
+}
+Each href will contain a unique identifier
+
+Returns 404 if the file is not loaded.
+Returns 403 if the line is not breakable.
+
+-----------------------------------------------------------------------
+
+GET /breakpoints/<id>
+GET /actions/<id>
+
+Get a breakpoint/action by its unique identifier
+
+Returns 200 if successful and JSON in the body
+{ filename: String
+  line: Integer
+  code: String
+  inactive: boolean
+  href: URL (/breakpoints/...)
+}
+
+Returns 404 if there is no breakpoint/action with that id.
+
+--------------------------------------------------------------------------
+
+GET /breakpoints/?filename=<filename>&line=<lineno>
+GET /breakpoints/?filename=<filename>
+GET /actions/?filename=<filename>&line=<lineno>
+GET /actions/?filename=<filename>
+
+Get a list of breakpoints/actions matching the query
+
+Returns 200 if successful and JSON in the body
+[
+    { filename: String
+      line: Integer
+      code: String
+      inactive: boolean
+      href: URL (/breakpoints/...)
+    },
+    ...
+]
+
+Returns 404 if the file is not loaded.
+Returns 403 if the line is not breakable.
+
+-------------------------------------------------------------------------
+
+POST /breakpoints/<id>
+POST /actions/<id>
+
+Change a breakpoint/action.  Body contains JSON hash of which keys to change, code or inactive.
+Returns 200 if successful and JSON in the body
+{ filename: String
+  line: Integer
+  code: String
+  inactive: boolean
+  href: URL (/breakpoints/...)
+}
+
+Returns 404 if there is no breakpoint/action with that ID.
+
+-----------------------------------------------------------------------
+
+DELETE /breakpoints/<id>
+DELETE /actions/<id>
+
+Remove a breakpoint/action.
+
+Returns 204 is successful.
+Returns 404 if there is no breakpoint/action with that ID
+
+-------------------------------------------------------------------------
+
+POST /config/<filename>
+
+Request the debugger load the named config file.
+
+Returns Returns 204 is successful.
+Returns 404 if there is no file matching that name
+
+-------------------------------------------------------------------------
+
+PUT /config/<filename>
+
+Request the debugger save its configuration to the named file.
+
+Returns Returns 204 is successful.
+Returns 404 if there is no file matching that name
+
+-------------------------------------------------------------------------
+
+POST /stepin
+
+Request the debugger step in to the next statement.
+
+Returns 204 if successful.  The client will probably want to to a GET /stack
+next to see where it is now.
+
+-------------------------------------------------------------------------
+
+POST /stepover
+
+Request the debugger step over the next statement.
+
+Returns 204 if successful.  The client will probably want to to a GET /stack
+next to see where it is now.
+
+-------------------------------------------------------------------------
+
+POST /stepout
+
+Request the debugger return from the current subroutine
+
+Returns 204 if successful.  The client will probably want to to a GET /stack
+next to see where it is now.
+
+-------------------------------------------------------------------------
+
+POST /continue
+
+Request the debugger continue execution
+
+Returns 204 if successful.  The client will probably want to to a GET /stack
+next to see where it is now.
+
+-------------------------------------------------------------------------
+
+POST /eval
+
+Request the debugger evaluate some Perl code in the debugged program's most
+recent stack frame.  The Perl to be executed is in the message body.
+
+Returns 200 if successful and JSON in the body.  The returned JSON is an
+encoded version of whatever the Perl code evaluated to.
+
+-------------------------------------------------------------------------
+
+GET /getvar?var=<varname>&level=<integer>
+
+Get the value of a Perl variable at the requested stack level.  The variable
+must include its sigil.
+
+Returns 200 and JSON in the body.  The returned JSON is an
+encoded version of whatever the Perl code evaluated to.
+
+-------------------------------------------------------------------------
+
+GET /packageinfo/<Package::Name>
+
+Get information about the named package.
+
+Returns 200 and JSON in the body
+{
+    packages: [  // List of packages under this package
+                { 
+                   name: String - Package name
+                   href: URL (/packageifo/<That::package::name>
+                },
+                ...
+             ],
+    subroutines: [ // List of subroutine names in this package
+
