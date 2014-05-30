@@ -299,18 +299,54 @@ encoded version of whatever the Perl code evaluated to.
 
 -------------------------------------------------------------------------
 
+GET /packageinfo/
 GET /packageinfo/<Package::Name>
 
-Get information about the named package.
+Get information about the named package, or main:: if no package is given.
 
 Returns 200 and JSON in the body
 {
     packages: [  // List of packages under this package
                 { 
                    name: String - Package name
-                   href: URL (/packageifo/<That::package::name>
+                   href: URL (/packageinfo/<That::package::name>)
                 },
                 ...
              ],
     subroutines: [ // List of subroutine names in this package
+                {
+                    name: String - subroutine name including package
+                    href: URL (/subinfo/<That::package::subname>)
+                },
+                ...
+            ],
+}
 
+Returns 400 if the named package is not a valid package name
+Returns 404 if the named package is not present
+
+-------------------------------------------------------------------------
+
+GET /subinfo/subname
+GET /subinfo/Package::subpackage::subname
+
+Get information about the named subroutine.  If the subname has no package
+included, package main:: is assummed.
+
+Returns 200 and JSON in the body
+{
+    name: String - subroutine name including package
+    href: URL (/subinfo/Package::subpackage::subname)
+    filename: String - File the sub was defined
+    line: Integer - What line the sub is defined
+}
+
+--------------------------------------------------------------------------
+
+POST /exit
+
+Request the program exit completely.
+
+Returns 204
+
+---------------------------------------------------------------------------
