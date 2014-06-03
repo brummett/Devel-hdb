@@ -93,28 +93,18 @@ sub start_test_program {
 
 # given a list of stack frames, return a new list with only
 # line and subroutine.
-# FIXME: when we figure out how to encode/decode blessed vars through JSON
-# then we'll also want subroutine args
 sub strip_stack {
     my $stack = shift;
-    if (ref $stack eq 'ARRAY') {
-        $stack = shift @$stack;  # If multiple messages passed in
-    }
-    if ($stack->{type} ne 'stack') {
-        return $stack;  # not was expected, return the whole thing
-    }
-    return [ map { { line => $_->{line}, subroutine => $_->{subroutine} } } @{$stack->{data}} ];
+
+    my @stripped = map { { line => $_->{line}, subroutine => $_->{subroutine} } } @$stack;
+    return \@stripped;
 }
 
 sub strip_stack_inc_args {
     my $stack = shift;
-    if (ref $stack eq 'ARRAY') {
-        $stack = shift @$stack;  # If multiple messages passed in
-    }
-    if ($stack->{type} ne 'stack') {
-        return $stack;  # not was expected, return the whole thing
-    }
-    return [ map { { line => $_->{line}, subroutine => $_->{subroutine}, args => $_->{args} } } @{$stack->{data}} ];
+
+    my @stripped = map { { line => $_->{line}, subroutine => $_->{subroutine}, args => $_->{args} } } @$stack;
+    return @stripped;
 }
 
 # recursively remove all occurances of __refaddr

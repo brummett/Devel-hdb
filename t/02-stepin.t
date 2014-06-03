@@ -3,7 +3,7 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
+use Devel::hdb::Client;
 use JSON;
 
 use Test::More;
@@ -14,17 +14,18 @@ if ($^O =~ m/^MS/) {
 }
 
 my $url = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
 my $json = JSON->new();
 my $stack;
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'stack');
-ok($resp->is_success, 'Request stack position');
-$stack = strip_stack($json->decode($resp->content));
+my $resp = $client->stack();
+ok($resp, 'Request stack position');
+$stack = strip_stack($resp);
 is_deeply($stack,
     [ { line => 1, subroutine => 'main::MAIN' } ],
     'Stopped on line 1');
+exit;
 
 $resp = $mech->get($url.'stepin');
 ok($resp->is_success, 'step in');

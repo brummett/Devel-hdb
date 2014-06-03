@@ -9,7 +9,6 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
-use Devel::hdb::Response;
 
 use Exporter 'import';
 our @EXPORT_OK = qw(_serialize_stack);
@@ -21,12 +20,10 @@ __PACKAGE__->add_route('get', '/stack', \&stack);
 sub stack {
     my($class, $app, $env) = @_;
 
-    my $resp = Devel::hdb::Response->new('stack', $env);
-    $resp->data( $class->_serialize_stack($app));
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
+            [ $app->encode_json($class->_serialize_stack($app)) ]
         ];
 }
 
