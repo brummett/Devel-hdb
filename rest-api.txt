@@ -22,6 +22,7 @@ Returns 200 and JSON in the body
     packageinfo: URL - get info about packages
     subinfo: URL - get info about subroutines
     exit: URL - request the program terminate
+    debugger_gui: URL to load the debugger webapp (/debugger-gui)
 }
 
 ----------------------------------------------------------
@@ -350,3 +351,9 @@ Request the program exit completely.
 Returns 204
 
 ---------------------------------------------------------------------------
+
+GET /debugger-gui
+
+Returns 200 and HTML that implements the debugger GUI
+
+--------------------------------------------------------------------------

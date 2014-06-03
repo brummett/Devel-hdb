@@ -5,14 +5,15 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
-__PACKAGE__->add_route('get', qr(/db/(.*)), \&assets);
-__PACKAGE__->add_route('get', qr(/img/(.*)), \&assets);
-__PACKAGE__->add_route('get', '/', sub { assets(@_, 'debugger.html') });
+__PACKAGE__->add_route('get', qr(/debugger-gui/db/(.*)), \&assets);
+__PACKAGE__->add_route('get', qr(/debugger-gui/img/(.*)), \&assets);
+__PACKAGE__->add_route('get', '/debugger-gui', sub { assets(@_, 'debugger.html') });
 
 sub assets {
     my($class, $app, $env, $file) = @_;
 
     $file =~ s/\.\.//g;  # Remove ..  They're unnecessary and a security risk
+    $file =~ s/^\/debugger-gui//;
     my $file_path = $INC{'Devel/hdb.pm'};
     $file_path =~ s/\.pm$//;
     $file_path .= '/html/'.$file;

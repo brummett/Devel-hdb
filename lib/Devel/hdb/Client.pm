@@ -39,6 +39,14 @@ sub stack {
     return $JSON->decode($response->content);
 }
 
+sub gui {
+    my $self = shift;
+
+    my $response = $self->_GET('debugger-gui');
+    _assert_success($response, q(Can't get debugger gui'));
+    return $response->content;
+}
+
 sub stepin {
     my $self = shift;
 
