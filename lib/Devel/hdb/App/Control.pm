@@ -7,8 +7,7 @@ use base 'Devel::hdb::App::Base';
 use Devel::hdb::Response;
 use Devel::hdb::App::Stack qw(_serialize_stack);
 
-__PACKAGE__->add_route('get', '/stack', \&stack);
-__PACKAGE__->add_route('get', '/stepin', \&stepin);
+__PACKAGE__->add_route('post', '/stepin', \&stepin);
 __PACKAGE__->add_route('get', '/stepover', \&stepover);
 __PACKAGE__->add_route('get', '/stepout', \&stepout);
 __PACKAGE__->add_route('get', '/continue', \&continue);
@@ -64,13 +63,10 @@ sub _delay_stack_return_to_client {
     my $json = $app->{json};
     return sub {
         my $responder = shift;
-        my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
+        my $writer = $responder->([ 204, [ 'Content-Type' => 'application/json' ]]);
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
 
         my $cb = sub {
-            my $resp = Devel::hdb::Response->new('stack', $env);
-            $resp->data( $class->_serialize_stack($app) );
-            $writer->write( $resp->encode );
             $writer->close();
         };
         $app->at_notify_stopped($cb);

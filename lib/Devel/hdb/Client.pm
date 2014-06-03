@@ -39,6 +39,14 @@ sub stack {
     return $JSON->decode($response->content);
 }
 
+sub stepin {
+    my $self = shift;
+
+    my $response = $self->_POST('stepin');
+    _assert_success($response, q(Can't stepin));
+    return $response->code == 204;
+}
+
 sub _base_url { shift->{base_url} }
 sub _http_client { shift->{http_client} }
 
