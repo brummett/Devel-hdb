@@ -8,7 +8,7 @@ use Devel::hdb::Response;
 use Devel::hdb::App::Stack qw(_serialize_stack);
 
 __PACKAGE__->add_route('post', '/stepin', \&stepin);
-__PACKAGE__->add_route('get', '/stepover', \&stepover);
+__PACKAGE__->add_route('post', '/stepover', \&stepover);
 __PACKAGE__->add_route('get', '/stepout', \&stepout);
 __PACKAGE__->add_route('get', '/continue', \&continue);
 

@@ -57,6 +57,14 @@ sub stepin {
     return $response->code == 204;
 }
 
+sub stepover {
+    my $self = shift;
+
+    my $response = $self->_POST('stepover');
+    _assert_success($response, q(Can't stepover));
+    return $response->code == 204;
+}
+
 sub _base_url { shift->{base_url} }
 sub _http_client { shift->{http_client} }
 
