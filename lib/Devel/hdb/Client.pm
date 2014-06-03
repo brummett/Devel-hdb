@@ -95,7 +95,7 @@ sub _assert_success {
     my $error = shift;
     unless ($response->is_success) {
         Devel::hdb::Client::Exception->throw(
-                error => $error,
+                error => $error . ': ' . $response->message,
                 http_code => $response->code,
                 http_message => $response->message,
                 http_content => $response->content,
