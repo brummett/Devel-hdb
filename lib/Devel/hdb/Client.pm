@@ -60,13 +60,18 @@ sub stepin {
 sub _base_url { shift->{base_url} }
 sub _http_client { shift->{http_client} }
 
+sub _combined_url {
+    my $self = shift;
+    return join('/', $self->_base_url, @_);
+}
+
 sub _http_request {
     my $self = shift;
     my $method = shift;
     my $url_ext = shift;
     my $body = shift;
 
-    my $url = join('/', $self->_base_url, $url_ext);
+    my $url = $self->_combined_url($url_ext);
     $self->_dmsg("Sending $method => $url");
 
     my $request = HTTP::Request->new($method => $url);
