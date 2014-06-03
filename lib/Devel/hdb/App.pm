@@ -134,10 +134,19 @@ sub _announce {
 }
 
 
+sub at_notify_stopped {
+    my $self = shift;
+    if (@_) {
+        $self->{at_next_breakpoint} = shift;
+    }
+    return $self->{at_next_breakpoint};
+}
+
 sub notify_stopped {
     my($self, $location) = @_;
 
-    my $cb = delete $self->{at_next_breakpoint};
+    my $cb = $self->at_notify_stopped;
+    $self->at_notify_stopped(undef);
     $cb && $cb->();
 }
 
@@ -159,7 +168,7 @@ sub notify_fork_child {
     my $self = shift;
     my $location = shift;
 
-    delete $self->{at_next_breakpoint};
+    $self->at_notify_stopped(undef);
 
     $parent_pid = undef;
     my $parent_base_url = $self->{base_url};

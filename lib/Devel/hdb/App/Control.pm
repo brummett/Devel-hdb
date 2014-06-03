@@ -67,12 +67,13 @@ sub _delay_stack_return_to_client {
         my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
 
-        $app->{at_next_breakpoint} = sub {
+        my $cb = sub {
             my $resp = Devel::hdb::Response->new('stack', $env);
             $resp->data( $class->_serialize_stack($app) );
             $writer->write( $resp->encode );
             $writer->close();
         };
+        $app->at_notify_stopped($cb);
     };
 }
 
