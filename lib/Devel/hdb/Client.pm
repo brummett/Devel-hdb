@@ -22,6 +22,7 @@ sub new {
 
     my %self;
     $self{base_url} = delete $params{url};
+    $self{debug} = delete $params{debug};
     $self{base_url} =~ s{/$}{};
 
     $self{http_client} = LWP::UserAgent->new();
@@ -48,6 +49,7 @@ sub _http_request {
     my $body = shift;
 
     my $url = join('/', $self->_base_url, $url_ext);
+    $self->_dmsg("Sending $method => $url");
 
     my $request = HTTP::Request->new($method => $url);
     $request->content_type('application/json');
@@ -58,7 +60,14 @@ sub _http_request {
     }
 
     my $response = $self->_http_client->request($request);
+    $self->_dmsg('Response ' . $response->code . ' ' . $response->message);
     return $response;
+}
+
+sub _dmsg {
+    my $self = shift;
+    return unless $self->debug;
+    print @_,"\n";
 }
 
 sub _GET {
@@ -92,6 +101,14 @@ sub _assert_success {
                 http_content => $response->content,
         );
     }
+}
+
+sub debug {
+    my $self = shift;
+    if (@_) {
+        $self->{debug} = shift;
+    }
+    return $self->{debug};
 }
 
 1;
