@@ -39,10 +39,12 @@ sub stack {
     return $JSON->decode($response->content);
 }
 
+sub _gui_url { 'debugger-gui' }
+
 sub gui {
     my $self = shift;
 
-    my $response = $self->_GET('debugger-gui');
+    my $response = $self->_GET( _gui_url );
     _assert_success($response, q(Can't get debugger gui'));
     return $response->content;
 }
