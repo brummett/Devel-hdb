@@ -11,6 +11,7 @@ use LWP::UserAgent;
 use Data::Dumper;
 use Sys::Hostname;
 use IO::Socket::INET;
+use JSON qw();
 
 use Devel::hdb::Router;
 use Devel::hdb::Response;
@@ -25,10 +26,29 @@ sub get {
 
     my $self = $APP_OBJ = bless {}, $class;
 
+    $self->_make_json_encoder();
     $self->_make_listen_socket();
 
     $parent_pid = eval { getppid() } if ($Devel::hdb::TESTHARNESS);
     return $self;
+}
+
+sub _make_json_encoder {
+    my $self = shift;
+    $self->{json} = JSON->new->utf8();
+    return $self;
+}
+
+sub encode_json {
+    my $self = shift;
+    my $json = $self->{json};
+    return map { $json->encode($_) } @_;
+}
+
+sub decode_json {
+    my $self = shift;
+    my $json = $self->{json};
+    return map { $json->decode($_) } @_;
 }
 
 sub _make_listen_socket {
