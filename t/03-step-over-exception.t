@@ -17,13 +17,16 @@ my $client = Devel::hdb::Client->new(url => $url);
 
 my $stack = $client->stack();
 ok($stack, 'Request stack position');
+my $filename = $stack->[0]->{filename};
 $stack = strip_stack($stack);
 is_deeply($stack,
     [ { line => 1, subroutine => 'main::MAIN' } ],
     'Stopped on line 1');
 
 my $resp = $client->stepover();
-ok($resp, 'step over');
+is_deeply($resp,
+    { filename => $filename, line => 1, subroutine => '(eval)', running => 1 },
+    'step over');
 $stack = strip_stack($client->stack);
 is_deeply($stack,
     [ { line => 1, subroutine => '(eval)' },
@@ -31,22 +34,29 @@ is_deeply($stack,
     'Stopped inside the eval line 1');
 
 $resp = $client->stepover();
-ok($resp, 'step over');
+is_deeply($resp,
+    { filename => $filename, line => 2, subroutine => 'MAIN', running => 1 },
+    'step over');
 $stack = strip_stack($client->stack);
 is_deeply($stack,
   [ { line => 2, subroutine => 'main::MAIN' } ],
     'Stopped on line 2');
 
 $resp = $client->stepover();
-ok($resp, 'step over');
+is_deeply($resp,
+    { filename => $filename, line => 3, subroutine => 'MAIN', running => 1 },
+    'step over');
 $stack = strip_stack($client->stack);
 is_deeply($stack,
   [ { line => 3, subroutine => 'main::MAIN' } ],
     'Stopped on line 3');
 
 $resp = $client->stepover();
-ok($resp, 'step over');
-$stack = strip_stack($client->stack);
+my $stopped_filename = delete $resp->{filename};
+my $stopped_line = delete $resp->{line};
+is_deeply($resp,
+    { subroutine => 'Devel::Chitin::exiting::at_exit', running => 0, exit_code => 2 },
+    'step over - at end');
 
 
 __DATA__

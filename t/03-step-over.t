@@ -3,52 +3,52 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 9;
+    plan tests => 7;
 }
 
 my $url = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
 my $stack;
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'stack');
-ok($resp->is_success, 'Request stack position');
-$stack = strip_stack($json->decode($resp->content));
+my $resp = $client->stack();
+my $filename = $resp->[0]->{filename};
+ok($resp, 'Request stack position');
+$stack = strip_stack($resp);
 is_deeply($stack,
     [ { line => 1, subroutine => 'main::MAIN' } ],
     'Stopped on line 1');
 
-$resp = $mech->get($url.'stepover');
-ok($resp->is_success, 'step over');
-$stack = strip_stack($json->decode($resp->content));
+$resp = $client->stepover();
+is_deeply($resp,
+    { filename => $filename, line => 2, subroutine => 'MAIN', running => 1 },
+    'step over');
+$stack = strip_stack($client->stack);
 is_deeply($stack,
     [ { line => 2, subroutine => 'main::MAIN' } ],
     'Stopped on line 2');
 
-$resp = $mech->get($url.'stepover');
-ok($resp->is_success, 'step over');
-$stack = strip_stack($json->decode($resp->content));
+$resp = $client->stepover();
+is_deeply($resp,
+    { filename => $filename, line => 3, subroutine => 'MAIN', running => 1 },
+    'step over');
+$stack = strip_stack($client->stack);
 is_deeply($stack,
   [ { line => 3, subroutine => 'main::MAIN' } ],
     'Stopped on line 3');
 
-$resp = $mech->get($url.'stepover');
-ok($resp->is_success, 'step over');
-my $message = $json->decode($resp->content);
-is($message->[0]->{data}->[0]->{subroutine},
-    'Devel::Chitin::exiting::at_exit',
-    'Stopped in at_exit()');
-is_deeply($message->[1],
-    { type => 'termination', data => { exit_code => 2 } },
-    'Got termination message');
+$resp = $client->stepover;
+my $stopped_filename = delete $resp->{filename};
+my $stopped_line = delete $resp->{line};
+is_deeply($resp,
+    { subroutine => 'Devel::Chitin::exiting::at_exit', running => 0, exit_code => 2},
+    'step over - at end');
 
 
 __DATA__
