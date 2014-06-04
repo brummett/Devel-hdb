@@ -133,8 +133,7 @@ sub _announce {
     print "Debugger pid $$ listening on ",$self->{base_url},"\n" unless ($Devel::hdb::TESTHARNESS);
 }
 
-
-sub at_notify_stopped {
+sub on_notify_stopped {
     my $self = shift;
     if (@_) {
         $self->{at_next_breakpoint} = shift;
@@ -145,8 +144,8 @@ sub at_notify_stopped {
 sub notify_stopped {
     my($self, $location) = @_;
 
-    my $cb = $self->at_notify_stopped;
-    $self->at_notify_stopped(undef);
+    my $cb = $self->on_notify_stopped;
+    $self->on_notify_stopped(undef);
     $cb && $cb->();
 }
 

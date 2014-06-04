@@ -69,7 +69,7 @@ sub _delay_stack_return_to_client {
         my $cb = sub {
             $writer->close();
         };
-        $app->at_notify_stopped($cb);
+        $app->on_notify_stopped($cb);
     };
 }
 
