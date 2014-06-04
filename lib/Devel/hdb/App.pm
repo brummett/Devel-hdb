@@ -237,11 +237,21 @@ sub notify_trace_diff {
     $msg->{data} = $trace_data;
 }
 
+sub uncaught_exception {
+    my $self = shift;
+    if (@_) {
+        $self->{__exception__} = shift;
+    }
+    return $self->{__exception__};
+}
+
 sub notify_uncaught_exception {
     my $self = shift;
     my $exception = shift;
 
-    $self->{__exception__} = $exception;
+    $self->unaught_exception($exception);
+}
+
 }
 
 sub notify_program_terminated {
@@ -252,9 +262,9 @@ sub notify_program_terminated {
     my $msg = Devel::hdb::Response->queue('termination');
     my $data = { exit_code => $exit_code };
 
-    if ($self->{__exception__}) {
+    if (my $uncaught_exception = $self->uncaught_exception) {
         foreach my $prop ( qw(package line filename exception subroutine)) {
-            $data->{$prop} = $self->{__exception__}->$prop;
+            $data->{$prop} = $uncaught_exception->$prop;
         }
     }
     $msg->data($data);
