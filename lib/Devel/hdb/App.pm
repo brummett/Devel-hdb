@@ -144,9 +144,18 @@ sub on_notify_stopped {
 sub notify_stopped {
     my($self, $location) = @_;
 
+    $self->current_location($location);
     my $cb = $self->on_notify_stopped;
     $self->on_notify_stopped(undef);
     $cb && $cb->();
+}
+
+sub current_location {
+    my $self = shift;
+    if (@_) {
+        $self->{current_location} = shift;
+    }
+    return $self->{current_location};
 }
 
 # Called in the parent process after a fork
