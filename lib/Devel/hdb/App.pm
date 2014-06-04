@@ -252,12 +252,19 @@ sub notify_uncaught_exception {
     $self->unaught_exception($exception);
 }
 
+sub exit_code {
+    my $self = shift;
+    if (@_) {
+        $self->{exit_code} = shift;
+    }
+    return $self->{exit_code};
 }
 
 sub notify_program_terminated {
     my $self = shift;
     my $exit_code = shift;
 
+    $self->exit_code($exit_code);
     print STDERR "Debugged program pid $$ terminated with exit code $exit_code\n" unless ($Devel::hdb::TESTHARNESS);
     my $msg = Devel::hdb::Response->queue('termination');
     my $data = { exit_code => $exit_code };
