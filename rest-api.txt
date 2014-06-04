@@ -23,6 +23,7 @@ Returns 200 and JSON in the body
     subinfo: URL - get info about subroutines
     exit: URL - request the program terminate
     debugger_gui: URL to load the debugger webapp (/debugger-gui)
+    status: URL to see the status of the program (/status)
 }
 
 ----------------------------------------------------------
@@ -248,8 +249,8 @@ POST /stepin
 
 Request the debugger step in to the next statement.
 
-Returns 204 if successful.  The client will probably want to to a GET /stack
-next to see where it is now.
+Returns 200 if successful and JSON in the body.  The JSON returned is the
+same as reported by the GET /status URL
 
 -------------------------------------------------------------------------
 
@@ -257,8 +258,8 @@ POST /stepover
 
 Request the debugger step over the next statement.
 
-Returns 204 if successful.  The client will probably want to to a GET /stack
-next to see where it is now.
+Returns 200 if successful and JSON in the body.  The JSON returned is the
+same as reported by the GET /status URL
 
 -------------------------------------------------------------------------
 
@@ -266,8 +267,8 @@ POST /stepout
 
 Request the debugger return from the current subroutine
 
-Returns 204 if successful.  The client will probably want to to a GET /stack
-next to see where it is now.
+Returns 200 if successful and JSON in the body.  The JSON returned is the
+same as reported by the GET /status URL
 
 -------------------------------------------------------------------------
 
@@ -275,8 +276,8 @@ POST /continue
 
 Request the debugger continue execution
 
-Returns 204 if successful.  The client will probably want to to a GET /stack
-next to see where it is now.
+Returns 200 if successful and JSON in the body.  The JSON returned is the
+same as reported by the GET /status URL
 
 -------------------------------------------------------------------------
 
@@ -357,3 +358,24 @@ GET /debugger-gui
 Returns 200 and HTML that implements the debugger GUI
 
 --------------------------------------------------------------------------
+
+GET /status
+
+Returns 200 and JSON in the message body
+
+{
+    running: Boolean (1 if the program is running, 0 if terminated)
+    exit_code: Integer (only if the program is terminated)
+    exception: Hash (only if the program is terminated, and died from an exception)
+        {   package: String
+            line: Integer
+            filename: String
+            subroutine: String
+            exception: String
+        }
+    filename: String (What file we're currently stopped on)
+    line: Integer (What line we're stopped on)
+}
+
+
+-------------------------------------------------------------------------

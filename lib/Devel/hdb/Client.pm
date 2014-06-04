@@ -54,7 +54,7 @@ sub stepin {
 
     my $response = $self->_POST('stepin');
     _assert_success($response, q(Can't stepin));
-    return $response->code == 204;
+    return $JSON->decode($response->content);
 }
 
 sub stepover {
@@ -62,7 +62,7 @@ sub stepover {
 
     my $response = $self->_POST('stepover');
     _assert_success($response, q(Can't stepover));
-    return $response->code == 204;
+    return $JSON->decode($response->content);
 }
 
 sub _base_url { shift->{base_url} }

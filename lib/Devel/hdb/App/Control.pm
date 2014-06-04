@@ -11,26 +11,27 @@ __PACKAGE__->add_route('post', '/stepin', \&stepin);
 __PACKAGE__->add_route('post', '/stepover', \&stepover);
 __PACKAGE__->add_route('get', '/stepout', \&stepout);
 __PACKAGE__->add_route('get', '/continue', \&continue);
+__PACKAGE__->add_route('get', '/status', \&program_status);
 
 sub stepin {
     my($class, $app, $env) = @_;
 
     $app->step;
-    return $class->_delay_stack_return_to_client($app, $env);
+    return $class->_delay_status_return_to_client($app, $env);
 }
 
 sub stepover {
     my($class, $app, $env) = @_;
 
     $app->stepover;
-    return $class->_delay_stack_return_to_client($app, $env);
+    return $class->_delay_status_return_to_client($app, $env);
 }
 
 sub stepout {
     my($class, $app, $env) = @_;
 
     $app->stepout;
-    return $class->_delay_stack_return_to_client($app, $env);
+    return $class->_delay_status_return_to_client($app, $env);
 }
 
 sub continue {
@@ -51,22 +52,53 @@ sub continue {
                 ];
     }
 
-    return $class->_delay_stack_return_to_client($app,$env);
+    return $class->_delay_status_return_to_client($app,$env);
 }
 
-sub _delay_stack_return_to_client {
+sub program_status {
     my($class, $app, $env) = @_;
 
-    my $req = Plack::Request->new($env);
-    my $rid = $req->param('rid');
+    my $status = $class->_program_status_data($app);
+    return [ 200,
+            [ 'Content-Type' => 'application/json' ],
+            [ $app->encode_json($status) ] ];
+}
 
-    my $json = $app->{json};
+sub _program_status_data {
+    my($class, $app) = @_;
+
+    my $location = $app->current_location;
+    my $is_running = $location->at_end ? 0 : 1;
+    my %status = (
+        running => $is_running,
+        filename => $location->filename,
+        subroutine => $location->subroutine,
+        line => $location->line,
+    );
+
+    my $exit_code = $app->exit_code;
+    $status{exit_code} = $exit_code if defined $exit_code;
+
+    if (my $exception = $app->uncaught_exception) {
+        foreach my $prop (qw( exception package filename line subroutine )) {
+            $status{$prop} = $exception->prop;
+        }
+    }
+    return \%status;
+}
+
+
+sub _delay_status_return_to_client {
+    my($class, $app, $env) = @_;
+
     return sub {
         my $responder = shift;
-        my $writer = $responder->([ 204, [ 'Content-Type' => 'application/json' ]]);
+        my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
 
         my $cb = sub {
+            my $status = $class->_program_status_data($app);
+            $writer->write( $app->encode_json($status) );
             $writer->close();
         };
         $app->on_notify_stopped($cb);

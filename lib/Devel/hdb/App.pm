@@ -264,21 +264,12 @@ sub notify_program_terminated {
     my $self = shift;
     my $exit_code = shift;
 
-    $self->exit_code($exit_code);
     print STDERR "Debugged program pid $$ terminated with exit code $exit_code\n" unless ($Devel::hdb::TESTHARNESS);
-    my $msg = Devel::hdb::Response->queue('termination');
-    my $data = { exit_code => $exit_code };
-
-    if (my $uncaught_exception = $self->uncaught_exception) {
-        foreach my $prop ( qw(package line filename exception subroutine)) {
-            $data->{$prop} = $uncaught_exception->$prop;
-        }
-    }
-    $msg->data($data);
+    $self->exit_code($exit_code);
 }
 
 sub notify_program_exit {
-    my $msg = Devel::hdb::Response->queue('hangup');
+    #my $msg = Devel::hdb::Response->queue('hangup');
 }
 
 sub settings_file {
