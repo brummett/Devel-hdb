@@ -48,7 +48,10 @@ sub encode_json {
 sub decode_json {
     my $self = shift;
     my $json = $self->{json};
-    return map { $json->decode($_) } @_;
+    my @rv = map { $json->decode($_) } @_;
+    return wantarray
+        ? @rv
+        : $rv[0];
 }
 
 sub _make_listen_socket {
