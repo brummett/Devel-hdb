@@ -8,6 +8,7 @@ use base 'Devel::hdb::App::Base';
 use Plack::Request;
 use Devel::hdb::Response;
 use JSON;
+use Digest::MD5 qw();
 
 __PACKAGE__->add_route('post', '/breakpoint', 'set');
 __PACKAGE__->add_route('get', '/breakpoint', 'get');
@@ -106,6 +107,7 @@ sub set_and_respond {
     my($class, $app, %params) = @_;
 
     my($file, $line, $code, $inactive) = @params{'file','line','code','inactive'};
+    my $id = Digest::MD5::md5_hex($file, $line, Time::HiRes::time);
 
     my $set_inactive = exists($params{inactive})
                         ? sub { shift->inactive($inactive) }
@@ -136,7 +138,7 @@ sub set_and_respond {
     }
 
     my $bp = $changer->();
-    my $resp_data = { filename => $file, lineno => $line };
+    my $resp_data = { id => $id, filename => $file, lineno => $line };
     @$resp_data{'code','inactive'} = ( $bp->code, $bp->inactive );
     return $resp_data;
 }
@@ -191,21 +193,21 @@ sub get_all {
 }
 
 sub delete_stored {
-    my($class, $file, $line) = @_;
+    my($class, $id) = @_;
     my $s = $class->storage;
-    delete $s->{$file}->{$line};
+    delete $s->{$id};
 }
 
 sub get_stored {
-    my($class, $file, $line) = @_;
+    my($class, $id) = @_;
     my $s = $class->storage;
-    return $s->{$file}->{$line};
+    return $s->{$id};
 }
 
 sub set_stored {
-    my($class, $file, $line, $item) = @_;
+    my($class, $id, $item) = @_;
     my $s = $class->storage;
-    $s->{$file}->{$line} = $item;
+    $s->{$id} = $item;
 }
 
 
