@@ -65,6 +65,22 @@ sub stepover {
     return $JSON->decode($response->content);
 }
 
+sub continue {
+    my $self = shift;
+    my $nostop = shift;
+
+    my $url = 'continue';
+    if ($nostop) {
+        $url .= '?nostop=1';
+    }
+
+    my $response = $self->_POST($url);
+    _assert_success($response, q(Can't continue'));
+    return $nostop
+                ? 1
+                : $JSON->decode($response->content);
+}
+
 sub _base_url { shift->{base_url} }
 sub _http_client { shift->{http_client} }
 

@@ -10,7 +10,7 @@ use Devel::hdb::App::Stack qw(_serialize_stack);
 __PACKAGE__->add_route('post', '/stepin', \&stepin);
 __PACKAGE__->add_route('post', '/stepover', \&stepover);
 __PACKAGE__->add_route('get', '/stepout', \&stepout);
-__PACKAGE__->add_route('get', '/continue', \&continue);
+__PACKAGE__->add_route('post', '/continue', \&continue);
 __PACKAGE__->add_route('get', '/status', \&program_status);
 
 sub stepin {
@@ -43,12 +43,10 @@ sub continue {
     $app->continue;
     if ($nostop) {
         $app->disable_debugger();
-        my $resp = Devel::hdb::Response->new('continue', $env);
-        $resp->data({ nostop => 1 });
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
-        return [ 200,
-                    [ 'Content-Type' => 'application/json'],
-                    [ $resp->encode() ]
+        return [ 204,
+                    [],
+                    [],
                 ];
     }
 

@@ -274,10 +274,19 @@ same as reported by the GET /status URL
 
 POST /continue
 
-Request the debugger continue execution
+Request the debugger continue execution.
 
 Returns 200 if successful and JSON in the body.  The JSON returned is the
 same as reported by the GET /status URL
+
+-------------------------------------------------------------------------
+
+POST /continue?nostop=1
+
+Request the debugger continue execution.  The param nostop=1 instructs the
+debugger to run the program to completion and not stop at any breakpoints.
+
+Returns 204 if successful.
 
 -------------------------------------------------------------------------
 
