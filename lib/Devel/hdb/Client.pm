@@ -5,6 +5,7 @@ use warnings;
 
 use LWP::UserAgent;
 use JSON;
+use Carp;
 
 our $VERSION = "1.0";
 
@@ -81,6 +82,45 @@ sub continue {
                 : $JSON->decode($response->content);
 }
 
+{
+    my @required_params = qw(filename line);
+    my %defaults = ( code => 1, inactive => 0 );
+    sub create_breakpoint {
+        my $self = shift;
+        my %params = @_;
+
+        _verify_required_params_exist(\%params, \@required_params);
+        _fill_in_default_params(\%params, \%defaults);
+
+        my $response = $self->_POST('breakpoints', \%params);
+        _assert_success($response, q(Can't create_breakpoint));
+
+        my $bp = $JSON->decode($response->content);
+        $self->{breakpoints}->{$bp->{href}} = $bp;
+        return $bp->{href};
+    }
+}
+
+sub _verify_required_params_exist {
+    my($param_hash, $required_list) = @_;
+    foreach my $required ( @$required_list ) {
+        unless (exists $param_hash->{$required}) {
+            my $sub_name = (caller())[3];
+            Carp::croak("$required is a required param of $sub_name");
+        }
+    }
+    return 1;
+}
+
+sub _fill_in_default_params {
+    my($params_hash, $defaults) = @_;
+
+    foreach my $param_name (keys %$defaults) {
+        $params_hash->{$param_name} = $defaults->{$param_name}
+            unless (exists $params_hash->{$param_name});
+    }
+}
+
 sub _base_url { shift->{base_url} }
 sub _http_client { shift->{http_client} }
 
@@ -99,11 +139,12 @@ sub _http_request {
     $self->_dmsg("Sending $method => $url");
 
     my $request = HTTP::Request->new($method => $url);
-    $request->content_type('application/json');
 
     if (defined $body) {
-        $body = $JSON->encode($body) if ref($body);
-        $request->content($body);
+        $request->content_type('application/json');
+        $request->content($JSON->encode($body));
+    } else {
+        $request->content_type('text/html');
     }
 
     my $response = $self->_http_client->request($request);

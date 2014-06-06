@@ -7,15 +7,16 @@ use base 'Devel::hdb::App::Base';
 
 use Plack::Request;
 use Devel::hdb::Response;
-use JSON;
 use Digest::MD5 qw();
+use Time::HiRes qw();
 
-__PACKAGE__->add_route('post', '/breakpoint', 'set');
+sub response_url_base() { '/breakpoints' };
+
+__PACKAGE__->add_route('post', response_url_base(), 'set');
 __PACKAGE__->add_route('get', '/breakpoint', 'get');
 __PACKAGE__->add_route('get', '/delete-breakpoint', 'delete');
 __PACKAGE__->add_route('get', '/breakpoints', 'get_all');
 
-sub response_type() { 'breakpoint' };
 sub delete_response_type { 'delete-breakpoint' }
 sub actionable_getter() { 'get_breaks' }
 sub actionable_adder() { 'add_break' }
@@ -52,26 +53,19 @@ sub _read_request_body {
 sub set {
     my($class, $app, $env) = @_;
 
-    my $params = Plack::Request->new($env)->parameters;
-    my($filename, $line) = @$params{'f','l'};
+    my $body = $class->_read_request_body($env);
+    my $params = $app->decode_json( $body );
 
-    if (my $error = $class->_file_or_line_is_invalid($app, $filename, $line)) {
+    if (my $error = $class->_file_or_line_is_invalid($app, @$params{'filename','line'})) {
         return $error;
     }
 
-    my $resp = Devel::hdb::Response->new($class->response_type, $env);
-
-    my %req;
-    @req{'file','line'} = @$params{'f','l'};
-    $req{code} = $params->{c} if (exists $params->{'c'});
-    $req{inactive} = $params->{ci} if (exists $params->{'ci'});
-
-    my $resp_data = $class->set_and_respond($app, %req);
-    $resp->data( $resp_data );
+    my $resp_data = $class->set_and_respond($app, $params);
+    $resp_data->{href} = join('/', $class->response_url_base, delete $resp_data->{id});
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
+            [ $app->encode_json($resp_data) ],
           ];
 }
 
@@ -104,23 +98,24 @@ sub delete {
 }
 
 sub set_and_respond {
-    my($class, $app, %params) = @_;
+    my($class, $app, $params) = @_;
 
-    my($file, $line, $code, $inactive) = @params{'file','line','code','inactive'};
+    my($file, $line, $code, $inactive) = @$params{'filename','line','code','inactive'};
     my $id = Digest::MD5::md5_hex($file, $line, Time::HiRes::time);
 
-    my $set_inactive = exists($params{inactive})
+    my $set_inactive = exists($params->{inactive})
                         ? sub { shift->inactive($inactive) }
                         : sub {};
 
     my $changer;
     my $adder = $class->actionable_adder;
-    if (exists $params{code}) {
+    if (exists $params->{code}) {
         # setting a breakpoint
         $changer = sub {
-                my $bp = $app->$adder(%params);
+                $params->{file} = delete $params->{filename};
+                my $bp = $app->$adder(%$params);
                 $set_inactive->($bp);
-                $class->set_stored($file, $line, $bp);
+                $class->set_stored($id, $bp);
             };
     } else {
         # changing a breakpoint
@@ -138,8 +133,12 @@ sub set_and_respond {
     }
 
     my $bp = $changer->();
-    my $resp_data = { id => $id, filename => $file, lineno => $line };
-    @$resp_data{'code','inactive'} = ( $bp->code, $bp->inactive );
+    my $resp_data = {   filename => $file,
+                        line => $line,
+                        code => $bp->code,
+                        inactive => $bp->inactive,
+                        id => $id,
+                    };
     return $resp_data;
 }
 

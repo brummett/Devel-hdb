@@ -137,13 +137,14 @@ Returns 200 and JSON in the body
 
 ----------------------------------------------------------------------
 
-PUT /breakpoints
-PUT /actions
+POST /breakpoints
+POST /actions
 
-Set a breakpoint/action.  Body contains JSON
-{ filename: String
+Set a breakpoint/action.  Params are JSON in the body:
+{
+  filename: String
   line: Integer
-  code: String
+  code: String - Breakpoint perl code - set to "1" for unconditional bp
   inactive: boolean
 }
 
