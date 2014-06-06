@@ -96,9 +96,29 @@ sub continue {
         _assert_success($response, q(Can't create_breakpoint));
 
         my $bp = $JSON->decode($response->content);
-        $self->{breakpoints}->{$bp->{href}} = $bp;
+        $self->_set_breakpoint($bp);
         return $bp->{href};
     }
+}
+
+sub delete_breakpoint {
+    my($self, $id) = @_;
+
+    my $url = join('/', 'breakpoints', $id);
+    my $response = $self->_DELETE($url);
+    _assert_success($response, q(Can't delete breakpoint));
+    return 1;
+}
+
+
+sub _set_breakpoint {
+    my($self, $bp) = @_;
+    $self->{brekpoints}->{$bp->{href}} = $bp;
+}
+
+sub get_breakpoint {
+    my($self, $id) = @_;
+    return $self->{breakpoints}->{$id};
 }
 
 sub _verify_required_params_exist {

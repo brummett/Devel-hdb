@@ -14,7 +14,7 @@ sub response_url_base() { '/breakpoints' };
 
 __PACKAGE__->add_route('post', response_url_base(), 'set');
 __PACKAGE__->add_route('get', '/breakpoint', 'get');
-__PACKAGE__->add_route('get', '/delete-breakpoint', 'delete');
+__PACKAGE__->add_route('delete', qr{/breakpoints/(\w+)$}, 'delete');
 __PACKAGE__->add_route('get', '/breakpoints', 'get_all');
 
 sub delete_response_type { 'delete-breakpoint' }
@@ -70,30 +70,21 @@ sub set {
 }
 
 sub delete {
-    my($class, $app, $env) = @_;
+    my($class, $app, $env, $id) = @_;
 
-    my $params = Plack::Request->new($env)->parameters;
-    my($file, $line) = @$params{'f','l'};
-
-    if (my $error = $class->_file_or_line_is_invalid($app, $file, $line)) {
-        return $error;
-    }
-
-    my $bp = $class->get_stored($file, $line);
+    my $bp = $class->get_stored($id);
     unless ($bp) {
         return [ 404,
                     ['Content-Type' => 'text/html'],
-                    ["No breakpoint on line $line of $file"]];
+                    ["No breakpoint $id"] ];
     }
     my $remover = $class->actionable_remover;
     $app->$remover($bp);
-    $class->delete_stored($file, $line);
+    $class->delete_stored($id);
 
-    my $resp = Devel::hdb::Response->new($class->delete_response_type, $env);
-    $resp->data( { filename => $file, lineno => $line } );
-    return [ 200,
-            [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
+    return [ 204,
+            [ ],
+            [ ],
           ];
 }
 
