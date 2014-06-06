@@ -6,6 +6,7 @@ use warnings;
 use LWP::UserAgent;
 use JSON;
 use Carp;
+use Data::Dumper;
 
 our $VERSION = "1.0";
 
@@ -156,7 +157,7 @@ sub _http_request {
     my $body = shift;
 
     my $url = $self->_combined_url($url_ext);
-    $self->_dmsg("Sending $method => $url");
+    $self->_dmsg("\nSending $method => $url");
 
     my $request = HTTP::Request->new($method => $url);
 
@@ -167,8 +168,9 @@ sub _http_request {
         $request->content_type('text/html');
     }
 
+    $self->_dmsg("Request: ",Data::Dumper::Dumper($request));
     my $response = $self->_http_client->request($request);
-    $self->_dmsg('Response ' . $response->code . ' ' . $response->message);
+    $self->_dmsg('Response ', Data::Dumper::Dumper($response));
     return $response;
 }
 
