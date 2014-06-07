@@ -111,10 +111,15 @@ sub delete_breakpoint {
     return 1;
 }
 
+sub get_breakpoint {
+    my($self, $href) = @_;
 
-sub _set_breakpoint {
-    my($self, $bp) = @_;
-    $self->{brekpoints}->{$bp->{href}} = $bp;
+    my $url = join('/', 'breakpoints', $href);
+    my $response = $self->_GET($href);
+    _assert_success($response, q(Can't get breakpoint));
+
+    my $bp = $JSON->decode($response->content);
+    return $bp;
 }
 
 sub get_breakpoint {

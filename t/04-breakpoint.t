@@ -9,7 +9,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 12;
+    plan tests => 15;
 }
 
 my $url = start_test_program();
@@ -35,6 +35,14 @@ is($@->http_code, 404, 'Error was Not Found');
 my $breakpoint_id = $client->create_breakpoint(filename => $filename, line => 3, code => 1);
 ok($breakpoint_id, 'Set breakpoint for line 3');
 
+$resp = eval { $client->get_breakpoint('garbage') };
+ok(!$resp && $@, 'Cannot get unknown breakpoint');
+is($@->http_code, 404, 'Error was Not Found');
+
+$resp = $client->get_breakpoint($breakpoint_id);
+is_deeply($resp,
+    { filename => $filename, line => 3, code => 1, inactive => 0, href => $breakpoint_id },
+    'Get breakpoint by id');
 
 $resp = $client->continue();
 is_deeply($resp,

@@ -13,7 +13,7 @@ use Time::HiRes qw();
 sub response_url_base() { '/breakpoints' };
 
 __PACKAGE__->add_route('post', response_url_base(), 'set');
-__PACKAGE__->add_route('get', '/breakpoint', 'get');
+__PACKAGE__->add_route('get', qr{/breakpoints/(\w+)$}, 'get');
 __PACKAGE__->add_route('delete', qr{/breakpoints/(\w+)$}, 'delete');
 __PACKAGE__->add_route('get', '/breakpoints', 'get_all');
 
@@ -135,24 +135,17 @@ sub set_and_respond {
 
 
 sub get {
-    my($class, $app, $env) = @_;
+    my($class, $app, $env, $id) = @_;
 
-    my $req = Plack::Request->new($env);
-    my $filename = $req->param('f');
-    my $line = $req->param('l');
+    my $bp = $class->get_stored($id);
+    my %bp_data;
+    @bp_data{'href','filename','line','code','inactive'}
+        = ( join('/', $class->response_url_base(), $id),
+            map { $bp->$_ } qw(file line code inactive) );
 
-    my $resp = Devel::hdb::Response->new('breakpoint', $env);
-    my $getter = $class->actionable_getter;
-    my($bp) = $app->$getter(file => $filename, line => $line);
-    my $resp_data = { filename => $filename, lineno => $line };
-    if ($bp) {
-        $resp_data->{code} = $bp->code;
-        $bp->inactive and do { $resp_data->{inactive} = 1 };
-    }
-    $resp->data($resp_data);
-
-    return [ 200, ['Content-Type' => 'application/json'],
-            [ $resp->encode() ]
+    return [ 200,
+            ['Content-Type' => 'application/json'],
+            [ $app->encode_json(\%bp_data) ],
           ];
 }
 
