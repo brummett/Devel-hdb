@@ -13,8 +13,8 @@ use Time::HiRes qw();
 sub response_url_base() { '/breakpoints' };
 
 __PACKAGE__->add_route('post', response_url_base(), 'set');
-__PACKAGE__->add_route('get', qr{/breakpoints/(\w+)$}, 'get');
-__PACKAGE__->add_route('delete', qr{/breakpoints/(\w+)$}, 'delete');
+__PACKAGE__->add_route('get', qr{(/breakpoints/\w+)$}, 'get');
+__PACKAGE__->add_route('delete', qr{(/breakpoints/\w+)$}, 'delete');
 __PACKAGE__->add_route('get', '/breakpoints', 'get_all');
 
 sub delete_response_type { 'delete-breakpoint' }
@@ -61,7 +61,6 @@ sub set {
     }
 
     my $resp_data = $class->set_and_respond($app, $params);
-    $resp_data->{href} = join('/', $class->response_url_base, delete $resp_data->{id});
 
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
@@ -92,7 +91,10 @@ sub set_and_respond {
     my($class, $app, $params) = @_;
 
     my($file, $line, $code, $inactive) = @$params{'filename','line','code','inactive'};
-    my $id = Digest::MD5::md5_hex($file, $line, Time::HiRes::time);
+    my $href = join('/',
+                $class->response_url_base,
+                Digest::MD5::md5_hex($file, $line, Time::HiRes::time)
+            );
 
     my $set_inactive = exists($params->{inactive})
                         ? sub { shift->inactive($inactive) }
@@ -106,7 +108,7 @@ sub set_and_respond {
                 $params->{file} = delete $params->{filename};
                 my $bp = $app->$adder(%$params);
                 $set_inactive->($bp);
-                $class->set_stored($id, $bp);
+                $class->set_stored($href, $bp);
             };
     } else {
         # changing a breakpoint
@@ -128,7 +130,7 @@ sub set_and_respond {
                         line => $line,
                         code => $bp->code,
                         inactive => $bp->inactive,
-                        id => $id,
+                        href => $href,
                     };
     return $resp_data;
 }
@@ -140,7 +142,7 @@ sub get {
     my $bp = $class->get_stored($id);
     my %bp_data;
     @bp_data{'href','filename','line','code','inactive'}
-        = ( join('/', $class->response_url_base(), $id),
+        = ( $id,
             map { $bp->$_ } qw(file line code inactive) );
 
     return [ 200,

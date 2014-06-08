@@ -103,10 +103,9 @@ sub continue {
 }
 
 sub delete_breakpoint {
-    my($self, $id) = @_;
+    my($self, $href) = @_;
 
-    my $url = join('/', 'breakpoints', $id);
-    my $response = $self->_DELETE($url);
+    my $response = $self->_DELETE($href);
     _assert_success($response, q(Can't delete breakpoint));
     return 1;
 }
@@ -114,7 +113,6 @@ sub delete_breakpoint {
 sub get_breakpoint {
     my($self, $href) = @_;
 
-    my $url = join('/', 'breakpoints', $href);
     my $response = $self->_GET($href);
     _assert_success($response, q(Can't get breakpoint));
 
