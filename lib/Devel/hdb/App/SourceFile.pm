@@ -5,9 +5,9 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
-use Devel::hdb::Response;
+use URI::Escape;
 
-__PACKAGE__->add_route('get', '/sourcefile', \&sourcefile);
+__PACKAGE__->add_route('get', qr{/source/(\w+)}, \&sourcefile);
 __PACKAGE__->add_route('get', '/loadedfiles', \&loaded_files);
 
 # send back a list.  Each list elt is a list of 2 elements:
@@ -38,15 +38,14 @@ sub sourcefile {
 }
 
 sub loaded_files {
-    my($class, $app, $env) = @_;
+    my($class, $app, $env, $base_href) = @_;
 
-    my $resp = Devel::hdb::Response->new('loadedfiles', $env);
-
-    my @files = $app->loaded_files();
-    $resp->data(\@files);
+    my @files = map { { filename => $_,
+                        href => join('/', $base_href, URI::Escape::uri_escape($_)) } }
+                $app->loaded_files();
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
+            [ $app->encode_json(\@files) ]
         ];
 }
 

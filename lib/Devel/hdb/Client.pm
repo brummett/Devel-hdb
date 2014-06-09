@@ -7,6 +7,7 @@ use LWP::UserAgent;
 use JSON;
 use Carp;
 use Data::Dumper;
+use URI::Escape qw();
 
 our $VERSION = "1.0";
 
@@ -123,6 +124,15 @@ sub get_breakpoint {
 sub get_breakpoint {
     my($self, $id) = @_;
     return $self->{breakpoints}->{$id};
+}
+
+sub loaded_files {
+    my $self = shift;
+
+    my $response = $self->_GET('source');
+    _assert_success($response, q(Can't get loaded files));
+
+    return $JSON->decode($response->content);
 }
 
 sub _verify_required_params_exist {

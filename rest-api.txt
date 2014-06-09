@@ -389,3 +389,34 @@ Returns 200 and JSON in the message body
 
 
 -------------------------------------------------------------------------
+
+GET /source
+
+Get a list of all the files loaded by the current process
+
+Returns 200 and JSON in the message body
+
+[
+    { filename: String
+      href: URL to get the source/breakable data (/source/filename)
+    },
+    ...
+]
+
+--------------------------------------------------------------------------
+
+GET /source/filename
+
+Get a list of source code lines and which lines are breakable
+
+Returns 200 and JSON in the message body
+[
+    [ element 0: Perl source code line
+      element 1: Boolean, whether this line is breakable
+    ],
+    ...
+]
+
+Returns 404 if that filename is not loaded
+
+-----------------------------------------------------------------------
