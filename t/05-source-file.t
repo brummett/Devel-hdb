@@ -3,60 +3,57 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
 use File::Basename;
-use JSON;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 12;
+    plan tests => 11;
 }
 
 my $url = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
-my $stack;
+my $resp;
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'stack');
-ok($resp->is_success, 'Request stack position');
-$stack = $json->decode($resp->content);
-my $filename = $stack->{data}->[0]->{filename};
+my $stack = $client->stack();
+ok($stack, 'Request stack position');
+my $filename = $stack->[0]->{filename};
 $stack = strip_stack($stack);
 is_deeply($stack,
     [ { line => 3, subroutine => 'main::MAIN' } ],
     'Stopped on line 3');
 
+$resp = eval { $client->file_source_and_breakable('garbage') };
+ok(!$resp && $@, 'Cannot get file source for non-existent file');
+is($@->http_code, 404, 'error was not found');
+
 # Find out where HdbHelper was loaded from
-$resp = $resp = $mech->get('loadedfiles');
-my $answer = $json->decode($resp->content);
-my($hdb_helper) = grep { m/HdbHelper.pm$/ } @{$answer->{data}};
-my $subdir = index($hdb_helper, '/') == -1 ? '' : File::Basename::dirname($hdb_helper) . '/';
+$resp = $client->loaded_files();
+my($hdb_helper) = grep { $_->{filename} =~ m/HdbHelper.pm$/ } @$resp;
+my $hdb_helper_pathname = $hdb_helper->{filename};
+my $subdir = index($hdb_helper_pathname, '/') == -1
+                ? ''
+                : File::Basename::dirname($hdb_helper_pathname) . '/';
 
-$resp = $mech->get("sourcefile?f=${subdir}HdbHelper.pm");
-ok($resp->is_success, 'Get source of HdbHelper.pm');
-$answer = $json->decode($resp->content);
-is( $answer->{data}->{filename}, "${subdir}HdbHelper.pm", 'Answered with the correct filename');
-is($answer->{data}->{lines}->[0]->[0], "package HdbHelper;\n", 'File contents looks ok');
-
-
-$resp = $mech->get("sourcefile?f=${subdir}TestNothing.pm");
-ok($resp->is_success, 'Request source of TestNothing.pm');
-$answer = $json->decode($resp->content);
-is( $answer->{data}->{filename}, "${subdir}TestNothing.pm", 'Answered with the correct filename');
-is_deeply($answer->{data}->{lines}, [], 'Response is an empty file');
+$resp = $client->file_source_and_breakable($hdb_helper_pathname);
+ok($resp, 'Get source of HdbHelper.pm');
+is($resp->[0]->[0], "package HdbHelper;\n", 'File contents looks ok');
 
 
-$resp = $mech->get('stepover');
-ok($resp->is_success, 'step over the require');
+$resp = eval { $client->file_source_and_breakable("${subdir}TestNothing.pm") };
+ok(!$resp && $@, 'Request source of TestNothing.pm - not loaded yet');
+is($@->http_code, 404, 'error is Not Found');
 
-$resp = $mech->get("sourcefile?f=${subdir}TestNothing.pm");
-ok($resp->is_success, 'Request source of TestNothing.pm again');
-$answer = $json->decode($resp->content);
-is( $answer->{data}->{filename}, "${subdir}TestNothing.pm", 'Answered with the correct filename');
-is($answer->{data}->{lines}->[0]->[0], "package TestNothing;\n", 'File contents looks ok');
+
+$resp = $client->stepover();
+ok($resp, 'step over the require');
+
+$resp = $client->file_source_and_breakable("${subdir}TestNothing.pm");
+ok($resp, 'Request source of TestNothing.pm again');
+is($resp->[0]->[0], "package TestNothing;\n", 'File contents looks ok');
 
 
 __DATA__

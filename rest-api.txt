@@ -69,8 +69,7 @@ Returns 200 if the file is loaded and exists, JSON in the body
                 is breakable
 }
 
-Return 404 if the file is not loaded, or does not exist, or the user does not
-have permission to read it
+Return 404 if the file is not loaded
 
 ---------------------------------------------------------------
 

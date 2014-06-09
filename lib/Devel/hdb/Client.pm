@@ -154,6 +154,16 @@ sub loaded_files {
     return $JSON->decode($response->content);
 }
 
+sub file_source_and_breakable {
+    my($self, $filename) = @_;
+
+    my $escaped_filename = URI::Escape::uri_escape($filename);
+    my $response = $self->_GET(join('/', 'source', $escaped_filename));
+    _assert_success($response, "Can't get source for $filename");
+
+    return $JSON->decode($response->content);
+}
+
 sub _encode_query_string_for_hash {
     my @params;
     for(my $i = 0; $i < @_; $i += 2) {

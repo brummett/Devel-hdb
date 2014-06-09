@@ -7,19 +7,16 @@ use base 'Devel::hdb::App::Base';
 
 use URI::Escape;
 
-__PACKAGE__->add_route('get', qr{/source/(\w+)}, \&sourcefile);
-__PACKAGE__->add_route('get', '/loadedfiles', \&loaded_files);
+__PACKAGE__->add_route('get', qr{/source/(.+)}, \&sourcefile);
+__PACKAGE__->add_route('get', qr{(/source)}, \&loaded_files);
 
 # send back a list.  Each list elt is a list of 2 elements:
 # 0: the line of code
 # 1: whether that line is breakable
 sub sourcefile {
-    my($class, $app, $env) = @_;
+    my($class, $app, $env, $filename) = @_;
 
-    my $req = Plack::Request->new($env);
-    my $resp = Devel::hdb::Response->new('sourcefile', $env);
-
-    my $filename = $req->param('f');
+    $filename = URI::Escape::uri_unescape($filename);
 
     my @rv;
     if (my $file = $app->file_source($filename)) {
@@ -27,14 +24,16 @@ sub sourcefile {
         no warnings 'numeric';        # eval-ed "sources" generate "not-numeric" warnings
         @rv = map { [ $_, $_ + 0 ] } @$file;
         shift @rv;  # Get rid of the 0th element
+
+        return [ 200,
+                [ 'Content-Type' => 'application/json' ],
+                [ $app->encode_json(\@rv) ]
+            ];
+    } else {
+        return [ 404,
+                [ 'Content-Type' => 'text/html'],
+                [ 'File not found' ] ];
     }
-
-    $resp->data({ filename => $filename, lines => \@rv});
-
-    return [ 200,
-            [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
-        ];
 }
 
 sub loaded_files {
