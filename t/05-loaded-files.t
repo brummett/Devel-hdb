@@ -3,56 +3,50 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 8;
+    plan tests => 7;
 }
 
 my $url = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
-my $stack;
+my $resp;
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'stack');
-ok($resp->is_success, 'Request stack position');
-$stack = $json->decode($resp->content);
-my $filename = $stack->{data}->[0]->{filename};
+my $stack = $client->stack();
+ok($stack, 'Request stack position');
+my $filename = $stack->[0]->{filename};
 $stack = strip_stack($stack);
 is_deeply($stack,
     [ { line => 3, subroutine => 'main::MAIN' } ],
     'Stopped on line 3');
 
-$resp = $mech->get('loadedfiles');
-ok($resp->is_success, 'Get list of loaded file names');
-my $answer = $json->decode($resp->content);
-ok( file_list_contains($answer->{data}, $filename, 'HdbHelper.pm'),
+$resp = $client->loaded_files();
+ok($resp, 'Get list of loaded file names');
+ok( file_list_contains($resp, $filename, 'HdbHelper.pm'),
     'program file and HdbHelper are loaded');
 
-ok(! file_list_contains($answer->{data}, 'TestNothing.pm'),
+ok(! file_list_contains($resp, 'TestNothing.pm'),
     'TestNothing.pm is not loaded yet');
 
-$resp = $mech->get('stepover');
-ok($resp->is_success, 'step over the require');
+$resp = $client->stepover();
+ok($resp, 'step over the require');
 
-$resp = $mech->get('loadedfiles');
-ok($resp->is_success, 'Get list of loaded file names');
-$answer = $json->decode($resp->content);
-ok( file_list_contains($answer->{data}, $filename, 'HdbHelper.pm', 'TestNothing.pm'),
+$resp = $client->loaded_files();
+ok( file_list_contains($resp, $filename, 'HdbHelper.pm', 'TestNothing.pm'),
     'program file, HdbHelper and TestNothing are loaded');
 
 sub file_list_contains {
     my $source = shift;
-    my %source = map { $_ => 1 } @$source;
+    my @loaded_files = map { $_->{filename} } @$source;
 
     STRING:
     foreach my $string ( @_ ) {
-        foreach my $listitem ( @$source ) {
+        foreach my $listitem ( @loaded_files ) {
             next STRING if $listitem eq $string;
             next STRING if $listitem =~ m/\/\Q$string\E$/;
         }
