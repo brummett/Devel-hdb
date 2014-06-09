@@ -27,7 +27,7 @@ sub actionable_remover() { 'remove_break' }
     sub storage { \%my_breakpoints; }
 }
 
-sub _file_or_line_is_invalid {
+sub is_file_or_line_invalid {
     my($class, $app, $filename, $line) = @_;
 
     if (! $app->is_loaded($filename)) {
@@ -56,7 +56,7 @@ sub set {
     my $body = $class->_read_request_body($env);
     my $params = $app->decode_json( $body );
 
-    if (my $error = $class->_file_or_line_is_invalid($app, @$params{'filename','line'})) {
+    if (my $error = $class->is_file_or_line_invalid($app, @$params{'filename','line'})) {
         return $error;
     }
 
