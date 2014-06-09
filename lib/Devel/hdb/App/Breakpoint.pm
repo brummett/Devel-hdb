@@ -153,27 +153,26 @@ sub get {
 
 sub get_all {
     my($class, $app, $env) = @_;
-
     my $req = Plack::Request->new($env);
-    my $filename = $req->param('f');
-    my $line = $req->param('l');
-    my $rid = $req->param('rid');
 
-    my @bp;
-    my $getter = $class->actionable_getter;
-    my $response_type = $class->response_type;
-    foreach my $bp ( $app->$getter( file => $filename, line => $line) ) {
-        my $this = { type => $response_type };
-        $this->{rid} = 1 if (defined $rid);
-        $this->{data} = {   filename => $bp->file,
-                            lineno => $bp->line,
-                            code => $bp->code,
-                        };
-        $this->{data}->{inactive} = 1 if $bp->inactive;
-        push @bp, $this;
+    my %filters;
+    foreach my $filter ( qw( line code inactive ) ) {
+        $filters{$filter} = $req->param($filter) if defined $req->param($filter);
     }
+
+    my @bp_list =
+            map { my %bp_data;
+                    @bp_data{'filename','line','code','inactive'}
+                        = @$_{'file','line','code','inactive'};
+                    \%bp_data;
+                }
+            map { Devel::Chitin::Breakpoint->get(file => $_, %filters) }
+            defined($req->param('filename'))
+                ? ($req->param('filename'))
+                : $app->loaded_files;
+
     return [ 200, ['Content-Type' => 'application/json'],
-            [ JSON::encode_json( \@bp ) ]
+            [ JSON::encode_json( \@bp_list ) ]
         ];
 }
 

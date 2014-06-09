@@ -98,7 +98,6 @@ sub continue {
         _assert_success($response, q(Can't create_breakpoint));
 
         my $bp = $JSON->decode($response->content);
-        $self->_set_breakpoint($bp);
         return $bp->{href};
     }
 }
@@ -121,9 +120,21 @@ sub get_breakpoint {
     return $bp;
 }
 
-sub get_breakpoint {
-    my($self, $id) = @_;
-    return $self->{breakpoints}->{$id};
+{
+    my @recognized_params = qw(filename line code inactive);
+
+    sub get_breakpoints {
+        my $self = shift;
+        my %filters = @_;
+
+        _verify_recognized_params(\%filters, \@recognized_params);
+
+        my $url = join('?', 'breakpoints', _encode_query_string_for_hash(%filters));
+        my $response = $self->_GET($url);
+        _assert_success($response, q(Can't get breakpoints));
+
+        return $JSON->decode($response->content);
+    }
 }
 
 sub loaded_files {
@@ -135,6 +146,15 @@ sub loaded_files {
     return $JSON->decode($response->content);
 }
 
+sub _encode_query_string_for_hash {
+    my @params;
+    for(my $i = 0; $i < @_; $i += 2) {
+        push @params,
+             join('=', map { URI::Escape::uri_escape($_) } @_[$i, $i+1]);
+    }
+    return join('&', @params);
+}
+
 sub _verify_required_params_exist {
     my($param_hash, $required_list) = @_;
     foreach my $required ( @$required_list ) {
@@ -144,6 +164,16 @@ sub _verify_required_params_exist {
         }
     }
     return 1;
+}
+
+sub _verify_recognized_params {
+    my($param_hash, $recognized_list) = @_;
+
+    my %recognized = map { $_ => 1 } @$recognized_list;
+
+    foreach my $key ( keys %$param_hash ) {
+        Carp::croak("Unrecognized param $key") unless exists $recognized{$key};
+    }
 }
 
 sub _fill_in_default_params {

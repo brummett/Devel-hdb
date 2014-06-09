@@ -135,6 +135,28 @@ Returns 200 and JSON in the body
     ...
 ]
 
+--------------------------------------------------------------------------
+
+GET /breakpoints/?key1=value1&key2=value...
+GET /actions/?key1=value&key2=value...
+
+Get a list of breakpoints/actions matching the query.  Recognized filters
+are: filename, line, code and inactive.
+
+Returns 200 if successful and JSON in the body
+[
+    { filename: String
+      line: Integer
+      code: String
+      inactive: boolean
+      href: URL (/breakpoints/...)
+    },
+    ...
+]
+
+Returns 404 if the file is not loaded.
+Returns 403 if the line is not breakable.
+
 ----------------------------------------------------------------------
 
 POST /breakpoints
@@ -176,29 +198,6 @@ Returns 200 if successful and JSON in the body
 }
 
 Returns 404 if there is no breakpoint/action with that id.
-
---------------------------------------------------------------------------
-
-GET /breakpoints/?filename=<filename>&line=<lineno>
-GET /breakpoints/?filename=<filename>
-GET /actions/?filename=<filename>&line=<lineno>
-GET /actions/?filename=<filename>
-
-Get a list of breakpoints/actions matching the query
-
-Returns 200 if successful and JSON in the body
-[
-    { filename: String
-      line: Integer
-      code: String
-      inactive: boolean
-      href: URL (/breakpoints/...)
-    },
-    ...
-]
-
-Returns 404 if the file is not loaded.
-Returns 403 if the line is not breakable.
 
 -------------------------------------------------------------------------
 

@@ -3,96 +3,99 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 14;
+    plan tests => 13;
 }
 
 my $url = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
-my $stack;
+my $resp;
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'stack');
-ok($resp->is_success, 'Request stack position');
-$stack = $json->decode($resp->content);
-my $filename = $stack->{data}->[0]->{filename};
+my $stack = $client->stack();
+ok($stack, 'Request stack position');
+my $filename = $stack->[0]->{filename};
 $stack = strip_stack($stack);
 is_deeply($stack,
     [ { line => 3, subroutine => 'main::MAIN' } ],
     'Stopped on line 3');
 
-$resp = $mech->post("${url}breakpoint", { f => $filename, l => 3, c => 1});
-ok($resp->is_success, 'Set breakpoint for line 3');
+my $bp_3 = $client->create_breakpoint( filename => $filename, line => 3, code => '$a' );
+ok($bp_3, 'Set breakpoint for line 3');
 
-$resp = $mech->post("${url}breakpoint", { f => $filename, l => 4, c => 1});
-ok($resp->is_success, 'Set breakpoint for line 4');
+my $bp_4 = $client->create_breakpoint( filename => $filename, line => 4, inactive => 1 );
+ok($bp_4, 'Set breakpoint for line 4');
 
-$resp = $mech->post("${url}breakpoint", { f => $filename, l => 5, c => 1 });
-ok($resp->is_success, 'Set breakpoint and action for line 5');
+my $bp_5 = $client->create_breakpoint( filename => $filename, line => 5 );
+ok($bp_5, 'Set breakpoint line 5');
 
-$resp = $mech->post("${url}breakpoint", { f => 't/TestNothing.pm', l => 3, c => 1});
-ok($resp->is_success, 'Set breakpoint for line TestNothing.pm 3');
+my($test_nothing_file) = grep { $_->{filename} =~ m/TestNothing.pm/ } @{$client->loaded_files()};
+$test_nothing_file = $test_nothing_file->{filename};
+my $bp_tn = $client->create_breakpoint( filename => $test_nothing_file, line => 3 );
+ok($bp_tn, 'Set breakpoint for line TestNothing.pm 3');
 
-$resp = $mech->get('breakpoints');
-ok($resp->is_success, 'Get all breakpoints');
-my @bp = sort { $a->{data}->{filename} cmp $b->{data}->{filename}
-                    or
-                $a->{data}->{lineno} <=> $b->{data}->{lineno} }
-        @{ $json->decode($resp->content)};
-is_deeply( \@bp,
-    [
-      {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 3, code => 1 } },
-      {     type => 'breakpoint', 
-            data => { filename => $filename, lineno => 4, code => 1 } },
-      {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 5, code => 1 } },
-      {     type => 'breakpoint',
-            data => { filename => 't/TestNothing.pm', lineno => 3, code => 1 } },
+$resp = $client->get_breakpoints();
+is_deeply(sort_breakpoints_by_file_and_line($resp),
+    [   { filename => $filename, line => 3, code => '$a', inactive => 0 },
+        { filename => $filename, line => 4, code => 1, inactive => 1 },
+        { filename => $filename, line => 5, code => 1, inactive => 0 },
+        { filename => $test_nothing_file, line => 3, code => 1, inactive => 0 },
     ],
     'Got all set breakpoints'
 );
 
-$resp = $mech->get('breakpoints?f='.$filename);
-ok($resp->is_success, 'Get all breakpoints for main file');
-@bp = sort { $a->{data}->{lineno} <=> $b->{data}->{lineno} } @{ $json->decode($resp->content)};
-is_deeply( \@bp,
+$resp = $client->get_breakpoints(filename => $filename);
+is_deeply(sort_breakpoints_by_file_and_line($resp),
     [
-      {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 3, code => 1 } },
-      {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 4, code => 1 } },
-      {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 5, code => 1 } }
+        { filename => $filename, line => 3, code => '$a', inactive => 0 },
+        { filename => $filename, line => 4, code => 1, inactive => 1 },
+        { filename => $filename, line => 5, code => 1, inactive => 0 },
     ],
-    'Got all set breakpoints'
+    'Get all breakpoints for main file'
 );
 
-$resp = $mech->get("${url}delete-breakpoint?f=${filename}&l=4");
-ok($resp->is_success, 'Remove breakpoint for line 4');
-is_deeply($json->decode($resp->content),
-    { type => 'delete-breakpoint', data => { filename => $filename, lineno => 4 }},
-    'delete response is ok');
+$resp = $client->get_breakpoints(filename => $filename, inactive => 1);
+is_deeply($resp,
+    [ { filename => $filename, line => 4, code => 1, inactive => 1 }, ],
+    'Get breakpoints filtered by file and inactive');
 
-$resp = $mech->get('breakpoints?f='.$filename);
-ok($resp->is_success, 'Get all breakpoints for main file');
-@bp = sort { $a->{data}->{lineno} <=> $b->{data}->{lineno} } @{ $json->decode($resp->content)};
-is_deeply( \@bp,
+$resp = $client->get_breakpoints(line => 3, code => '$a');
+is_deeply($resp,
+    [ { filename => $filename, line => 3, code => '$a', inactive => 0 } ],
+    'Get breakpoints filtered by line and code');
+
+$resp = $client->get_breakpoints(line => 3, code => 'garbage');
+is_deeply($resp,
+    [],
+    'Get breakpoints filtered by line and code matching nothing');
+
+$resp = $client->delete_breakpoint($bp_4);
+ok($resp, 'Remove breakpoint for line 4');
+$resp = $client->get_breakpoints(filename => $filename);
+is_deeply( sort_breakpoints_by_file_and_line($resp),
     [
-      {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 3, code => 1 } },
-      {     type => 'breakpoint',
-            data => { filename => $filename, lineno => 5, code => 1 } }
+      { filename => $filename, line => 3, code => '$a', inactive => 0 },
+      { filename => $filename, line => 5, code => 1, inactive => 0 },
     ],
-    'Got all set breakpoints'
+    'Got all remaining breakpoints for main file'
 );
+
+sub sort_breakpoints_by_file_and_line {
+    my $bp_list = shift;
+
+    my @sorted =
+            sort { $a->{filename} cmp $b->{filename}
+                   or
+                   $a->{line} <=> $b->{line}
+                 }
+            @$bp_list;
+    return \@sorted;
+}
 
 
 
