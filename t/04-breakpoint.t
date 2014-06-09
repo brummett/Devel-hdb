@@ -9,7 +9,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 7;
+    plan tests => 8;
 }
 
 my $url = start_test_program();
@@ -42,6 +42,36 @@ subtest 'create breskpoint' => sub {
 
     $breakpoint_id = $client->create_breakpoint(filename => $filename, line => 3, code => 1);
     ok($breakpoint_id, 'Set breakpoint for line 3');
+};
+
+subtest 'change breakpoint' => sub {
+    plan tests => 7;
+
+    my $resp = eval { $client->change_breakpoint($breakpoint_id, filename => 'garbage') };
+    ok(!$resp and $@, 'Cannot change breakpoint filename');
+    is($@->http_code, 403, 'Error was forbidden');
+
+    $resp = eval { $client->change_breakpoint($breakpoint_id, line => 123) };
+    ok(!$resp and $@, 'Cannot change breakpoint line');
+    is($@->http_code, 403, 'Error was forbidden');
+
+    $resp = $client->change_breakpoint($breakpoint_id, inactive => 1);
+    is_deeply($resp,
+            { filename => $filename, line => 3, code => 1, inactive => 1, href => $breakpoint_id },
+            'change prop inactive to 1');
+
+    TODO: {
+        local $TODO = q(Devel::Chitin doesn't let you change the code prop yet);
+        $resp = $client->change_breakpoint($breakpoint_id, code => 2);
+        is_deeply($resp,
+            { filename => $filename, line => 3, code => 2, inactive => 0, href => $breakpoint_id },
+            'change code prop');
+    };
+
+    $resp = $client->change_breakpoint($breakpoint_id, inactive => 0, code => 1);
+    is_deeply($resp,
+            { filename => $filename, line => 3, code => 1, inactive => 0, href => $breakpoint_id },
+            'change prop inactive and code back original values');
 };
 
 subtest 'get breakpoint' => sub {
