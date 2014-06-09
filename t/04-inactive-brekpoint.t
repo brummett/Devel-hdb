@@ -3,65 +3,59 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 11;
+    plan tests => 8;
 }
 
 my $url = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
-my $stack;
+my $resp;
 
-my $mech = WWW::Mechanize->new(autocheck => 0);
-my $resp = $mech->get($url.'stack');
-ok($resp->is_success, 'Request stack position');
-$stack = $json->decode($resp->content);
-my $filename = $stack->{data}->[0]->{filename};
+my $stack = $client->stack();
+ok($stack, 'Request stack position');
+my $filename = $stack->[0]->{filename};
 $stack = strip_stack($stack);
 is_deeply($stack,
     [ { line => 1, subroutine => 'main::MAIN' } ],
     'Stopped on line 1');
 
-$resp = $mech->post("${url}breakpoint", { f => $filename, l => 6, c => 1 });
-ok($resp->is_success, 'Set breakpoint on line 6');
+my $bp = $client->create_breakpoint( filename => $filename, line => 6, code => 1 );
+ok($bp, 'Set breakpoint on line 6');
 
-$resp = $mech->get($url.'continue');
-ok($resp->is_success, 'continue');
-$stack = strip_stack($json->decode($resp->content));
-is_deeply($stack,
-    [ { line => 6, subroutine => 'main::foo' },
-      { line => 1, subroutine => 'main::MAIN' } ],
-    'Stopped on line 6 breakpoint');
+$resp = $client->continue();
+is_deeply($resp,
+    { filename => $filename, line => 6, subroutine => 'main::foo', running => 1 },
+    'Continue to line 6 breakpoint');
 
-$resp = $mech->post("${url}breakpoint", { f => $filename, l => 6, ci => 1 });
-ok($resp->is_success, 'set breakpoint to inactive');
-
-
-$resp = $mech->get($url.'continue');
-ok($resp->is_success, 'continue');
-$stack = strip_stack($json->decode($resp->content));
-is_deeply($stack,
-    [ { line => 4, subroutine => 'main::MAIN' } ],
-    'Stopped on line 4, in-code $DB::single');
+$resp = $client->change_breakpoint($bp, inactive => 1 );
+is_deeply($resp,
+    { filename => $filename, line => 6, code => 1, inactive => 1, href => $bp },
+    'set breakpoint to inactive');
 
 
-$resp = $mech->post("${url}breakpoint", { f => $filename, l => 6, ci => 0 });
-ok($resp->is_success, 'set breakpoint back to  active');
+$resp = $client->continue();
+is_deeply($resp,
+    { filename => $filename, line => 4, subroutine => 'MAIN', running => 1 },
+    'Continue to  line 4, in-code $DB::single');
 
 
-$resp = $mech->get($url.'continue');
-ok($resp->is_success, 'continue');
-$stack = strip_stack($json->decode($resp->content));
-is_deeply($stack,
-    [ { line => 6, subroutine => 'main::foo' },
-      { line => 4, subroutine => 'main::MAIN' } ],
-    'Stopped on line 6 breakpoint');
+$resp = $client->change_breakpoint($bp, inactive => 0 );
+is_deeply($resp,
+    { filename => $filename, line => 6, code => 1, inactive => 0, href => $bp },
+    'set breakpoint back to active');
+
+
+$resp = $client->continue();
+is_deeply($resp,
+    { filename => $filename, line => 6, subroutine => 'main::foo', running => 1 },
+    'Continue to line 6 breakpoint');
+
 
 
 

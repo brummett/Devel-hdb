@@ -14,6 +14,7 @@ sub response_url_base() { '/breakpoints' };
 
 __PACKAGE__->add_route('post', response_url_base(), 'set');
 __PACKAGE__->add_route('get', qr{(/breakpoints/\w+)$}, 'get');
+__PACKAGE__->add_route('post', qr{(/breakpoints/\w+)$}, 'change');
 __PACKAGE__->add_route('delete', qr{(/breakpoints/\w+)$}, 'delete');
 __PACKAGE__->add_route('get', '/breakpoints', 'get_all');
 
@@ -66,6 +67,41 @@ sub set {
             [ 'Content-Type' => 'application/json' ],
             [ $app->encode_json($resp_data) ],
           ];
+}
+
+sub change {
+    my($class, $app, $env, $id) = @_;
+
+    my $body = $class->_read_request_body($env);
+    my $params = $app->decode_json( $body );
+
+    foreach my $prop (qw( filename line )) {
+        if (exists($params->{$prop})) {
+            return [ 403,
+                     ['Content-Type' => 'text/html'],
+                     ["Cannot change property $prop"] ];
+        }
+    }
+
+    my $bp = $class->get_stored($id);
+    unless ($bp) {
+        return [ 404,
+                    ['Content-Type' => 'text/html'],
+                    ["No breakpoint $id"] ];
+    }
+
+    foreach my $prop ( keys %$params ) {
+        $bp->$prop( $params->{$prop} );
+    }
+
+    my $rv = { href => $id, filename => $bp->file };
+    foreach my $prop (qw( line code inactive)) {
+        $rv->{$prop} = $bp->$prop;
+    }
+
+    return [ 200,
+                [ 'Content-Type', 'application/json'],
+                [ $app->encode_json($rv) ] ];
 }
 
 sub delete {

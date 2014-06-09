@@ -204,7 +204,9 @@ Returns 404 if there is no breakpoint/action with that id.
 POST /breakpoints/<id>
 POST /actions/<id>
 
-Change a breakpoint/action.  Body contains JSON hash of which keys to change, code or inactive.
+Change a breakpoint/action.  Body contains JSON hash of which keys to change
+with their new values.
+
 Returns 200 if successful and JSON in the body
 { filename: String
   line: Integer
@@ -214,6 +216,8 @@ Returns 200 if successful and JSON in the body
 }
 
 Returns 404 if there is no breakpoint/action with that ID.
+Returns 403 if the requested property cannot be changed.  filename and line,
+    in particular, cannot be changed.
 
 -----------------------------------------------------------------------
 

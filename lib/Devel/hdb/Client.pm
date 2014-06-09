@@ -102,6 +102,14 @@ sub continue {
     }
 }
 
+sub change_breakpoint {
+    my($self, $bp, %params) = @_;
+
+    my $response = $self->_POST($bp, \%params);
+    _assert_success($response, q(Can't change breakpoint));
+    return $JSON->decode($response->content);
+}
+
 sub delete_breakpoint {
     my($self, $href) = @_;
 
