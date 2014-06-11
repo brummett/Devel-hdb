@@ -8,6 +8,7 @@ use JSON;
 use Carp;
 use Data::Dumper;
 use URI::Escape qw();
+use Data::Transform::ExplicitMetadata;
 
 our $VERSION = "1.0";
 
@@ -162,6 +163,15 @@ sub file_source_and_breakable {
     _assert_success($response, "Can't get source for $filename");
 
     return $JSON->decode($response->content);
+}
+
+sub eval {
+    my($self, $eval_string) = @_;
+
+    my %params = ( 'wantarray' => wantarray, code => $eval_string );
+    my $response = $self->_POST('eval', \%params);
+    _assert_success($response, q(eval failed));
+    return Data::Transform::ExplicitMetadata::decode($JSON->decode($response->content));
 }
 
 sub _encode_query_string_for_hash {

@@ -296,10 +296,16 @@ Returns 204 if successful.
 POST /eval
 
 Request the debugger evaluate some Perl code in the debugged program's most
-recent stack frame.  The Perl to be executed is in the message body.
+recent stack frame.  The request body contains JSON:
+{
+    wantarray: 0, 1 or undefined - scalar, list or void context
+    code: String - The string to eval
+}
 
-Returns 200 if successful and JSON in the body.  The returned JSON is an
-encoded version of whatever the Perl code evaluated to.
+Returns 200 if successful and the result in the body.  The body contents
+should be decoded using Data::Transform::ExplicitMetadata
+Returns 409 if there was an exception.  The body contents should be decoded
+using Data::Transform::ExplicitMetadata
 
 -------------------------------------------------------------------------
 

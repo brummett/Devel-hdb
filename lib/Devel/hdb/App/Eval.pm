@@ -22,18 +22,11 @@ __PACKAGE__->add_route('post', '/getvar', \&do_getvar);
 sub do_eval {
     my($class, $app, $env) = @_;
 
-    my $req = Plack::Request->new($env);
-    my $expr = $req->content();
-    my $eval_string = _fixup_expr_for_eval($expr);
+    my $body = $class->_read_request_body($env);
+    my $params = $app->decode_json($body);
+    my $eval_string = _fixup_expr_for_eval($params->{code});
 
-    my $resp = Devel::hdb::Response->new('evalresult', $env);
-
-    my $result_packager = sub {
-        my $data = shift;
-        $data->{expr} = $expr;
-        return $data;
-    };
-    return _eval_plumbing_closure($app, $eval_string,$resp, $env, $result_packager);
+    return _eval_plumbing_closure($app, $env, $eval_string, $params->{wantarray});
 }
 
 my %perl_special_vars = map { $_ => 1 }
@@ -66,7 +59,7 @@ sub do_getvar {
             $data->{level} = $level;
             return $data;
         };
-        return _eval_plumbing_closure($app,$varname, $resp, $env, $result_packager);
+        return _eval_plumbing_closure($app, $env, $varname, 1);
     }
 
     my $value = eval { $app->get_var_at_level($varname, $level) };
@@ -95,30 +88,23 @@ sub do_getvar {
 }
 
 sub _eval_plumbing_closure {
-    my($app, $eval_string, $resp, $env, $result_packager) = @_;
+    my($app, $env, $eval_string, $wantarray) = @_;
 
     $eval_string = _fixup_expr_for_eval($eval_string);
     return sub {
         my $responder = shift;
-        my $writer = $responder->([ 200, [ 'Content-Type' => 'application/json' ]]);
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
 
         $app->eval(
             $eval_string,
-            1,
+            $wantarray,
             sub {
-                my($result, $exception) = @_;
-                my $data;
-                if ($exception) {
-                    $data->{exception} = encode($exception);
-                } else {
-                    $data->{result} = encode(@$result < 2 ? $result->[0] : $result );
-                }
-                $data = $result_packager->($data);
+                my($eval_result, $exception) = @_;
 
-                $resp->data($data);
-                $writer->write($resp->encode());
-                $writer->close();
+                my $result = Data::Transform::ExplicitMetadata::encode($exception || $eval_result);
+                $responder->([ $exception ? 409 : 200,
+                                [ 'Content-Type' => 'application/json' ],
+                                [ $app->encode_json($result) ]]);
             }
         );
     };
