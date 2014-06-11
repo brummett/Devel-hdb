@@ -3,28 +3,25 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 20;
+    plan tests => 19;
 }
 
 my($url, $pid, $filename) = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
-my $stack;
+my $resp = $client->continue();
+is_deeply($resp,
+    { filename => $filename, line => 15, subroutine => 'ListPackage::noargs_fn', running => 1 },
+    'Run to first breakpoint');
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'continue');
-ok($resp->is_success, 'Run to first breakpoint');
-$stack = $json->decode($resp->content)->{data};
-
-is($stack->[0]->{line}, 15, 'Stopped on line 15');
-my $level = $stack->[0]->{level};
+my $stack = $client->stack();
+my $level = 0;
 
 my @expected = (
     {   wantarray   => undef,
@@ -98,7 +95,7 @@ my @expected = (
 for (my $i = 0; $i < @expected; $i++) {
     my $frame_filename = delete($stack->[$i]->{filename});
     if ($stack->[$i]->{evaltext}) {
-        like($frame_filename, qr(\(eval \d+\)[\Q$filename\E:\d+]), "Filename stack frame $i");
+        like($frame_filename, qr{(eval \d+)[\Q$filename\E:\d+]}, "Filename stack frame $i");
     } else {
         is($frame_filename, $filename, "Filename stack frame $i");
     }
