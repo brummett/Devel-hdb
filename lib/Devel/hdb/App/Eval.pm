@@ -7,7 +7,7 @@ use Data::Transform::ExplicitMetadata qw(encode);
 
 use base 'Devel::hdb::App::Base';
 
-use Devel::hdb::Response;
+use Devel::hdb::Utils;
 
 __PACKAGE__->add_route('post', '/eval', \&do_eval);
 __PACKAGE__->add_route('post', '/getvar', \&do_getvar);
@@ -24,7 +24,7 @@ sub do_eval {
 
     my $body = $class->_read_request_body($env);
     my $params = $app->decode_json($body);
-    my $eval_string = _fixup_expr_for_eval($params->{code});
+    my $eval_string = Devel::hdb::Utils::_fixup_expr_for_eval($params->{code});
 
     return _eval_plumbing_closure($app, $env, $eval_string, $params->{wantarray});
 }
@@ -90,7 +90,7 @@ sub do_getvar {
 sub _eval_plumbing_closure {
     my($app, $env, $eval_string, $wantarray) = @_;
 
-    $eval_string = _fixup_expr_for_eval($eval_string);
+    $eval_string = Devel::hdb::Utils::_fixup_expr_for_eval($eval_string);
     return sub {
         my $responder = shift;
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
@@ -109,18 +109,6 @@ sub _eval_plumbing_closure {
         );
     };
 }
-
-# This substitution is done so that we return HASH, as opposed to a list
-# An expression of %hash results in a list of key/value pairs that can't
-# be distinguished from a list.  A glob gets replaced by a glob ref.
-sub _fixup_expr_for_eval {
-    my($expr) = @_;
-
-    $expr =~ s/^\s*(?<!\\)([%*])/\\$1/o;
-    return $expr;
-}
-
-
 
 1;
 
