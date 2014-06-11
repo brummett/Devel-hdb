@@ -3,8 +3,7 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
@@ -14,55 +13,29 @@ if ($^O =~ m/^MS/) {
 }
 
 my $url = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
-my $stack;
+my $resp = $client->continue();
+is($resp->{line}, 9, 'Run to breakpoint');
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'continue');
-ok($resp->is_success, 'Run to breakpoint');
-
-$resp = $mech->post("${url}eval", content => '$global');
-ok($resp->is_success, 'Get value of a global scalar in the default package');
-my $answer = $json->decode($resp->content);
-is_deeply($answer,
-    {   type => 'evalresult',
-        data => { expr => '$global', result => 1 }
-    },
-    'value is correct');
+$resp = $client->eval('$global');
+is($resp, 1, 'Get value of a global scalar in the default package');
     
-$resp = $mech->post("${url}eval", content => '@Other::global');
-ok($resp->is_success, 'Get value of a global list in another package');
-$answer = $json->decode($resp->content);
-ok(delete $answer->{data}->{result}->{__refaddr}, 'Encoded value has a refaddr');
-is_deeply($answer,
-    {   type => 'evalresult',
-        data => { expr => '@Other::global',
-                  result => {
-                      __reftype => 'ARRAY',
-                      __value => [1,2] },
-                }
-    },
-    'Value is correct');
+my @resp = $client->eval('@Other::global');
+is_deeply(\@resp,
+    [1, 2],
+    'Get value of a global list in another package');
 
-$resp = $mech->post("${url}eval", content => '%lexical');
-ok($resp->is_success, 'Get value of a lexical hash');
-$answer = $json->decode($resp->content);
-ok(delete $answer->{data}->{result}->{__refaddr}, 'Encoded value has a refaddr');
-is_deeply($answer,
-    {   type => 'evalresult',
-        data => { expr => '%lexical',
-                  result => {
-                      __reftype => 'HASH',
-                      __value => { key => 3} }
-                }
-    },
-    'Value is correct');
+my %resp = $client->eval('%lexical');
+is_deeply(\%resp,
+    { key => 3 },
+    'Get value of a lexical hash');
 
-$resp = $mech->post("${url}eval", content => 'do_die()');
-ok($resp->is_success, 'eval a sub call that dies');
-$answer = $json->decode($resp->content);
-is_deeply($answer,
+$resp = eval { $client->eval('do_die()') };
+ok(! $resp && $@, 'eval a sub call that dies');
+use Data::Dumper;
+print Data::Dumper::Dumper($@);
+is($@->message(
     {   type => 'evalresult',
         data => { expr => 'do_die()', exception => "in do_die\n" } },
     'caught exception');
