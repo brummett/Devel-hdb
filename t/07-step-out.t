@@ -3,57 +3,43 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 10;
+    plan tests => 5;
 }
 
 my $url = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
-my $stack;
+my $resp = $client->continue();
+my $filename = $resp->{filename};
+is_deeply($resp,
+    { filename => $filename, line => 6, subroutine => 'main::one', running => 1 },
+    'Run to first breakpoint');
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'continue');
-ok($resp->is_success, 'Run to first breakpoint');
-$stack = strip_stack($json->decode($resp->content));
-is_deeply($stack->[0],
-    { line => 6, subroutine => 'main::one' },
-    'Stopped on line 6');
+$resp = $client->stepout();
+is_deeply($resp,
+    { filename => $filename, line => 2, subroutine => 'MAIN', running => 1 },
+    'step out to line 2');
 
-$resp = $mech->get($url.'stepout');
-ok($resp->is_success, 'step out');
-$stack = strip_stack($json->decode($resp->content));
-is_deeply($stack->[0],
-    { line => 2, subroutine => 'main::MAIN' },
-    'Stopped on line 2');
+$resp = $client->continue();
+is_deeply($resp,
+    { filename => $filename, line => 16, subroutine => 'main::subtwo', running => 1 },
+    'Run to next breakpoint line 16');
 
-$resp = $mech->get($url.'continue');
-ok($resp->is_success, 'Run to next breakpoint');
-$stack = strip_stack($json->decode($resp->content));
-is_deeply($stack->[0],
-    { line => 16, subroutine => 'main::subtwo' },
-    'Stopped on line 16');
+$resp = $client->stepout();
+is_deeply($resp,
+    { filename => $filename, line => 11, subroutine => 'main::two', running => 1 },
+    'step out to line 11');
 
-
-$resp = $mech->get($url.'stepout');
-ok($resp->is_success, 'step out');
-$stack = strip_stack($json->decode($resp->content));
-is_deeply($stack->[0],
-  { line => 11, subroutine => 'main::two' },
-    'Stopped on line 11');
-
-$resp = $mech->get($url.'stepout');
-ok($resp->is_success, 'step out');
-$stack = strip_stack($json->decode($resp->content));
-is_deeply($stack->[0],
-  { line => 3, subroutine => 'main::MAIN' },
-    'Stopped on line 3');
+$resp = $client->stepout();
+is_deeply($resp,
+    { filename => $filename, line => 3, subroutine => 'MAIN', running => 1 },
+    'step out to line 3');
 
 
 

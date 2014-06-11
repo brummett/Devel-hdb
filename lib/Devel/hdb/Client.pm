@@ -80,6 +80,14 @@ sub stepover {
     return $JSON->decode($response->content);
 }
 
+sub stepout {
+    my $self = shift;
+
+    my $response = $self->_POST('stepout');
+    _assert_success($response, q(Can't stepover));
+    return $JSON->decode($response->content);
+}
+
 sub continue {
     my $self = shift;
     my $nostop = shift;
