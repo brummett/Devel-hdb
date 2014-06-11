@@ -13,8 +13,16 @@ use Data::Transform::ExplicitMetadata;
 our $VERSION = "1.0";
 
 use Exception::Class (
-        'Devel::hdb::Client::Exception' => {
+        'Devel::hdb::Client::Exception',
+        'Devel::hdb::Client::Exception::HTTP' => {
+            isa => 'Devel::hdb::Client::Exception',
             fields => [qw( http_code http_message http_content )],
+        },
+        'Devel::hdb::Client::Exception::Eval' => {
+            isa => 'Devel::hdb::Client::Exception',
+        },
+        'Devel::hdb::Client::Exception::Error' => {
+            isa => 'Devel::hdb::Client::Exception',
         },
 );
 
@@ -275,7 +283,7 @@ sub _assert_success {
     my $response = shift;
     my $error = shift;
     unless ($response->is_success) {
-        Devel::hdb::Client::Exception->throw(
+        Devel::hdb::Client::Exception::HTTP->throw(
                 error => $error . ': ' . $response->message,
                 http_code => $response->code,
                 http_message => $response->message,
