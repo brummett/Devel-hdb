@@ -39,18 +39,6 @@ sub is_file_or_line_invalid {
     return;
 }
 
-sub _read_request_body {
-    my($class, $env) = @_;
-
-    my $buff = '';
-    my $fh = $env->{'psgi.input'};
-    while ($fh->read($buff, 4096, length($buff))) {
-        1;
-    }
-
-    return $buff;
-}
-
 sub set {
     my($class, $app, $env) = @_;
 

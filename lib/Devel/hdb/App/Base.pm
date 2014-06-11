@@ -9,6 +9,19 @@ sub add_route {
     $app->router->$method($path, sub { $class->$cb($app, @_) });
 }
 
+sub _read_request_body {
+    my($class, $env) = @_;
+
+    my $buff = '';
+    my $fh = $env->{'psgi.input'};
+    while ($fh->read($buff, 4096, length($buff))) {
+        1;
+    }
+
+    return $buff;
+}
+
+
 1;
 
 =pod
