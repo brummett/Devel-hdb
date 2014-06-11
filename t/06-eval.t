@@ -9,22 +9,27 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 21;
+    plan tests => 12;
 }
 
 my $url = start_test_program();
 my $client = Devel::hdb::Client->new(url => $url);
 
 my $resp = $client->continue();
-is($resp->{line}, 9, 'Run to breakpoint');
+is($resp->{line}, 10, 'Run to breakpoint');
 
 $resp = $client->eval('$global');
 is($resp, 1, 'Get value of a global scalar in the default package');
-    
+
 my @resp = $client->eval('@Other::global');
 is_deeply(\@resp,
     [1, 2],
     'Get value of a global list in another package');
+
+$resp = $client->eval('$global_arrayref');
+is_deeply($resp,
+    [1, 2],
+    'Get value of arrayref');
 
 my %resp = $client->eval('%lexical');
 is_deeply(\%resp,
@@ -33,82 +38,34 @@ is_deeply(\%resp,
 
 $resp = eval { $client->eval('do_die()') };
 ok(! $resp && $@, 'eval a sub call that dies');
-use Data::Dumper;
-print Data::Dumper::Dumper($@);
-is($@->message(
-    {   type => 'evalresult',
-        data => { expr => 'do_die()', exception => "in do_die\n" } },
+is($@->message,
+    "in do_die\n",
     'caught exception');
 
-$resp = $mech->post("${url}eval", content => '$refref');
-ok($resp->is_success, 'Get value of a reference to a reference');
-$answer = $json->decode($resp->content);
-ok(delete $answer->{data}->{result}->{__refaddr}, 'Encoded value has a refaddr');
-ok(delete $answer->{data}->{result}->{__value}->{__refaddr}, 'Reference value has a refaddr');
-is_deeply($answer,
-    {   type => 'evalresult',
-        data => { expr => '$refref',
-                  result => {
-                      __reftype => 'REF',
-                      __value => {
-                          __reftype => 'SCALAR',
-                          __value => 1
-                        }
-                    }
-                }
-    },
-    'Value is correct');
+$resp = $client->eval('$refref');
+is($$$resp, 1, 'Get value of a reference to a reference');
 
 
-$resp = $mech->post("${url}eval", content => '*STDOUT');
-ok($resp->is_success, 'Get value of a reference to a reference');
-$answer = $json->decode($resp->content);
-ok(delete $answer->{data}->{result}->{__refaddr}, 'Encoded value has a refaddr');
-ok(delete $answer->{data}->{result}->{__value}->{SCALAR}->{__refaddr}, 'Contained SCALAR value has a refaddr');
-is_deeply($answer,
-    {   type => 'evalresult',
-        data => { expr => '*STDOUT',
-                  result => {
-                      __reftype => 'GLOB',
-                      __value => {
-                        NAME => 'STDOUT',
-                        PACKAGE => 'main',
-                        IO => 1,
-                        IOseek => undef,
-                        SCALAR => {
-                            __reftype => 'SCALAR',
-                            __value => undef
-                        },
-                      },
-                  },
-              },
-    },
-    'Encoded bare typeglob');
+$resp = $client->eval('*STDOUT');
+is(ref(\$resp), 'GLOB', 'Get glob');
+is(fileno($resp), 1, 'stdout fileno');
 
 
-$resp = $mech->post("${url}eval", content => '@_');
-ok($resp->is_success, 'Get value of @_');
-$answer = $json->decode($resp->content);
-strip_refaddr($answer->{data}->{result});
-is_deeply($answer,
-    {   type => 'evalresult',
-        data => {
-            expr => '@_',
-            result => {
-                __reftype => 'ARRAY',
-                __value => [ 1, 2, 3 ],
-            }
-        }
-    },
-    '@_ is correct');
+@resp = $client->eval('@_');
+is_deeply(\@resp,
+    [ 1, 2, 3 ],
+    'Get value of @_');
 
-
-
+@resp = $client->eval('returns_list()');
+is_deeply(\@resp,
+    [ 3, 2, 1 ],
+    'Calling function returns list');
 
 
 __DATA__
 $global = 1;                # package global
 @Other::global = (1,2);     # different package
+$global_arrayref = \@Other::global;
 my %lexical = (key => 3);   # lexical
 my $ref = \$global;
 my $refref = \$ref;
@@ -119,4 +76,7 @@ sub foo {
 }
 sub do_die {
     die "in do_die\n";
+}
+sub returns_list {
+    return (3,2,1);
 }

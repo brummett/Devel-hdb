@@ -35,7 +35,7 @@ sub get {
 
 sub _make_json_encoder {
     my $self = shift;
-    $self->{json} = JSON->new->utf8();
+    $self->{json} = JSON->new->utf8->allow_nonref();
     return $self;
 }
 

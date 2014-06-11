@@ -9,6 +9,9 @@ use Carp;
 use Data::Dumper;
 use URI::Escape qw();
 use Data::Transform::ExplicitMetadata;
+use Scalar::Util qw(reftype);
+
+use Devel::hdb::Utils;
 
 our $VERSION = "1.0";
 
@@ -26,7 +29,7 @@ use Exception::Class (
         },
 );
 
-my $JSON ||= JSON->new();
+my $JSON ||= JSON->new->utf8->allow_nonref();
 
 sub new {
     my $class = shift;
@@ -176,10 +179,49 @@ sub file_source_and_breakable {
 sub eval {
     my($self, $eval_string) = @_;
 
+    my $string_was_fixed_up = $eval_string ne Devel::hdb::Utils::_fixup_expr_for_eval($eval_string);
+
     my %params = ( 'wantarray' => wantarray, code => $eval_string );
     my $response = $self->_POST('eval', \%params);
+
+    my $result = Data::Transform::ExplicitMetadata::decode($JSON->decode($response->content));
+
+    if ($response->code == 409) {
+        Devel::hdb::Client::Exception::Eval->throw(
+            error => $result
+        );
+    }
     _assert_success($response, q(eval failed));
-    return Data::Transform::ExplicitMetadata::decode($JSON->decode($response->content));
+    my $reftype = reftype($result);
+
+    if (wantarray and $reftype and $reftype ne 'ARRAY') {
+        Devel::hdb::Exception::Error->throw(
+            error => "Expected ARRAY ref but got $reftype"
+        );
+    }
+
+    return _return_unfixed_value_from_eval($string_was_fixed_up, $result);
+}
+
+sub _return_unfixed_value_from_eval {
+    my $was_fixed_up = shift;
+    my $val = shift;
+
+    no warnings 'uninitialized';
+
+    if ($was_fixed_up) {
+        if (wantarray and reftype($val->[0]) eq 'HASH') {
+            return %{ $val->[0] };
+        } elsif (reftype($val) eq 'GLOB') {
+            return *$val;
+        }
+    }
+
+    if (wantarray) {
+        return @$val;
+    } else {
+        return $val;
+    }
 }
 
 sub _encode_query_string_for_hash {
