@@ -18,8 +18,6 @@ __PACKAGE__->add_route('post', qr{(/breakpoints/\w+)$}, 'change');
 __PACKAGE__->add_route('delete', qr{(/breakpoints/\w+)$}, 'delete');
 __PACKAGE__->add_route('get', '/breakpoints', 'get_all');
 
-sub delete_response_type { 'delete-breakpoint' }
-sub actionable_getter() { 'get_breaks' }
 sub actionable_adder() { 'add_break' }
 sub actionable_remover() { 'remove_break' }
 sub actionable_type() { 'Devel::Chitin::Breakpoint' }
