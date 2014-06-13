@@ -8,7 +8,7 @@ use JSON;
 use Carp;
 use Data::Dumper;
 use URI::Escape qw();
-use Data::Transform::ExplicitMetadata;
+use Data::Transform::ExplicitMetadata '0.02';
 use Scalar::Util qw(reftype);
 
 use Devel::hdb::Utils;
@@ -51,7 +51,11 @@ sub stack {
 
     my $response = $self->_GET('stack');
     _assert_success($response, q(Can't get stack position));
-    return $JSON->decode($response->content);
+    my $stack = $JSON->decode($response->content);
+    foreach my $frame ( @$stack ) {
+        $frame->{args} = [ map { Data::Transform::ExplicitMetadata::decode($_) } @{ $frame->{args} } ];
+    }
+    return $stack;
 }
 
 sub _gui_url { 'debugger-gui' }

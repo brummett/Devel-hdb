@@ -104,7 +104,7 @@ sub strip_stack_inc_args {
     my $stack = shift;
 
     my @stripped = map { { line => $_->{line}, subroutine => $_->{subroutine}, args => $_->{args} } } @$stack;
-    return @stripped;
+    return \@stripped;
 }
 
 # recursively remove all occurances of __refaddr

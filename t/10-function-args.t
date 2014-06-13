@@ -3,37 +3,32 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 5;
+    plan tests => 3;
 }
 
 my $url = start_test_program('arg1', 'arg2');
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
-my $stack;
+my $resp;
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'stack');
-ok($resp->is_success, 'Request stack position');
-$stack = strip_stack_inc_args($json->decode($resp->content));
+my $stack = $client->stack();
+$stack = strip_stack_inc_args($stack);
 is_deeply($stack,
     [ { line => 1, subroutine => 'main::MAIN', args => ['arg1', 'arg2'] } ],
     'Stopped on line 1');
 
-$resp = $mech->get($url.'continue');
-ok($resp->is_success, 'continue');
-$stack = strip_stack_inc_args($json->decode($resp->content));
-ok(delete($stack->[0]->{args}->[2]->{__refaddr}), '3rd arg has a refaddr');
+$resp = $client->continue();
+ok($resp, 'continue');
+$stack = strip_stack_inc_args($client->stack);
 
 is_deeply($stack,
-  [ { line => 6, subroutine => 'main::foo',
-        args => [1, 'one', { __reftype => 'HASH', __value => { two => 2 }} ] },
+  [ { line => 6, subroutine => 'main::foo', args => [1, 'one', { two => 2 } ] },
     { line => 2, subroutine => 'main::MAIN', args => ['arg1','arg2'] } ],
     'Stopped on line 6, frame above is line 2');
 
