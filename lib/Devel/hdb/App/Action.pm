@@ -5,16 +5,17 @@ use warnings;
 
 use base 'Devel::hdb::App::Breakpoint';
 
-__PACKAGE__->add_route('post', '/action', 'set');
-__PACKAGE__->add_route('get', '/action', 'get');
-__PACKAGE__->add_route('get', '/delete-action', 'delete');
+sub response_url_base() { '/actions' }
+
+__PACKAGE__->add_route('post', response_url_base(), 'set');
+__PACKAGE__->add_route('get', qr{(/actions/\w+)$}, 'get');
+__PACKAGE__->add_route('post', qr{(/actions/\w+)$}, 'change');
+__PACKAGE__->add_route('delete', qr{(/actions/\w+)$}, 'delete');
 __PACKAGE__->add_route('get', '/actions', 'get_all');
 
-sub response_type() { 'action' };
-sub delete_response_type { 'delete-action' }
-sub actionable_getter() { 'get_actions' }
 sub actionable_adder() { 'add_action' }
 sub actionable_remover() { 'remove_action' }
+sub actionable_type() { 'Devel::Chitin::Action' }
 
 {
     my(%my_actions);
