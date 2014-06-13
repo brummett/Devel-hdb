@@ -15,8 +15,6 @@ if ($^O =~ m/^MS/) {
 my $url = start_test_program();
 my $client = Devel::hdb::Client->new(url => $url);
 
-my $stack;
-
 my $stack = $client->stack();
 ok($stack, 'Request stack position');
 my $filename = $stack->[0]->{filename};
