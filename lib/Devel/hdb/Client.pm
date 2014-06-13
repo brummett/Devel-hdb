@@ -104,65 +104,99 @@ sub continue {
                 : $JSON->decode($response->content);
 }
 
-{
-    my @required_params = qw(filename line);
-    my %defaults = ( code => 1, inactive => 0 );
-    sub create_breakpoint {
+sub  _create_breakpoint_action_sub {
+    my($type, $required_params, $default_params) = @_;
+
+    # create_breakpoint() and create_action()
+    return sub {
         my $self = shift;
         my %params = @_;
 
-        _verify_required_params_exist(\%params, \@required_params);
-        _fill_in_default_params(\%params, \%defaults);
+        _verify_required_params_exist(\%params, $required_params);
+        _fill_in_default_params(\%params, $default_params);
 
-        my $response = $self->_POST('breakpoints', \%params);
-        _assert_success($response, q(Can't create_breakpoint));
+        my $response = $self->_POST("${type}s", \%params);
+        _assert_success($response, "Can't create $type");
 
         my $bp = $JSON->decode($response->content);
         return $bp->{href};
-    }
+    };
 }
 
-sub change_breakpoint {
-    my($self, $bp, %params) = @_;
-
-    my $response = $self->_POST($bp, \%params);
-    _assert_success($response, q(Can't change breakpoint));
-    return $JSON->decode($response->content);
-}
-
-sub delete_breakpoint {
-    my($self, $href) = @_;
-
-    my $response = $self->_DELETE($href);
-    _assert_success($response, q(Can't delete breakpoint));
-    return 1;
-}
-
-sub get_breakpoint {
-    my($self, $href) = @_;
-
-    my $response = $self->_GET($href);
-    _assert_success($response, q(Can't get breakpoint));
-
-    my $bp = $JSON->decode($response->content);
-    return $bp;
-}
-
+my $create_breakpoint = "create_breakpoint";
+my $create_action = "create_action";
 {
-    my @recognized_params = qw(filename line code inactive);
+    no strict 'refs';
+    *$create_breakpoint = _create_breakpoint_action_sub(
+                                'breakpoint',
+                                [qw( filename line )],
+                                { code => 1, inactive => 0 } );
+    *$create_action = _create_breakpoint_action_sub(
+                                'action',
+                                [qw( filename line code )],
+                                { inactive => 0 } );
+}
 
-    sub get_breakpoints {
-        my $self = shift;
-        my %filters = @_;
+foreach my $type ( qw(breakpoint action) ) {
+    # change_breakpoint() and change_action()
+    my $change = sub {
+        my($self, $bp, %params) = @_;
 
-        _verify_recognized_params(\%filters, \@recognized_params);
-
-        my $url = join('?', 'breakpoints', _encode_query_string_for_hash(%filters));
-        my $response = $self->_GET($url);
-        _assert_success($response, q(Can't get breakpoints));
-
+        my $response = $self->_POST($bp, \%params);
+        _assert_success($response, "Can't change $type");
         return $JSON->decode($response->content);
-    }
+    };
+
+    # delete_breakpoint() and delete_action()
+    my $delete = sub {
+        my($self, $href) = @_;
+
+        my $response = $self->_DELETE($href);
+        _assert_success($response, "Can't delete $type");
+        return 1;
+    };
+
+    # get_breakpoint() and get_action()
+    my $get_one = sub {
+        my($self, $href) = @_;
+
+        my $response = $self->_GET($href);
+        _assert_success($response, "Can't get $type");
+
+        my $bp = $JSON->decode($response->content);
+        return $bp;
+    };
+
+    my $get_multiple = do {
+        my @recognized_params = qw(filename line code inactive);
+
+        # get_breakpoints() and get_actions()
+        sub {
+            my $self = shift;
+            my %filters = @_;
+
+            _verify_recognized_params(\%filters, \@recognized_params);
+
+            my $url = "${type}s";
+            my $query_string = _encode_query_string_for_hash(%filters);
+            $url .= '?' . $query_string if length($query_string);
+            my $response = $self->_GET($url);
+            _assert_success($response, "Can't get $type");
+
+            return $JSON->decode($response->content);
+        };
+    };
+
+    my $change_subname = "change_$type";
+    my $delete_subname = "delete_$type";
+    my $get_one_subname = "get_$type";
+    my $get_multiple_subname = "get_${type}s";
+
+    no strict 'refs';
+    *$change_subname = $change;
+    *$delete_subname = $delete;
+    *$get_one_subname = $get_one;
+    *$get_multiple_subname = $get_multiple;
 }
 
 sub loaded_files {

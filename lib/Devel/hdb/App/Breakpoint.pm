@@ -22,6 +22,7 @@ sub delete_response_type { 'delete-breakpoint' }
 sub actionable_getter() { 'get_breaks' }
 sub actionable_adder() { 'add_break' }
 sub actionable_remover() { 'remove_break' }
+sub actionable_type() { 'Devel::Chitin::Breakpoint' }
 
 {
     my(%my_breakpoints);
@@ -190,7 +191,7 @@ sub get_all {
                         = @$_{'file','line','code','inactive'};
                     \%bp_data;
                 }
-            map { Devel::Chitin::Breakpoint->get(file => $_, %filters) }
+            map { $class->actionable_type->get(file => $_, %filters) }
             defined($req->param('filename'))
                 ? ($req->param('filename'))
                 : $app->loaded_files;
