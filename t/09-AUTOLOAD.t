@@ -3,8 +3,7 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
@@ -14,18 +13,15 @@ if ($^O =~ m/^MS/) {
 }
 
 my $url = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
-my $stack;
+my $resp = $client->continue();
+is($resp->{line}, 5, 'continue to line 5');
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'continue');
-ok($resp->is_success, 'continue');
-
-$stack = $json->decode($resp->content);
-is($stack->{data}->[0]->{subroutine}, 'main::AUTOLOAD', 'Stopped in recursive AUTOLOAD');
-is($stack->{data}->[0]->{subname}, 'AUTOLOAD(bar)', 'Short subname shows the recursive called sub name');
-is($stack->{data}->[1]->{subname}, 'AUTOLOAD(foo)', 'Short subname shows the first called sub name');
+my $stack = $client->stack();
+is($stack->[0]->{subroutine}, 'main::AUTOLOAD', 'Stopped in recursive AUTOLOAD');
+is($stack->[0]->{subname}, 'AUTOLOAD(bar)', 'Short subname shows the recursive called sub name');
+is($stack->[1]->{subname}, 'AUTOLOAD(foo)', 'Short subname shows the first called sub name');
 
 
 __DATA__
