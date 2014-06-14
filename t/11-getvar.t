@@ -3,280 +3,100 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
-
-use Devel::hdb::App;  # for _encode_eval_data
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 129;
+    plan tests => 33;
 }
 
 my $url = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
-my $value;
+my $resp = $client->continue();
+is($resp->{line}, 22, 'continue to breakpoint');
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'continue');
-ok($resp->is_success, 'continue');
+check_value('$x', 0, 'hello');
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '$x'});
-check_resp($resp,
-        { expr => '$x', level => 0, result => 'hello' },
-        'Get value of $x at level 0');
+check_value('$y', 0, 2);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '$y'});
-check_resp($resp,
-        { expr => '$y', level => 0, result => 2 },
-        'Get value of $y at level 0');
+check_value('$z', 0, { one => 1, two => 2 });
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '$z'});
-check_resp($resp,
-        { expr => '$z', level => 0,
-            result => { __reftype => 'HASH',
-                        __value => { one => 1, two => 2 }
-                    },
-        },
-        'Get value of $z at level 0');
+check_value('$our_var', 0, 'ourvar');
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '$our_var'});
-check_resp($resp,
-        { expr => '$our_var', level => 0, result => 'ourvar' },
-        'Get value of our var $our_var at level 0');
+check_value('@bare_var', 0, ['barevar', 'barevar']);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '@bare_var'});
-check_resp($resp,
-        { expr => '@bare_var', level => 0,
-            result => { __reftype => 'ARRAY',
-                        __value => ['barevar', 'barevar']
-                    },
-        },
-        'Get value of bare pkg var $bare_var at level 0');
+check_value('@_', 0, [1, 2, 3]);
 
-$resp = $mech->post($url.'getvar', { l => 0, v => '@_' } );
-check_resp($resp,
-        { expr => '@_', level => 0,
-            result => { __reftype => 'ARRAY',
-                        __value => [1, 2, 3] }
-        },
-        'Get value of @_ at level 0');
+check_value('$_[1]', 0, 2);
 
-$resp = $mech->post($url.'getvar', { l => 0, v => '$_[1]' } );
-check_resp($resp,
-        { expr => '$_[1]', level => 0, result => 2 },
-        'Get value of $_[1] at level 0');
+check_value('$Other::Package::variable', 0, 'pkgvar');
 
+check_value('@my_list', 0, [0,1,2]);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '$Other::Package::variable'});
-check_resp($resp,
-        { expr => '$Other::Package::variable', level => 0, result => 'pkgvar' },
-        'Get value of pkg global $X at level 0');
+check_value('$x', 1, 1);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '@my_list'});
-check_resp($resp,
-        { expr => '@my_list', level => 0,
-            result => { __reftype => 'ARRAY',
-                        __value => [0,1,2],
-                    },
-        },
-        'Get value of my var @my_list at level 0');
+check_value('$y', 1, 2);
 
+check_value('$z', 1, undef);
 
-$resp = $mech->post($url.'getvar', {l => 1, v => '$x'});
-check_resp($resp,
-        { expr => '$x', level => 1, result => 1 },
-        'Get value of $x at level 1');
+check_value('$our_var', 1, 'ourvar');
 
-$resp = $mech->post($url.'getvar', {l => 1, v => '$y'});
-check_resp($resp,
-        { expr => '$y', level => 1, result => 2 },
-        'Get value of $y at level 1');
+check_value('@bare_var', 1, ['barevar', 'barevar']);
 
-$resp = $mech->post($url.'getvar', {l => 1, v => '$z'});
-check_resp($resp,
-        { expr => '$z', level => 1, result => undef },
-        'Get value of $z at level 1');
+check_value('$Other::Package::variable', 1, 'pkgvar');
 
-$resp = $mech->post($url.'getvar', {l => 1, v => '$our_var'});
-check_resp($resp,
-        { expr => '$our_var', level => 1, result => 'ourvar' },
-        'Get value of our var $our_var at level 1');
+check_value('$my_list[1]', 0, 1);
 
-$resp = $mech->post($url.'getvar', {l => 1, v => '@bare_var'});
-check_resp($resp,
-        { expr => '@bare_var', level => 1,
-            result => { __reftype => 'ARRAY',
-                        __value => ['barevar', 'barevar']
-                    },
-        },
-        'Get value of bare package var $our_var at level 1');
+check_value('$my_list[$one]', 0, 1);
 
-$resp = $mech->post($url.'getvar', {l => 1, v => '$Other::Package::variable'});
-check_resp($resp,
-        { expr => '$Other::Package::variable', level => 1, result => 'pkgvar' },
-        'Get value of pkg global $Other::Package::variable at level 1');
+check_value('@my_list[1, $two]', 0, [1, 2]);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '$my_list[1]'});
-check_resp($resp,
-        { expr => '$my_list[1]', level => 0, result => 1 },
-        'Get value of $my_list[1] at level 0');
+check_value('@my_list[$zero..3]', 0, [0,1,2,undef]);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '$my_list[$one]'});
-check_resp($resp,
-        { expr => '$my_list[$one]', level => 0, result => 1 },
-        'Get value of $my_list[$one] at level 0');
+check_value(q($my_hash{1}), 0, 'one');
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '@my_list[1, $two]'});
-check_resp($resp,
-        { expr => '@my_list[1, $two]', level => 0,
-            result => { __reftype => 'ARRAY',
-                        __value => [1,2],
-                    },
-        },
-        'Get value of my var @my_list[1, $two] at level 0');
+check_value(q(@my_hash{1,2}), 0, ['one','two']);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '@my_list[$zero..3]'});
-check_resp($resp,
-        { expr => '@my_list[$zero..3]', level => 0,
-            result => { __reftype => 'ARRAY',
-                        __value => [0,1,2,undef],
-                    },
-        },
-        'Get value of my var @my_list[$zero..3] at level 0');
+check_value(q(@my_hash{$one,2}), 0, ['one','two']);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => q($my_hash{1}) });
-check_resp($resp,
-        { expr => q($my_hash{1}), level => 0, result => 'one' },
-        q(Get value of $my_hash{1} at level 0));
+check_value(q(@my_hash{@my_list, 2}), 0, [undef,'one','two','two']);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => q(@my_hash{1,2}) });
-check_resp($resp,
-        { expr => q(@my_hash{1,2}), level => 0,
-                result => { __reftype => 'ARRAY',
-                        __value => ['one','two'],
-                    },
-        },
-        q(Get value of @my_hash{1,2} at level 0));
+check_value(q(@my_hash{'1', 2}), 0, ['one','two']);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => q(@my_hash{$one,2}) });
-check_resp($resp,
-        { expr => q(@my_hash{$one,2}), level => 0,
-                result => { __reftype => 'ARRAY',
-                        __value => ['one','two'],
-                    },
-        },
-        q(Get value of @my_hash{$one,2} at level 0));
+check_value(q(@my_hash{qw(2 1 )}), 0, ['two','one']);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => q(@my_hash{@my_list, 2}) });
-check_resp($resp,
-        { expr => q(@my_hash{@my_list, 2}), level => 0,
-                result => { __reftype => 'ARRAY',
-                        __value => [undef,'one','two','two'],
-                    },
-        },
-        q(Get value of @my_hash{@my_list,2} at level 0));
+check_value('$@', 0, "hi there\n");
 
-$resp = $mech->post($url.'getvar', {l => 0, v => q(@my_hash{'1', 2}) });
-check_resp($resp,
-        { expr => q(@my_hash{'1', 2}), level => 0,
-                result => { __reftype => 'ARRAY',
-                        __value => ['one','two'],
-                    },
-        },
-        q(Get value of @my_hash{'1',2} at level 0));
+check_value('$$', 0, $HdbHelper::child_pid);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => q(@my_hash{qw(2 1 )}) });
-check_resp($resp,
-        { expr => q(@my_hash{qw(2 1 )}), level => 0,
-                result => { __reftype => 'ARRAY',
-                        __value => ['two','one'],
-                    },
-        },
-        q(Get value of @my_hash{qw(2 1 )} at level 0));
+check_value('$1', 0, 'b');
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '$@'});
-check_resp($resp,
-        { expr => '$@', level => 0, result => "hi there\n" },
-        'Get value of $@ at level 0');
+check_value('$^L', 0, 'aaa');
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '$$'});
-check_resp($resp,
-        { expr => '$$', level => 0, result => $HdbHelper::child_pid },
-        'Get value of $$ at level 0');
+check_value('@_', 0, [1, 2, 3]);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '$1'});
-check_resp($resp,
-        { expr => '$1', level => 0, result => 'b' },
-        'Get value of $1 at level 0');
+my $expected = { one => 1, two => 2, subhash => { subkey => 1 } };
+$expected->{subhash}->{recursive} = $expected->{subhash};
+check_value('%recursive', 0, $expected);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '$^L'});
-check_resp($resp,
-        { expr => '$^L', level => 0, result => 'aaa' },
-        'Get value of $^L at level 0');
+check_value('$vstring', 0, v1.2.3.4);
 
-$resp = $mech->post($url.'getvar', {l => 0, v => '@_'});
-check_resp($resp,
-        { expr => '@_', level => 0,
-            result => { __reftype => 'ARRAY',
-                        __value => [1,2,3] },
-        },
-        'Get value of @_ at level 0');
-
-$resp = $mech->post($url.'getvar', { l => 0, v => '%recursive' });
-check_resp($resp,
-        { expr => '%recursive', level => 0,
-            result => {
-                __reftype => 'HASH',
-                __value => {
-                    one => 1,
-                    two => 2,
-                    subhash => {
-                        __reftype => 'HASH',
-                        __value => {
-                            subkey => 1,
-                            recursive => {
-                                __reftype => 'HASH',
-                                __recursive => 1,
-                                __value => '$VAR->{subhash}'
-                            },
-                        },
-                    },
-                },
-            }
-        },
-        'Get value of self-referential data structure');
-
-$resp = $mech->post($url.'getvar', { l => 0, v => '$vstring'});
-check_resp($resp,
-        { expr => '$vstring', level => 0,
-            result => {
-                __reftype => 'VSTRING',
-                __value => [1,2,3,4],
-            }
-        },
-        'Get value is a v-string');
-
-
-sub check_resp {
-    my $resp = shift;
+sub check_value {
+    my $varname = shift;
+    my $level = shift;
     my $expected = shift;
-    my $msg = shift;
 
-    my $got = $json->decode($resp->content)->{data};
-
-    ok($resp->is_success, $msg);
-    is($got->{expr}, $expected->{expr}, 'Response expr matches');
-    is($got->{level}, $expected->{level}, 'Level matches');
-
-    strip_refaddr($got->{result});
-
-    is_deeply($got->{result}, $expected->{result},
-        'Result is '.(defined($expected->{result}) ? '"'.$expected->{result}.'"' : 'undef'));
+    my $val = $client->get_var_at_level($varname, $level);
+    if (ref $expected) {
+        is_deeply($val, $expected, "Get value of $varname at level $level");
+    } else {
+        is($val, $expected, "Get value of $varname at level $level");
+    }
 }
+
 
 __DATA__
 our $our_var = 'ourvar';

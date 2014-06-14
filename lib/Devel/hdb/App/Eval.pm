@@ -10,7 +10,8 @@ use base 'Devel::hdb::App::Base';
 use Devel::hdb::Utils;
 
 __PACKAGE__->add_route('post', '/eval', \&do_eval);
-__PACKAGE__->add_route('post', '/getvar', \&do_getvar);
+__PACKAGE__->add_route('get', qr{/getvar/(\d+)/([^/]+)}, \&do_getvar);
+__PACKAGE__->add_route('get', qr{/getvar/(\d+)}, \&list_vars_at_level);
 
 # Evaluate some expression in the debugged program's context.
 # It works because when string-eval is used, and it's run from
@@ -44,46 +45,35 @@ $perl_special_vars{q{$)}} = 1;
 
 # Get the value of a variable, possibly in an upper stack frame
 sub do_getvar {
-    my($class, $app, $env) = @_;
-
-    my $req = Plack::Request->new($env);
-    my $level = $req->param('l');
-    my $varname = $req->param('v');
-
-    my $resp = Devel::hdb::Response->new('getvar', $env);
+    my($class, $app, $env, $level, $varname) = @_;
 
     if ($perl_special_vars{$varname}) {
-        my $result_packager = sub {
-            my $data = shift;
-            $data->{expr} = $varname;
-            $data->{level} = $level;
-            return $data;
-        };
-        return _eval_plumbing_closure($app, $env, $varname, 1);
+        my $wantarray = substr($varname, 0, 1) eq '$' ? 0 : 1;
+        return _eval_plumbing_closure($app, $env, $varname, $wantarray);
     }
 
     my $value = eval { $app->get_var_at_level($varname, $level) };
     my $exception = $@;
 
-    my $resp_data = { expr => $varname, level => $level };
     if ($exception) {
         if ($exception =~ m/Can't locate PadWalker/) {
-            $resp->{type} = 'error';
-            $resp->data('Not implemented - PadWalker module is not available');
+            return [ 501,
+                    [ 'Content-Type' => 'text/html'],
+                    [ 'Not implemented - PadWalker module is not available'] ];
 
         } elsif ($exception =~ m/Not nested deeply enough/) {
-            $resp_data->{result} = undef;
+            return [ 404,
+                    [ 'Content-Type' => 'text/html' ],
+                    [ 'Stack level not found' ] ];
         } else {
             die $exception
         }
-    } else {
-        $value = encode($value);
-        $resp_data->{result} = $value;
     }
-    $resp->data($resp_data);
+
+    my $result = Data::Transform::ExplicitMetadata::encode($value);
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
-            [ $resp->encode() ]
+            [ $app->encode_json($result) ]
         ];
 }
 

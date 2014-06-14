@@ -238,6 +238,13 @@ sub eval {
         );
     }
     _assert_success($response, q(eval failed));
+
+    return _return_eval_data($result, $string_was_fixed_up);
+}
+
+sub _return_eval_data {
+    my($result, $string_was_fixed_up) = @_;
+
     my $reftype = reftype($result);
 
     if (wantarray and $reftype and $reftype ne 'ARRAY') {
@@ -268,6 +275,23 @@ sub _return_unfixed_value_from_eval {
     } else {
         return $val;
     }
+}
+
+sub list_vars_at_level {
+    my($self, $level) = @_;
+
+}
+
+sub get_var_at_level {
+    my($self, $varname, $level) = @_;
+
+    my $string_was_fixed_up = $varname ne Devel::hdb::Utils::_fixup_expr_for_eval($varname);
+
+    my $escaped_varname = URI::Escape::uri_escape($varname);
+    my $response = $self->_GET(join('/', 'getvar', $level, $escaped_varname));
+    _assert_success($response, "Can't get $varname at level $level");
+
+    return Data::Transform::ExplicitMetadata::decode($JSON->decode($response->content));
 }
 
 sub _encode_query_string_for_hash {

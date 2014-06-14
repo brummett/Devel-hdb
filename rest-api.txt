@@ -309,7 +309,23 @@ using Data::Transform::ExplicitMetadata
 
 -------------------------------------------------------------------------
 
-GET /getvar?var=<varname>&level=<integer>
+GET /getvar/<level>
+
+Get a list of all the lexical variables at the specified stack level.
+
+Returns 200 and JSON in the body
+[
+    {   name: String - Name of the variable, including the sigil
+        href: String - URL to get the value of this variable
+    },
+    ...
+]
+
+Returns 404 if the requested stack level does not exist
+
+-------------------------------------------------------------------------
+
+GET /getvar/<level>/<varname>
 
 Get the value of a Perl variable at the requested stack level.  The variable
 must include its sigil.
