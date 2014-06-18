@@ -300,6 +300,8 @@ sub load_settings_from_file {
         $file = $self->settings_file();
     }
 
+    return 0 unless -f $file;
+
     my $buffer;
     {
         local($/);
@@ -313,13 +315,13 @@ sub load_settings_from_file {
     my @set_breakpoints;
     foreach my $bp ( @{ $settings->{breakpoints}} ) {
         push @set_breakpoints,
-            Devel::hdb::App::Breakpoint->set_and_respond($self, %$bp);
+            Devel::hdb::App::Breakpoint->set_and_respond($self, $bp);
     }
     foreach my $action ( @{ $settings->{actions}} ) {
         push @set_breakpoints,
-            Devel::hdb::App::Action->set_and_respond($self, %$action);
+            Devel::hdb::App::Action->set_and_respond($self, $action);
     }
-    return @set_breakpoints;
+    return 1;
 }
 
 sub save_settings_to_file {

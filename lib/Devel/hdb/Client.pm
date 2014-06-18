@@ -302,6 +302,26 @@ sub get_var_at_level {
     return Data::Transform::ExplicitMetadata::decode($JSON->decode($response->content));
 }
 
+sub load_config {
+    my($self, $filename) = @_;
+
+    my $escaped_filename = URI::Escape::uri_escape($filename);
+    my $response = $self->_POST(join('/', 'loadconfig', $escaped_filename));
+    _assert_success($response, "Loading config from $filename failed: " . $response->content);
+
+    return 1;
+}
+
+sub save_config {
+    my($self, $filename) = @_;
+
+    my $escaped_filename = URI::Escape::uri_escape($filename);
+    my $response = $self->_POST(join('/', 'saveconfig', $escaped_filename));
+    _assert_success($response, "Save config to $filename failed: " . $response->content);
+
+    return 1;
+}
+
 sub _encode_query_string_for_hash {
     my @params;
     for(my $i = 0; $i < @_; $i += 2) {

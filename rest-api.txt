@@ -24,6 +24,8 @@ Returns 200 and JSON in the body
     exit: URL - request the program terminate
     debugger_gui: URL to load the debugger webapp (/debugger-gui)
     status: URL to see the status of the program (/status)
+    loadconfig: URL to load a configuration file (/loadconfig)
+    saveconfig: URL to save a configuration file (/saveconfig)
 }
 
 ----------------------------------------------------------
@@ -465,3 +467,22 @@ be used by a regular client.
 Returns 204
 
 -----------------------------------------------------------------------
+
+POST /loadconfig/<filename>
+
+Load configuration from the named file.
+
+Returns 204 if successful.
+Returns 400 if there was some problem with the named file.
+Returns 404 if the named file is not found.
+
+-----------------------------------------------------------------------
+
+POST /saveconfig/<filename>
+
+Save configuration to the named file
+
+Returns 204 if successful.
+Returns 400 if there was a problem saving.
+
+---------------------------------------------------------------------
