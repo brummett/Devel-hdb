@@ -16,16 +16,15 @@ sub announce_child {
     my $child_pid = $req->param('pid');
     my $child_uri = $req->param('uri');
 
-    my $resp = Devel::hdb::Response->queue('child_process', $env);
-    $resp->{data} = {
-            pid => $child_pid,
-            uri => $child_uri,
-            run => $child_uri . 'continue?nostop=1'
-        };
+    $app->enqueue_event({
+        type => 'fork',
+        pid => $child_pid,
+        href => $child_uri,
+        continue_href => "${child_uri}?nostop=1",
+    });
 
-    return [200, [], []];
+    return [204, [], []];
 }
-
 
 1;
 

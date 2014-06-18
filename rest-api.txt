@@ -399,13 +399,7 @@ Returns 200 and JSON in the message body
 
 {
     running: Boolean (1 if the program is running, 0 if terminated)
-    exception: Hash (only if the program is terminated, and died from an exception)
-        {   package: String,
-            line: Integer,
-            filename: String,
-            subroutine: String,
-            exception: String,
-        }
+    subroutine: String (What sub it's stopped in)
     filename: String (What file we're currently stopped on)
     line: Integer (What line we're stopped on)
     events: Array of hashes (only if events occurred)
@@ -420,6 +414,10 @@ They have a 'type' key.  Other keys are type-specific:
 
     type: "exception"
     value: JSON-encoded perl value of the exception
+    package: String
+    line: Integer,
+    filename: String,
+    subroutine: String
 
     type: "exit"
     value: Integer - exit code
@@ -454,5 +452,16 @@ Returns 200 and JSON in the message body
 ]
 
 Returns 404 if that filename is not loaded
+
+-----------------------------------------------------------------------
+
+POST /announce_child?pid=<pid>&uri=<uri>
+
+When the debugged process forks, the child hits this url to tell the parent
+its PID and url for debugging it.  That info is then relayed back to the
+user interface the next time it gets a status report.  This route should not
+be used by a regular client.
+
+Returns 204
 
 -----------------------------------------------------------------------

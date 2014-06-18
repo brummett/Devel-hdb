@@ -179,7 +179,8 @@ sub notify_fork_child {
     my $self = shift;
     my $location = shift;
 
-    $self->at_notify_stopped(undef);
+    $self->on_notify_stopped(undef);
+    $self->dequeue_events();
 
     $parent_pid = undef;
     my $parent_base_url = $self->{base_url};
@@ -205,9 +206,6 @@ sub notify_fork_child {
 }
 
 
-# Send back a data structure describing the call stack
-# stepin, stepover, stepout and run will call this to return
-# back to the debugger window the current state
 sub app {
     my $self = shift;
     unless ($self->{app}) {

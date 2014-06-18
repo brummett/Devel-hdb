@@ -3,70 +3,50 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 8;
+    plan tests => 5;
 }
 
 my $url = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
 my $response;
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'continue');
-ok($resp->is_success, 'continue');
-$response = $json->decode($resp->content);
+my $resp = $client->continue();
+my $filename = delete $resp->{filename};
+my $child_pid = delete $resp->{events}->[0]->{pid};
+my $child_url = delete $resp->{events}->[0]->{href};
+my $child_continue_url = delete $resp->{events}->[0]->{continue_href};
+is_deeply($resp,
+    {   subroutine => 'MAIN',
+        line => 5,
+        running => 1,
+        events => [
+            { type => 'fork' },
+        ]
+    },
+    'continue to breakpoint');
 
-my $stack;
-my($child_uri, $child_pid);
-
-# should get two response messages, one with the new stack position
-# and another with the child announcement
-
-# 'child_process' sorts before 'stack'
-my @responses = sort { $a->{type} cmp $b->{type} } @$response;
-($child_uri, $child_pid) = check_child_process_message($responses[0]);
-
-$stack = strip_stack($responses[1]);
-is_deeply($stack,
-        [ { line => 5, subroutine => 'main::MAIN' } ],
-        'Parent process stopped on line 6');
+ok($child_pid, 'Fork event has pid');
+ok($child_url, 'Fork event has href');
+ok($child_continue_url, 'Fork event has continue_href');
 
 eval qq(END { kill 'TERM', $child_pid }) if ($child_pid);
 
-$resp = $mech->get($child_uri.'stack');
-ok($resp->is_success, 'Request stack from child process');
-$stack = strip_stack($json->decode($resp->content));
-is_deeply($stack,
-        [ { line => 3, subroutine => 'main::MAIN' } ],
-        'Child process stopped immediately after fork');
-
-
-sub check_child_process_message {
-    my $msg = shift;
-
-    is($msg->{type}, 'child_process', 'Saw child_process message');
-    my $cpid = $msg->{data}->{pid};
-    like($cpid, qr(^\d+$), 'pid data looks like a pid');;
-
-    my $curi = $msg->{data}->{uri};
-    like($curi,
-        qr(^http://127.0.0.1:\d+/$),
-        'uri data looks like a uri');
-
-    like($msg->{data}->{run},
-        qr(^${curi}continue\?nostop=1$),
-        'run data looks ok');
-
-    return ($curi, $cpid);
-}
-
+my $child_client = Devel::hdb::Client->new(url => $child_url);
+$resp = $child_client->status();
+is_deeply($resp,
+    {   filename => $filename,
+        line => 3,
+        subroutine => 'MAIN',
+        running => 1,
+    },
+    'Child is stopped on line 3');
 
 __DATA__
 my $orig_pid = $$;
