@@ -3,31 +3,25 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 use Time::HiRes qw(sleep);
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 4;
+    plan tests => 3;
 }
 
 my($url,$pid) = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
+my $resp = $client->stack();
+ok($resp, 'stack');
+my $filename = $resp->[0]->{filename};
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'stack');
-ok($resp->is_success, 'stack');
-
-$resp = $mech->get($url.'continue?nostop=1');
-ok($resp->is_success, 'continue without stopping');
-my $data = $json->decode( $resp->content );
-is_deeply($data,
-        {type => 'continue', data => { nostop => 1 }},
-        'response include nostop = 1');
+$resp = $client->continue(1);
+is($resp, 1, 'continue to end without stopping');
 
 $SIG{'ALRM'} = sub { die "alarm" };
 alarm(5);
