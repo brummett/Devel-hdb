@@ -267,12 +267,25 @@ sub notify_program_terminated {
     my $self = shift;
     my $exit_code = shift;
 
-    print STDERR "Debugged program pid $$ terminated with exit code $exit_code\n" unless ($Devel::hdb::TESTHARNESS);
     $self->exit_code($exit_code);
+    $self->enqueue_event({ type => 'exit', value => $exit_code});
+
+    print STDERR "Debugged program pid $$ terminated with exit code $exit_code\n" unless ($Devel::hdb::TESTHARNESS);
 }
 
 sub notify_program_exit {
     #my $msg = Devel::hdb::Response->queue('hangup');
+}
+
+sub enqueue_event {
+    my $self = shift;
+    my $queue = $self->{'queued_events'} ||= [];
+    push @$queue, @_;
+}
+
+sub dequeue_events {
+    my $self = shift;
+    return delete $self->{'queued_events'};
 }
 
 sub settings_file {

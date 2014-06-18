@@ -47,7 +47,14 @@ $resp = $client->stepover;
 my $stopped_filename = delete $resp->{filename};
 my $stopped_line = delete $resp->{line};
 is_deeply($resp,
-    { subroutine => 'Devel::Chitin::exiting::at_exit', running => 0, exit_code => 2},
+    {   subroutine => 'Devel::Chitin::exiting::at_exit',
+        running => 0,
+        events => [
+            { type => 'exit',
+              value => 2,
+            },
+        ],
+    },
     'step over - at end');
 
 

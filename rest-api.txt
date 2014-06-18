@@ -399,18 +399,30 @@ Returns 200 and JSON in the message body
 
 {
     running: Boolean (1 if the program is running, 0 if terminated)
-    exit_code: Integer (only if the program is terminated)
     exception: Hash (only if the program is terminated, and died from an exception)
-        {   package: String
-            line: Integer
-            filename: String
-            subroutine: String
-            exception: String
+        {   package: String,
+            line: Integer,
+            filename: String,
+            subroutine: String,
+            exception: String,
         }
     filename: String (What file we're currently stopped on)
     line: Integer (What line we're stopped on)
+    events: Array of hashes (only if events occurred)
 }
 
+Events are asynchronous events that happened since the last status report.
+They have a 'type' key.  Other keys are type-specific:
+    type: "fork"
+    pid: Integer - Child pid
+    href: String - URL to hit to debug the child process
+    href_continue: String - URL to hit to run the child without stopping
+
+    type: "exception"
+    value: JSON-encoded perl value of the exception
+
+    type: "exit"
+    value: Integer - exit code
 
 -------------------------------------------------------------------------
 

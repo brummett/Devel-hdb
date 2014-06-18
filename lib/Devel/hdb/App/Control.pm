@@ -74,8 +74,10 @@ sub _program_status_data {
         line => $location->line,
     );
 
-    my $exit_code = $app->exit_code;
-    $status{exit_code} = $exit_code if defined $exit_code;
+    my $events = $app->dequeue_events;
+    if ($events and @$events) {
+        $status{events} = $events;
+    }
 
     if (my $exception = $app->uncaught_exception) {
         foreach my $prop (qw( exception package filename line subroutine )) {
