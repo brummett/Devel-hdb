@@ -3,7 +3,7 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
@@ -13,12 +13,12 @@ if ($^O =~ m/^MS/) {
 }
 
 my($url, $pid) = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
 ok(kill(0, $pid), 'Debugged process is running');
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'exit');
-ok($resp->is_success, 'exit');
+my $resp = $client->exit();
+ok($resp, 'exit');
 
 eval {
     local $SIG{'ALRM'} = sub { die "alarm\n" };

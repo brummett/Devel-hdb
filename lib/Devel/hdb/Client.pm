@@ -322,6 +322,15 @@ sub save_config {
     return 1;
 }
 
+sub exit {
+    my $self = shift;
+
+    my $response = $self->_POST('exit');
+    _assert_success($response, q(Can't exit));
+
+    return 1;
+}
+
 sub _encode_query_string_for_hash {
     my @params;
     for(my $i = 0; $i < @_; $i += 2) {
