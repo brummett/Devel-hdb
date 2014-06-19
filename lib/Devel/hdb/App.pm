@@ -332,8 +332,14 @@ sub save_settings_to_file {
         $file = $self->settings_file();
     }
 
-    my @breakpoints = $self->get_breaks();
-    my @actions = $self->get_actions();
+    my $serializer = sub {
+        my %it = map { $_ => $_[0]->$_ } qw(line code inactive);
+        $it{filename} = $_[0]->file;
+        return \%it;
+    };
+
+    my @breakpoints = map { $serializer->($_) } $self->get_breaks();
+    my @actions = map { $serializer->($_) } $self->get_actions();
     my $fh = IO::File->new($file, 'w') || die "Can't open $file for writing: $!";
     my $config = { breakpoints => \@breakpoints, actions => \@actions };
     $fh->print( Data::Dumper->new([ $config ])->Terse(1)->Dump());
