@@ -3,31 +3,27 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 63;
+    plan tests => 73;
 }
 
-my $json = JSON->new();
 my $url = start_test_program();
-my $mech = WWW::Mechanize->new(autocheck => 0);
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $resp = $mech->get($url.'continue');
-ok($resp->is_success, 'Run to breakpoint');
-my $stack = $json->decode($resp->content);
-my $filename = $stack->{data}->[0]->{filename};
+my $resp = $client->continue();
+ok($resp, 'Run to breakpoint');
+my $filename = $resp->{filename};
 
 my @tests = (
     { pkg => 'main',    pkgs => [ qw( Foo Quux ) ],    has_subs => 1 },
     { pkg => 'Foo',     pkgs => [ qw( Bar ) ],         has_subs => 1 },
     { pkg => 'Foo::Bar',pkgs => [ qw( Baz ) ],         has_subs => 1 },
     { pkg => 'Foo::Bar::Baz',   pkgs => [ ],           has_subs => 0 },
-    { pkg => 'Not::There',      pkgs => undef,         has_subs => 0 },
     { pkg => 'Quux',    pkgs => [ qw( Sub ) ],         has_subs => 1 },
     { pkg => 'Quux::Sub',   pkgs => [ qw( Package ) ], has_subs => 0 },
     { pkg => 'Quux::Sub::Package', pkgs => [ ],        has_subs => 0 },
@@ -52,21 +48,21 @@ foreach my $test ( @tests ) {
 
     my($package, $sub_packages, $has_subs) = @$test{'pkg', 'pkgs', 'has_subs'};
 
-    my $resp = $mech->get($url."pkginfo/${package}");
-    ok($resp->is_success, "Get package info for $package");
-    my $info = $json->decode($resp->content);
-    ok(exists($info->{data}->{packages}), 'Saw info for packages');
-    ok(exists($info->{data}->{subs}), 'Saw info for subs');
+    my $resp = $client->package_info($package);
+    ok($resp, "Get package info for $package");
+    is($resp->{name}, $package, "package name $package");
+    ok(exists($resp->{packages}), 'Saw info for packages');
+    ok(exists($resp->{subroutines}), 'Saw info for subs');
 
     # Check for expected sub-packages
-    if (!defined $sub_packages) {
-        ok(!defined($info->{data}->{packages}), "Package $package does not exist");
-    } elsif (@$sub_packages) {
+    if (@$sub_packages) {
         foreach my $target ( @$sub_packages ) {
-            is_in($target, $info->{data}->{packages}, "Found sub-package $target");
+            my($matched) = grep { $_->{name} eq $target } @{ $resp->{packages}};
+            ok($matched, "Found sub-package $target");
+            ok($matched->{href}, "$target has href");
         }
     } else {
-        is_deeply($info->{data}->{packages}, [], "Package $package had no sub-packages");
+        is_deeply($resp->{packages}, [], "Package $package had no sub-packages");
     }
     next unless $has_subs;
 
@@ -74,47 +70,46 @@ foreach my $test ( @tests ) {
     foreach my $c ( 1 .. 2 ) {
         (my $subname = lc($package)) =~ s/::/_/g;
         $subname .= "_$c";
-        is_in($subname, $info->{data}->{subs}, "Found $subname in package $package");
+        my($matched) = grep { $_->{name} eq $subname } @{ $resp->{subroutines} };
+        ok($matched, "Found $subname in package $package");
+        ok($matched->{href}, "$subname has href");
 
         # Get info about this sub
-        $resp = $mech->get("${url}subinfo/${package}::${subname}");
-        ok($resp->is_success, "Get source location about $subname in $package");
-        my $sub_info = $json->decode($resp->content);
-        is_deeply($sub_info->{data},
-                {   filename => $filename,
+        my $sub_info = $client->sub_info("${package}::${subname}");
+        is_deeply($sub_info,
+                {   name => $subname,
+                    package => $package,
+                    filename => $filename,
                     line   => $sub_locations{$subname},
                     end     => $sub_locations{$subname},
                     source  => $filename,
                     source_line => $sub_locations{$subname},
                 },
-                "location matches expected");
+                "location for $subname in $package");
     }
 }
 
-$resp = $mech->get("${url}subinfo/main::on_the_fly");
-ok($resp->is_success, 'Get info about main::on_the_fly');
-my $sub_info = $json->decode($resp->content);
+$resp = eval { $client->package_info('Not::There') };
+ok(!$resp && $@, 'Getting info on non-existent package throws exception');
+is($@->http_code, 404, 'Error was Not Found');
 
-my $file = delete $sub_info->{data}->{filename};
-like($file, qr{\(eval \d+\)\[$filename:1\]}, 'file matches expected');
-is_deeply($sub_info->{data},
-    {   line   => 1,
+$resp = $client->sub_info("main::on_the_fly");
+my $file = delete $resp->{filename};
+is_deeply($resp,
+    {   name => 'on_the_fly',
+        package => 'main',
+        line   => 1,
         end     => 4,
         source  => $filename,
         source_line => 1,
     },
-    'location matches expected');
+    'location of on_the_fly matches expected');
+like($file, qr{\(eval \d+\)\[$filename:1\]}, 'file matches expected');
     
 
-$resp = $mech->get("${url}subinfo/non::existent::sub");
-ok($resp->is_error, 'Get info about nonexistent sub is an error');
-is($resp->code, 404, 'Error was 404');
-
-sub is_in {
-    my($target, $list, $msg) = @_;
-    ok(scalar(grep { $target eq $_ } @$list), $msg);
-}
-
+$resp = eval { $client->sub_info("non::existent::sub") };
+ok(!$resp && $@, 'Cannot get info on non-existent sub');
+is($@->http_code, 404, 'Error was 404');
 
 
 __DATA__

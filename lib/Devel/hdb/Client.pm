@@ -331,6 +331,26 @@ sub exit {
     return 1;
 }
 
+sub package_info {
+    my($self, $package) = @_;
+
+    my $escaped_pkg = URI::Escape::uri_escape($package);
+    my $response = $self->_GET(join('/', 'packageinfo', $escaped_pkg));
+    _assert_success($response, "Cannot get info for package $package");
+
+    return $JSON->decode($response->content);
+}
+
+sub sub_info {
+    my($self, $subname) = @_;
+
+    my $escaped_subname = URI::Escape::uri_escape($subname);
+    my $response = $self->_GET(join('/', 'subinfo', $escaped_subname));
+    _assert_success($response, "Cannot get info for subroutine $subname");
+
+    return $JSON->decode($response->content);
+}
+
 sub _encode_query_string_for_hash {
     my @params;
     for(my $i = 0; $i < @_; $i += 2) {
