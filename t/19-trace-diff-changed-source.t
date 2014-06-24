@@ -3,15 +3,14 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 use File::Temp;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 9;
+    plan tests => 4;
 }
 
 my $program_source = <<'PROGRAM';
@@ -53,23 +52,32 @@ my $url2 = start_test_program('-file' => $program_file->filename,
                               '-module_args' => 'follow:'.$trace_file->filename);
 isnt($url2, $url, 'Start test program again in follow mode');
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->post($url2.'eval', content => '$a = 1' );
-ok($resp->is_success, 'Set test variable to 1');
+my $client = Devel::hdb::Client->new(url => $url2);
+my $resp = $client->eval('$a = 1' );
+is($resp, 1, 'Set test variable to 1');
 
-$resp = $mech->get($url2.'continue');
-ok($resp->is_success, 'continue');
-
-# expecting 'stack' and 'trace_diff' messages
-my $json = JSON->new();
-my @messages = sort { $a->{type} cmp $b->{type} } @{ $json->decode( $resp->content) };
-
-is($messages[0]->{type}, 'stack', 'Got stack message');
-is($messages[0]->{data}->[0]->{line}, 4, 'Stopped on differing line');
-
-is($messages[1]->{type}, 'trace_diff', 'Got trace_diff message');
-my $diff_data = $messages[1]->{data};
-is($diff_data->{line}, 4, 'Diff data shows actual line');
-is($diff_data->{expected_line}, 6, 'Diff data shows expected line');
-
+$resp = $client->continue();
+is_deeply($resp,
+    {
+        filename => $program_file->filename,
+        line => 4,
+        running => 1,
+        subroutine => 'main::f',
+        events => [
+            {
+                type => 'trace_diff',
+                filename => $program_file->filename,
+                expected_filename => $program_file->filename,
+                line => 4,
+                expected_line => 6,
+                sub_offset => 2,
+                expected_sub_offset => 4,
+                package => 'main',
+                expected_package => 'main',
+                subroutine => 'main::f',
+                expected_subroutine => 'main::f',
+            },
+        ],
+    },
+    'continue');
 
