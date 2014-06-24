@@ -17,6 +17,11 @@ our $VERSION = "1.0";
 
 use Exception::Class (
         'Devel::hdb::Client::Exception',
+        'Devel::hdb::Client::RequiredParameterMissing' => {
+            isa => 'Devel::hdb::Client::Exception',
+            description => 'Required parameter missing',
+            fields => ['params'],
+        },
         'Devel::hdb::Client::Exception::HTTP' => {
             isa => 'Devel::hdb::Client::Exception',
             fields => [qw( http_code http_message http_content )],
@@ -37,6 +42,10 @@ sub new {
 
     my %self;
     $self{base_url} = delete $params{url};
+    unless ($self{base_url}) {
+        Devel::hdb::Client::RequiredParameterMissing->throw(params => ['url']);
+    }
+
     $self{debug} = delete $params{debug};
     $self{base_url} =~ s{/$}{};
 
