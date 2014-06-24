@@ -48,11 +48,11 @@ subtest 'change breakpoint' => sub {
     plan tests => 7;
 
     my $resp = eval { $client->change_breakpoint($breakpoint_id, filename => 'garbage') };
-    ok(!$resp and $@, 'Cannot change breakpoint filename');
+    ok(!$resp && $@, 'Cannot change breakpoint filename');
     is($@->http_code, 403, 'Error was forbidden');
 
     $resp = eval { $client->change_breakpoint($breakpoint_id, line => 123) };
-    ok(!$resp and $@, 'Cannot change breakpoint line');
+    ok(!$resp && $@, 'Cannot change breakpoint line');
     is($@->http_code, 403, 'Error was forbidden');
 
     $resp = $client->change_breakpoint($breakpoint_id, inactive => 1);
