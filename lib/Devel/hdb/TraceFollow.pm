@@ -129,6 +129,7 @@ sub notify_trace {
     my $at_subname  = $at_location->subroutine;
 
     # The expected next location
+    chomp(my $next_trace_line = $self->_next_trace_line);
     my($exp_location, $exp_package, $exp_file, $exp_line, $exp_subname) = split("\t", $self->_next_trace_line);
 
     my $should_stop;
