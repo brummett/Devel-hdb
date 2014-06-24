@@ -77,7 +77,7 @@ foreach my $test ( @tests ) {
         # Get info about this sub
         my $sub_info = $client->sub_info("${package}::${subname}");
         is_deeply($sub_info,
-                {   name => $subname,
+                {   subroutine => $subname,
                     package => $package,
                     filename => $filename,
                     line   => $sub_locations{$subname},
@@ -96,7 +96,7 @@ is($@->http_code, 404, 'Error was Not Found');
 $resp = $client->sub_info("main::on_the_fly");
 my $file = delete $resp->{filename};
 is_deeply($resp,
-    {   name => 'on_the_fly',
+    {   subroutine => 'on_the_fly',
         package => 'main',
         line   => 1,
         end     => 4,

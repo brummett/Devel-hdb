@@ -45,8 +45,8 @@ sub subinfo {
     my $loc = $app->subroutine_location($subname);
 
     if ($loc) {
-        my @keys = qw( filename line end source source_line package name );
-        my %data = ( name => $subname );
+        my @keys = qw( filename line end source source_line package subroutine );
+        my %data;
         @data{@keys} = map { $loc->$_ } @keys;
 
         return [ 200,

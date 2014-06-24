@@ -353,7 +353,7 @@ included, package main:: is assummed.
 
 Returns 200 and JSON in the body
 {
-    name: String - subroutine name, not including package
+    subroutine: String - subroutine name, not including package
     package: String - Package the subroutine is in
     filename: String - File the sub was defined
     line: Integer - What line the sub is defined
