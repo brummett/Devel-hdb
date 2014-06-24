@@ -130,7 +130,7 @@ sub notify_trace {
 
     # The expected next location
     chomp(my $next_trace_line = $self->_next_trace_line);
-    my($exp_location, $exp_package, $exp_file, $exp_line, $exp_subname) = split("\t", $self->_next_trace_line);
+    my($exp_location, $exp_package, $exp_file, $exp_line, $exp_subname) = split("\t", $next_trace_line);
 
     my $should_stop;
     if (my ($expected_sub, $expected_offset) = $exp_location =~ m/(.*)\+(\d+)$/) {
