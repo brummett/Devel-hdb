@@ -5,14 +5,11 @@ Returns 200 and JSON in the body
 {
     program_name: String - What $0 was when the program started
     perl_version: String - $^V
-    db: url - where to get the debugger application (/db)
     source: url - Where to get the source for $0 (/source/...)
     loaded_files: url - Where to get the list of all loaded files (/source)
-    location: url - Where to get the current stack frame (/stack/...)
     stack: url - where to get the whole stack (/stack)
     breakpoints: url - where to the breakpoint info (/breakpoints)
     actions: url - where to get action info (/actions)
-    config: url - where to get config file info (/config)
     stepin: url - URL to make the debugger step-in
     stepover: url - URL to make the debugger step-over
     stepout: url - URL to make the debugger step-out
@@ -229,24 +226,6 @@ Remove a breakpoint/action.
 
 Returns 204 is successful.
 Returns 404 if there is no breakpoint/action with that ID
-
--------------------------------------------------------------------------
-
-POST /config/<filename>
-
-Request the debugger load the named config file.
-
-Returns Returns 204 is successful.
-Returns 404 if there is no file matching that name
-
--------------------------------------------------------------------------
-
-PUT /config/<filename>
-
-Request the debugger save its configuration to the named file.
-
-Returns Returns 204 is successful.
-Returns 404 if there is no file matching that name
 
 -------------------------------------------------------------------------
 

@@ -5,10 +5,47 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
+use URI::Escape;
+
+__PACKAGE__->add_route('get', '/', \&overview);
 __PACKAGE__->add_route('get', '/program_name', \&program_name);
 
 BEGIN {
     our $PROGRAM_NAME = $0;
+}
+
+sub overview {
+    my($class, $app, $env) = @_;
+
+    our $PROGRAM_NAME;
+
+    my %data = (
+        program_name => $PROGRAM_NAME,
+        perl_version => sprintf("v%vd", $^V),
+        source => join('/', '/source', URI::Escape::uri_escape($PROGRAM_NAME)),
+        loaded_files => '/source',
+        stack => '/stack',
+        breakpoints => '/breakpoints',
+        actions => '/actions',
+        stepin => '/stepin',
+        stepover => '/stepover',
+        stepout => '/stepout',
+        continue => '/continue',
+        eval => '/eval',
+        getvar => '/getvar',
+        packageinfo => '/packageinfo',
+        subinfo => '/subinfo',
+        exit => '/exit',
+        debugger_gui => '/debugger-gui',
+        status => '/status',
+        loadconfig => '/loadconfig',
+        saveconfig => '/saveconfig',
+    );
+
+    return [ 200,
+            [ 'Content-Type' => 'application/json' ],
+            [ $app->encode_json(\%data) ]
+        ];
 }
 
 sub program_name {

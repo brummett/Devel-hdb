@@ -125,6 +125,14 @@ sub status {
     return $JSON->decode($response->content);
 }
 
+sub overview {
+    my $self = shift;
+
+    my $response = $self->_GET('');
+    _assert_success($response, q(Can't get status));
+    return $JSON->decode($response->content);
+}
+
 sub  _create_breakpoint_action_sub {
     my($type, $required_params, $default_params) = @_;
 
