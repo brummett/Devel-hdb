@@ -87,10 +87,10 @@ Pretty much what you would expect from any debugger.
 
 ## Implementation
 
-The debugger is split into three major parts.
+The debugger is split into two major parts.
 
-* Devel::hdb::DB - Implements the debugger functions like DB::DB and DB::sub
 * Devel::hdb::App - Implements the REST interface.  It is a Plack app, and uses
-    HTTP::Server::PSGI as the web server
+    HTTP::Server::PSGI as the web server.  It's a subclass of Devel::Chitin,
+    which supplies the low-level debuggung facilities.
 * The user interface is HTML and JavaScript code that lives under Devel/hdb/html/.
     It makes requests to the REST interface.
