@@ -15,7 +15,6 @@ use JSON qw();
 use Data::Transform::ExplicitMetadata;
 
 use Devel::hdb::Router;
-use Devel::hdb::Response;
 
 use vars qw( $parent_pid ); # when running in the test harness
 
@@ -269,7 +268,8 @@ sub notify_program_terminated {
 }
 
 sub notify_program_exit {
-    #my $msg = Devel::hdb::Response->queue('hangup');
+    my $self = shift;
+    $self->enqueue_event({ type => 'hangup' });
 }
 
 sub enqueue_event {

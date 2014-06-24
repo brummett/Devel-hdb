@@ -30,7 +30,6 @@ sub saveconfig {
     my($class, $app, $env, $file) = @_;
 
     $file = eval { $app->save_settings_to_file($file) };
-    my $resp = Devel::hdb::Response->new('saveconfig', $env);
     if ($@) {
         return [ 400,
                 [ 'Content-Type' => 'text/html' ],

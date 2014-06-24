@@ -5,8 +5,6 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
-use Devel::hdb::Response;
-
 __PACKAGE__->add_route('get', '/program_name', \&program_name);
 
 BEGIN {
@@ -16,13 +14,10 @@ BEGIN {
 sub program_name {
     my($class, $app, $env) = @_;
 
-    my $resp = Devel::hdb::Response->new('program_name', $env);
-
     our $PROGRAM_NAME;
-    $resp->data($PROGRAM_NAME);
 
     return [200, ['Content-Type' => 'text/plain'],
-                [ $resp->encode() ]
+                [ $PROGRAM_NAME ],
         ];
 }
 

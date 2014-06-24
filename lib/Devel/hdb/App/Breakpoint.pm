@@ -6,7 +6,6 @@ use warnings;
 use base 'Devel::hdb::App::Base';
 
 use Plack::Request;
-use Devel::hdb::Response;
 use Digest::MD5 qw();
 use Time::HiRes qw();
 

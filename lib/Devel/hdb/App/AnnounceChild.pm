@@ -5,8 +5,6 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
-use Devel::hdb::Response;
-
 __PACKAGE__->add_route('post', '/announce_child', \&announce_child);
 
 sub announce_child {
