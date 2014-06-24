@@ -148,7 +148,7 @@ sub notify_trace {
     }
 
     if ($should_stop) {
-        my($package) = $at_subname = ~ m/(.*)::(\w+)$/;
+        my($package) = $at_subname =~ m/(.*)::(\w+)$/;
         $package ||= 'main';
         my %diff_data = (
                 'package'   => $package,
