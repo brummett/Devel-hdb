@@ -9,7 +9,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 12;
+    plan tests => 11;
 }
 
 my $url = start_test_program();
@@ -66,17 +66,7 @@ is_deeply($stack,
     'Stopped on line 2 after the eval');
 
 $resp = $client->stepin();
-is_deeply($resp,
-    { filename => $filename, line => 12, subroutine => 'main::END', running => 1 },
-    'step in');
-$stack = strip_stack($client->stack);
-is_deeply($stack,
-    [ { line => 12, subroutine => 'main::END' },
-      { line => 2, subroutine => '(eval)' },
-      { line => 2, subroutine => 'main::MAIN' },
-    ],
-    'Stopped in END block');
-
+like($resp->{subroutine}, qr(::END$), 'step-in ended up in an END block');
 
 __DATA__
 eval { foo(); };
