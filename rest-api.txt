@@ -429,6 +429,20 @@ They have a 'type' key.  Other keys are type-specific:
     type: "exit"
     value: Integer - exit code
 
+    type: "hangup"
+
+    type: "trace_diff"
+    filename: String   # Where the program is stopped now
+    line: Integer
+    package: String
+    subroutine: String
+    sub_offset: Integer
+    expected_filename: String   # where the trace expected to be instead
+    expected_line: Integer
+    expected_package: String
+    expected_subroutine: String
+    expected_sub_offset: Integer
+
 -------------------------------------------------------------------------
 
 GET /source

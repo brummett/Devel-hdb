@@ -235,8 +235,8 @@ sub notify_trace_diff {
     $follower->shutdown();
     $self->step();
 
-    my $msg = Devel::hdb::Response->queue('trace_diff');
-    $msg->{data} = $trace_data;
+    $trace_data->{type} = 'trace_diff';
+    $self->enqueue_event($trace_data);
 }
 
 sub notify_uncaught_exception {

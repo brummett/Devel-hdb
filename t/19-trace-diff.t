@@ -3,15 +3,14 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 use File::Temp;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 9;
+    plan tests => 4;
 }
 
 my $program_file = File::Temp->new();
@@ -22,7 +21,6 @@ $trace_file->close();
 
 my($url, $pid) = start_test_program('-file' => $program_file->filename,
                                     '-module_args' => 'trace:'.$trace_file->filename);
-
 local $SIG{ALRM} = sub {
     ok(0, 'Test program did not finish');
     exit;
@@ -35,24 +33,35 @@ my $url2 = start_test_program('-file' => $program_file->filename,
                               '-module_args' => 'follow:'.$trace_file->filename);
 isnt($url2, $url, 'Start test program again in follow mode');
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->post($url2.'eval', content => '$a = 1' );
-ok($resp->is_success, 'Set test variable to 1');
+my $client = Devel::hdb::Client->new(url => $url2);
 
-$resp = $mech->get($url2.'continue');
-ok($resp->is_success, 'continue');
+my $resp = $client->eval('$a = 1');
+is($resp, 1, 'Set test variable to 1');
 
-# expecting 'stack' and 'trace_diff' messages
-my $json = JSON->new();
-my @messages = sort { $a->{type} cmp $b->{type} } @{ $json->decode( $resp->content) };
-
-is($messages[0]->{type}, 'stack', 'Got stack message');
-is($messages[0]->{data}->[0]->{line}, 2, 'Stopped on differing line');
-
-is($messages[1]->{type}, 'trace_diff', 'Got trace_diff message');
-my $diff_data = $messages[1]->{data};
-is($diff_data->{line}, 2, 'Diff data shows actual line');
-is($diff_data->{expected_line}, 4, 'Diff data shows expected line');
+$resp = $client->continue();
+is_deeply($resp,
+    {
+        filename => $program_file->filename,
+        line => 2,
+        subroutine => 'MAIN',
+        running => 1,
+        events => [
+            {
+                type => 'trace_diff',
+                line => 2,
+                expected_line => 4,
+                filename => $program_file->filename,
+                expected_filename => $program_file->filename,
+                sub_offset => undef,
+                expected_sub_offset => '',
+                package => 'main',
+                expected_package => 'main',
+                subroutine => 'MAIN',
+                expected_subroutine => 'MAIN',
+            },
+        ],
+    },
+    'continue to trace diff');
 
 
 __DATA__
