@@ -79,11 +79,6 @@ sub _program_status_data {
         $status{events} = $events;
     }
 
-    if (my $exception = $app->uncaught_exception) {
-        foreach my $prop (qw( exception package filename line subroutine )) {
-            $status{$prop} = $exception->prop;
-        }
-    }
     return \%status;
 }
 

@@ -420,7 +420,7 @@ They have a 'type' key.  Other keys are type-specific:
     href_continue: String - URL to hit to run the child without stopping
 
     type: "exception"
-    value: JSON-encoded perl value of the exception
+    value: JSON-encoded perl value of the uncaught exception
     package: String
     line: Integer,
     filename: String,

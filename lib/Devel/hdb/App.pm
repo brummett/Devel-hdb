@@ -12,6 +12,7 @@ use Data::Dumper;
 use Sys::Hostname;
 use IO::Socket::INET;
 use JSON qw();
+use Data::Transform::ExplicitMetadata;
 
 use Devel::hdb::Router;
 use Devel::hdb::Response;
@@ -238,19 +239,15 @@ sub notify_trace_diff {
     $msg->{data} = $trace_data;
 }
 
-sub uncaught_exception {
-    my $self = shift;
-    if (@_) {
-        $self->{__exception__} = shift;
-    }
-    return $self->{__exception__};
-}
-
 sub notify_uncaught_exception {
     my $self = shift;
     my $exception = shift;
 
-    $self->unaught_exception($exception);
+    my %event = ( type => 'exception',
+                  value => Data::Transform::ExplicitMetadata::encode($exception->exception) );
+    @event{'subroutine','package','filename','line'}
+        = map { $exception->$_ } qw(subroutine package filename line);
+    $self->enqueue_event(\%event);
 }
 
 sub exit_code {
