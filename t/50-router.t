@@ -3,8 +3,6 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
 
 use Test::More tests => 22;
 
