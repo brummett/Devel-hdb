@@ -3,39 +3,23 @@ use warnings;
 
 use lib 't';
 use HdbHelper;
-use WWW::Mechanize;
-use JSON;
+use Devel::hdb::Client;
 
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 28;
+    plan tests => 25;
 }
 
 my $url = start_test_program();
+my $client = Devel::hdb::Client->new(url => $url);
 
-my $json = JSON->new();
-my $stack;
+my $resp = $client->continue();
+ok($resp, 'continue to breakpoint');
+my $filename = $resp->{filename};
 
-my $mech = WWW::Mechanize->new();
-my $resp = $mech->get($url.'stack');
-ok($resp->is_success, 'Request stack position');
-
-$stack = $json->decode($resp->content);
-my $filename = $stack->{data}->[0]->{filename};
-$stack = strip_stack($stack);
-is_deeply($stack,
-    [ { line => 1, subroutine => 'main::MAIN' } ],
-    'Stopped on line 1');
-
-$resp = $mech->get($url.'continue');
-ok($resp->is_success, 'continue');
-
-$resp = $mech->get($url.'stack');
-ok($resp->is_success, 'get stack');
-$stack = $json->decode($resp->content);
-$stack = $stack->{data};
+my $stack = $client->stack();
 
 my @expected = (
     {   package     => 'Bar',
