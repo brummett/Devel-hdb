@@ -8,7 +8,7 @@ use Devel::hdb::TraceFollow;
 use IO::Socket::INET;
 use IO::File;
 
-our $VERSION = 0.12;
+our $VERSION = 0.13;
 
 sub import {
     my $class = shift;

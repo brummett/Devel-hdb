@@ -1,3 +1,10 @@
+libdevel-hdb-perl (0.13-1) unstable; urgency=low
+  * Extracted a module to transform a Perl data structure into a serializable
+    format: Data::Transform::ExplicitMetadata
+  * Fix a test that failed in Perl 5.21
+
+ -- Anthony Brummett <brummett@cpan.org>  Tue, 1 Jul 2014 15:30:00 -0500
+
 libdevel-hdb-perl (0.12-1) unstable; urgency=low
   * Extracted debugger infrastructure into a separate module: Devel::Chitin
   * Fix a bug when a difference is found in follow mode
