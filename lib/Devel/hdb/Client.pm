@@ -62,9 +62,13 @@ sub stack {
     _assert_success($response, q(Can't get stack position));
     my $stack = $JSON->decode($response->content);
     foreach my $frame ( @$stack ) {
-        $frame->{args} = [ map { Data::Transform::ExplicitMetadata::decode($_) } @{ $frame->{args} } ];
+        $frame->{args} = _decode_stack_frame_args($frame->{args});
     }
     return $stack;
+}
+
+sub _decode_stack_frame_args {
+    [ map { Data::Transform::ExplicitMetadata::decode($_) } @{$_[0]} ];
 }
 
 sub _gui_url { 'debugger-gui' }
