@@ -81,6 +81,16 @@ Returns 200 and JSON in the body
       line: Integer - What line it's stopped on
       subname: String - Subroutine it's stopped in
       href: URL - url for this stack frame
+      uuid: String - Unique identifier for this frame
+      subname: String - Short name for this subroutine
+      subroutine: String - Fully qualified package::subroutine
+      args: [...] List of arguments to this sub, encoded
+      wantarray: 1, 0, undef - wantarray for this stack level
+      hasargs: boolean - if this sub call had arguments
+      package: String - Name of the package at this stack level
+      evaltext: String - the text of the "eval EXPR" statement
+      is_require: boolean - true if the frame is created by a "require" or "use"
+                              statement
     },
     ...
 ]
@@ -101,6 +111,7 @@ re-getting data it already knows.
 {   filename: String - File name
     file_href: URL - url for this file
     line: Integer - Line the debugger is stopped on
+    uuid: String - Unique identifier for this frame
     subname: String - Short name for this subroutine
     subroutine: String - Fully qualified package::subroutine
     args: [...] List of arguments to this sub, encoded

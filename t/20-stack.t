@@ -9,7 +9,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 25;
+    plan tests => 31;
 }
 
 my $url = start_test_program();
@@ -111,6 +111,10 @@ for (my $i = 0; $i < @expected; $i++) {
     delete $stack->[$i]->{hints};
     delete $stack->[$i]->{bitmask};
     delete $stack->[$i]->{level};
+
+    my $uuid = delete $stack->[$i]->{uuid};
+    my $expected_defined_uuid = $i == $#expected ? '' : 1;
+    is(defined($uuid), $expected_defined_uuid, "Frame $i has uuid");
 
     _compare_strings(   delete $stack->[$i]->{subroutine},
                         delete $expected[$i]->{subroutine},
