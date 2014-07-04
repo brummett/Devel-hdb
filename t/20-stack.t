@@ -9,7 +9,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 31;
+    plan tests => 79;
 }
 
 my $url = start_test_program();
@@ -122,25 +122,39 @@ for (my $i = 0; $i < @expected; $i++) {
     ok($uuid, "Frame $i has uuid");
 
     _compare_frames($stack->[$i], $expected[$i], $i);
+
+    my $frame = $client->stack_frame($i);
+    ok($frame, "stack_frame() for $i");
+    is($uuid, delete $frame->{uuid}, 'uuid matches');
+
+    delete @$frame{'hints','bitmask','level'};
+    _compare_frames($frame, $expected[$i], $i);
+
+    my($head_uuid, $head_line) = $client->stack_frame_signature($i);
+    is($head_uuid, $uuid, 'Frame signature UUID matches');
+    is($head_line, $expected[$i]->{line}, 'Frame signature line matches');
 }
 
 sub _compare_frames {
-    my($frame, $expected, $level) = @_;
+    my($frame_in, $expected_in, $level) = @_;
 
-    _compare_strings(   delete $frame->{subroutine},
-                        delete $expected->{subroutine},
+    my %frame = %$frame_in;
+    my %expected = %$expected_in;
+
+    _compare_strings(   delete $frame{subroutine},
+                        delete $expected{subroutine},
                         "subroutine matches for level $level");
 
-    _compare_strings(   delete $frame->{subname},
-                        delete $expected->{subname},
+    _compare_strings(   delete $frame{subname},
+                        delete $expected{subname},
                         "subname matches for level $level");
 
-    _compare_strings(   delete $frame->{filename},
-                        delete $expected->{filename},
+    _compare_strings(   delete $frame{filename},
+                        delete $expected{filename},
                         "filename matches for level $level");
 
-    is_deeply($frame,
-                $expected,
+    is_deeply(\%frame,
+                \%expected,
                 "Other stack frame matches for frame $level");
 }
 

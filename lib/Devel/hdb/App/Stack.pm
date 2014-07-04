@@ -9,13 +9,14 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
-
 use Exporter 'import';
 our @EXPORT_OK = qw(_serialize_stack);
 
 use Data::Transform::ExplicitMetadata qw(encode);
 
 __PACKAGE__->add_route('get', qr{(^/stack$)}, \&stack);
+__PACKAGE__->add_route('get', qr{(^/stack)/(\d+)$}, \&stack_frame);
+__PACKAGE__->add_route('head', qr{^/stack/(\d+)$}, \&stack_frame_head);
 
 sub stack {
     my($class, $app, $env, $base_url) = @_;
@@ -24,6 +25,49 @@ sub stack {
             [ 'Content-Type' => 'application/json' ],
             [ $app->encode_json($class->_serialize_stack($app, $base_url)) ]
         ];
+}
+
+
+
+sub stack_frame {
+    my($class, $app, $env, $base_url, $level) = @_;
+
+    my $stack = $app->stack;
+    my $frame = $stack->frame($level);
+
+    my $rv = _stack_frame_head_impl($app, $frame);
+    if ($rv->[0] == 200) {
+        my $serialized_frame = _serialize_frame($frame, $base_url, $level);
+        $rv->[2] = [ $app->encode_json($serialized_frame) ];
+    }
+    return $rv;
+}
+
+sub stack_frame_head {
+    my($class, $app, $env, $level) = @_;
+
+    my $stack = $app->stack;
+    my $frame = $stack->frame($level);
+    return _stack_frame_head_impl($app, $frame);
+}
+
+sub _stack_frame_head_impl {
+    my($app, $frame) = @_;
+
+    unless ($frame) {
+        return [ 404,
+                [ 'Content-Type' => 'application/json' ],
+                [ $app->encode_json( { error => 'Stack frame not found' } ) ],
+            ];
+    }
+
+    return [ 200,
+                [   'Content-Type' => 'application/json',
+                    'X-Stack-UUID' => $frame->uuid,
+                    'X-Stack-Line' => $frame->line,
+                ],
+                [ ]
+            ];
 }
 
 sub _serialize_stack {

@@ -104,8 +104,11 @@ Get info about one particular stack frame.  <id> is an integer representing
 the requested depth.  0 is the most recent stack frame.
 
 If the requested stack frame exists, returns 200 and JSON in the body.
-The header X-Stack-Hash will be an md5 of the file+line+args for this
-frame.  The caller may request the HEAD to retrieve the header and avoid
+The header X-Stack-UUID will be the same as the 'uuid' value for this
+frame.  The header X-Stack-Line will be the same as the 'line' value
+for this frame.
+
+The caller may request the HEAD to retrieve the header and avoid
 re-getting data it already knows.
 
 {   filename: String - File name

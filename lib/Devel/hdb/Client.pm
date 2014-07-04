@@ -67,9 +67,30 @@ sub stack {
     return $stack;
 }
 
+sub stack_frame {
+    my($self, $level) = @_;
+    my $response = $self->_GET(join('/', 'stack', $level));
+    _assert_success($response, q(Can't get stack frame));
+    my $frame = $JSON->decode($response->content);
+    $frame->{args} = _decode_stack_frame_args($frame->{args});
+
+    return $frame;
+}
+
 sub _decode_stack_frame_args {
     [ map { Data::Transform::ExplicitMetadata::decode($_) } @{$_[0]} ];
 }
+
+sub stack_frame_signature {
+    my($self, $level) = @_;
+
+    my $response = $self->_HEAD(join('/', 'stack', $level));
+    _assert_success($response, q(Can't get stack frame));
+
+    return ( $response->header('X-Stack-UUID'),
+             $response->header('X-Stack-Line') );
+}
+
 
 sub _gui_url { 'debugger-gui' }
 
