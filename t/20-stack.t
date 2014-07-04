@@ -116,21 +116,27 @@ for (my $i = 0; $i < @expected; $i++) {
     my $expected_defined_uuid = $i == $#expected ? '' : 1;
     is(defined($uuid), $expected_defined_uuid, "Frame $i has uuid");
 
-    _compare_strings(   delete $stack->[$i]->{subroutine},
-                        delete $expected[$i]->{subroutine},
-                        "subroutine matches for level $i");
+    _compare_frames($stack->[$i], $expected[$i], $i);
+}
 
-    _compare_strings(   delete $stack->[$i]->{subname},
-                        delete $expected[$i]->{subname},
-                        "subname matches for level $i");
+sub _compare_frames {
+    my($frame, $expected, $level) = @_;
 
-    _compare_strings(   delete $stack->[$i]->{filename},
-                        delete $expected[$i]->{filename},
-                        "filename matches for level $i");
+    _compare_strings(   delete $frame->{subroutine},
+                        delete $expected->{subroutine},
+                        "subroutine matches for level $level");
 
-    is_deeply($stack->[$i],
-                $expected[$i],
-                "Other stack frame matches for frame $i");
+    _compare_strings(   delete $frame->{subname},
+                        delete $expected->{subname},
+                        "subname matches for level $level");
+
+    _compare_strings(   delete $frame->{filename},
+                        delete $expected->{filename},
+                        "filename matches for level $level");
+
+    is_deeply($frame,
+                $expected,
+                "Other stack frame matches for frame $level");
 }
 
 
