@@ -32,18 +32,24 @@ sub _serialize_stack {
     my $frames = $app->stack()->iterator;
     my @stack;
     while (my $frame = $frames->()) {
-        my %frame = %$frame;  # copy
-
-        if ($frame{autoload}) {
-            $frame{subname} .= "($frame{autoload})";
-        }
-
-        my @encoded_args = map { encode($_) } @{$frame{args}};
-        $frame{args} = \@encoded_args;
-
-        push @stack, \%frame;
+        push @stack, _serialize_frame($frame);
     }
     return \@stack;
+}
+
+sub _serialize_frame {
+    my($frame) = @_;
+
+    my %frame = %$frame; # copy
+
+    if ($frame{autoload}) {
+        $frame{subname} .= "($frame{autoload})";
+    }
+
+    my @encoded_args = map { encode($_) } @{$frame{args}};
+    $frame{args} = \@encoded_args;
+
+    return \%frame;
 }
 
 1;
