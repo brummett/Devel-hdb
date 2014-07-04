@@ -8,7 +8,7 @@ sub new {
     return bless {}, $class;
 }
 
-foreach my $method ( qw(get post put delete) ) {
+foreach my $method ( qw(get post put delete head) ) {
     my $key = uc($method);
     my $sub = qq(
         sub {
