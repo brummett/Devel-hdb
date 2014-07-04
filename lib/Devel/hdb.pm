@@ -260,7 +260,7 @@ This package includes these third party libraries:
 =over
 
 =item *
-jQuery version 1.7.2 L<http://jquery.com/>
+jQuery version 2.1.1 L<http://jquery.com/>
 
 =item *
 scrollTo jQuery plugin version 1.4.3.1 L<http://flesler.blogspot.com/2007/10/jqueryscrollto.html>
