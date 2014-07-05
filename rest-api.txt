@@ -30,7 +30,10 @@ Returns 200 and JSON in the body
 GET /program_name
 Get what $0 was set to when the program started
 
-Returns 200 and text in the body
+Returns 200 and JSON in the body
+{
+    program_name: String - $0 when the program was started
+}
 
 ----------------------------------------------------------
 

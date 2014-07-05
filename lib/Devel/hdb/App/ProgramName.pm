@@ -54,7 +54,7 @@ sub program_name {
     our $PROGRAM_NAME;
 
     return [200, ['Content-Type' => 'text/plain'],
-                [ $PROGRAM_NAME ],
+                [ $app->encode_json({ program_name => $PROGRAM_NAME }) ],
         ];
 }
 
