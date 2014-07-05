@@ -5,8 +5,8 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
-__PACKAGE__->add_route('get', qr(/debugger-gui/db/(.*)), \&assets);
-__PACKAGE__->add_route('get', qr(/debugger-gui/img/(.*)), \&assets);
+__PACKAGE__->add_route('get', qr(^/db/(.*)), \&assets);
+__PACKAGE__->add_route('get', qr(^/img/(.*)), \&assets);
 __PACKAGE__->add_route('get', '/debugger-gui', sub { assets(@_, 'debugger.html') });
 
 sub assets {
