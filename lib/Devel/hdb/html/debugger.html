@@ -160,18 +160,14 @@
 
     <! template for Bootstrap stack nav tabs>
     <script id="nav-tab-template" type="text/x-handlebars-template">
-        <li{{#id}} id="{{id}}"{{/id}} class="stack-tab {{class}}{{#active}} active{{/active}}">
+        <li{{#id}} id="tab-{{uuid}}"{{/id}} data-frameno="{{frameno}}" class="stack-tab {{class}}{{#active}} active{{/active}}">
+            <a href="#pane-{{uuid}}" data-toggle="tab" rel="tooltip" data-html="true" data-placement="right" title="{{longlabel}}<br>{{filename}}: {{lineno}}">{{wantarray}}{{label}}</a>
         </li>
-    </script>
-
-    <! template for Bootstrap nav tabs contents>
-    <script id="nav-tab-content-template" type="text/x-handlebars-template">
-            <a href="#{{tabId}}" data-toggle="tab" rel="tooltip" data-html="true" data-placement="right" title="{{longlabel}}<br>{{filename}}: {{lineno}}">{{wantarray}}{{label}}</a>
     </script>
 
     <! template for Bootstrap nav panes>
     <script id="nav-pane-template" type="text/x-handlebars-template">
-        <div id="{{tabId}}" class="tab-pane{{#active}} active{{/active}}">
+        <div id="pane-{{uuid}}" data-frameno="{{frameno}}" class="tab-pane{{#active}} active{{/active}}">
             <div class="current-sub-and-args alert">{{#if banner}}{{banner}}{{else}}&nbsp;{{/if}}</div>
             <div class="managed-height program-code-container" data-filename="{{filename}}">
                 {{{html}}}
