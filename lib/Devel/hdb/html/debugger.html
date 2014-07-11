@@ -19,6 +19,7 @@
     <script src="db/jquery.scrollTo.js"></script>
     <script src="db/filepicker.js"></script>
     <script src="db/restinterface.js"></script>
+    <script src="db/breakpointmanager.js"></script>
     <script src="db/debugger.js"></script>
     <script>
         $(document).ready(function() {
@@ -167,7 +168,7 @@
 
     <! template for Bootstrap nav panes>
     <script id="nav-pane-template" type="text/x-handlebars-template">
-        <div id="pane-{{uuid}}" data-frameno="{{frameno}}" class="tab-pane{{#active}} active{{/active}}">
+        <div id="pane-{{uuid}}" data-frameno="{{frameno}}" class="tab-pane breakpoint-listener{{#active}} active{{/active}}">
             <div class="current-sub-and-args alert">{{#if banner}}{{banner}}{{else}}&nbsp;{{/if}}</div>
             <div class="managed-height program-code-container" data-filename="{{filename}}">
                 {{{html}}}
