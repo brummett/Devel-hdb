@@ -162,7 +162,7 @@
 
     <! template for Bootstrap stack nav tabs>
     <script id="nav-tab-template" type="text/x-handlebars-template">
-        <li{{#id}} id="tab-{{uuid}}"{{/id}} data-frameno="{{frameno}}" class="stack-tab {{class}}{{#active}} active{{/active}}">
+        <li id="tab-{{uuid}}" data-frameno="{{frameno}}" class="stack-tab {{class}}{{#active}} active{{/active}}">
             <a href="#pane-{{uuid}}" data-toggle="tab" rel="tooltip" data-html="true" data-placement="right" title="{{longlabel}}<br>{{filename}}: {{lineno}}">{{wantarray}}{{label}}</a>
         </li>
     </script>
