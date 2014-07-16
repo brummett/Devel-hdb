@@ -113,8 +113,8 @@
                 Debugged program terminated with exit code {{exit_code}}
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" data-dismiss="modal">Ok</button>
-                <button class="btn btn-danger control-button" data-action="exit" data-dismiss="modal">Exit</button>
+                <button class="btn btn-primary" data-dismiss="modal" value="ok">Ok</button>
+                <button class="btn btn-danger control-button" data-action="exit" data-dismiss="modal" value="exit">Exit</button>
             </div>
         </div>
     </script>
@@ -129,8 +129,8 @@
                 <div class="alert alert-error">{{exception}}</div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" data-dismiss="modal">Ok</button>
-                <button class="btn btn-danger control-button" data-action="exit" data-dismiss="modal">Exit</button>
+                <button class="btn btn-primary" data-dismiss="modal" value="ok">Ok</button>
+                <button class="btn btn-danger control-button" data-action="exit" data-dismiss="modal" value="exit">Exit</button>
             </div>
         </div>
     </script>
@@ -152,8 +152,8 @@
                     </div>
             <div>
             <div class="modal-footer">
-                <button class="btn" data-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary">{{action}}</button>
+                <button class="btn" data-dismiss="modal" value="cancel">Cancel</button>
+                <button type="submit" class="btn btn-primary" value="{{action}}">{{action}}</button>
             </div>
         </form>
         </div>
