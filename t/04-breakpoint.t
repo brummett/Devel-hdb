@@ -37,7 +37,7 @@ subtest 'invalid breakpoints' => sub {
 };
 
 my $breakpoint_id;
-subtest 'create breskpoint' => sub {
+subtest 'create breakpoint' => sub {
     plan tests => 1;
 
     $breakpoint_id = $client->create_breakpoint(filename => $filename, line => 3, code => 1);
