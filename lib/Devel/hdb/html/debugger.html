@@ -180,9 +180,9 @@
 
     <! template for Bootstrap nav panes>
     <script id="nav-pane-template" type="text/x-handlebars-template">
-        <div id="pane-{{uuid}}" data-frameno="{{frameno}}" class="tab-pane breakpoint-listener{{#active}} active{{/active}}">
+        <div id="pane-{{uuid}}" data-frameno="{{frameno}}" class="tab-pane{{#active}} active{{/active}}">
             <div class="current-sub-and-args alert">{{#if banner}}{{banner}}{{else}}&nbsp;{{/if}}</div>
-            <div class="managed-height program-code-container" data-filename="{{filename}}">
+            <div class="managed-height program-code-container breakpoint-listener" data-filename="{{filename}}">
                 {{{html}}}
             </div>
         </div>
