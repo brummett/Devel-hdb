@@ -22,8 +22,20 @@ sub actionable_remover() { 'remove_break' }
 sub actionable_type() { 'Devel::Chitin::Breakpoint' }
 
 {
-    my(%my_breakpoints);
+    my(%my_breakpoints, %bp_to_id);
     sub storage { \%my_breakpoints; }
+    sub lookup_id {
+        my($class, $bp) = @_;
+        $bp_to_id{$bp};
+    }
+    sub save_id {
+        my($class, $bp, $id) = @_;
+        $bp_to_id{$bp} = $id;
+    }
+    sub forget_id {
+        my($class, $bp) = @_;
+        delete $bp_to_id{$bp};
+    }
 }
 
 sub is_file_or_line_invalid {
@@ -102,6 +114,7 @@ sub delete {
     my $remover = $class->actionable_remover;
     $app->$remover($bp);
     $class->delete_stored($id);
+    $class->forget_id($bp);
 
     return [ 204,
             [ ],
@@ -130,6 +143,7 @@ sub set_and_respond {
                 $params->{file} = delete $params->{filename};
                 my $bp = $app->$adder(%$params);
                 $set_inactive->($bp);
+                $class->save_id($bp, $href);
                 $class->set_stored($href, $bp);
             };
     } else {
@@ -162,7 +176,7 @@ sub get {
     my($class, $app, $env, $id) = @_;
 
     my $bp = $class->get_stored($id);
-    my %bp_data;
+    my %bp_data = ( href => $class->lookup_id($bp) );
     @bp_data{'href','filename','line','code','inactive'}
         = ( $id,
             map { $bp->$_ } qw(file line code inactive) );
@@ -183,7 +197,7 @@ sub get_all {
     }
 
     my @bp_list =
-            map { my %bp_data;
+            map { my %bp_data = (href => $class->lookup_id($_));
                     @bp_data{'filename','line','code','inactive'}
                         = @$_{'file','line','code','inactive'};
                     \%bp_data;

@@ -35,8 +35,8 @@ is($@->http_code, 404, 'Error was Not Found');
 my $action_4 = $client->create_action( filename => $filename, line => 4, code => '$a++' );
 ok($action_4, 'Set action for line 4');
 
-$resp = $client->create_action( filename => $filename, line => 6, code => '$a++' );
-ok($resp, 'Set action for line 6');
+my $action_6 = $client->create_action( filename => $filename, line => 6, code => '$a++' );
+ok($action_6, 'Set action for line 6');
 
 
 $resp = $client->continue();
@@ -57,7 +57,7 @@ ok($resp, 'Delete action on line 4');
 
 $resp = $client->get_actions();
 is_deeply($resp,
-    [ { filename => $filename, line => 6, code => '$a++', inactive => 0 } ],
+    [ { filename => $filename, line => 6, code => '$a++', inactive => 0, href => $action_6 } ],
     'One action remaining');
 
 

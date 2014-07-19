@@ -41,10 +41,10 @@ ok($bp_tn, 'Set breakpoint for line TestNothing.pm 3');
 
 $resp = $client->get_breakpoints();
 is_deeply(sort_breakpoints_by_file_and_line($resp),
-    [   { filename => $filename, line => 3, code => '$a', inactive => 0 },
-        { filename => $filename, line => 4, code => 1, inactive => 1 },
-        { filename => $filename, line => 5, code => 1, inactive => 0 },
-        { filename => $test_nothing_file, line => 3, code => 1, inactive => 0 },
+    [   { filename => $filename, line => 3, code => '$a', inactive => 0, href => $bp_3 },
+        { filename => $filename, line => 4, code => 1, inactive => 1, href => $bp_4 },
+        { filename => $filename, line => 5, code => 1, inactive => 0, href => $bp_5 },
+        { filename => $test_nothing_file, line => 3, code => 1, inactive => 0, href => $bp_tn },
     ],
     'Got all set breakpoints'
 );
@@ -52,21 +52,21 @@ is_deeply(sort_breakpoints_by_file_and_line($resp),
 $resp = $client->get_breakpoints(filename => $filename);
 is_deeply(sort_breakpoints_by_file_and_line($resp),
     [
-        { filename => $filename, line => 3, code => '$a', inactive => 0 },
-        { filename => $filename, line => 4, code => 1, inactive => 1 },
-        { filename => $filename, line => 5, code => 1, inactive => 0 },
+        { filename => $filename, line => 3, code => '$a', inactive => 0, href => $bp_3 },
+        { filename => $filename, line => 4, code => 1, inactive => 1, href => $bp_4 },
+        { filename => $filename, line => 5, code => 1, inactive => 0, href => $bp_5 },
     ],
     'Get all breakpoints for main file'
 );
 
 $resp = $client->get_breakpoints(filename => $filename, inactive => 1);
 is_deeply($resp,
-    [ { filename => $filename, line => 4, code => 1, inactive => 1 }, ],
+    [ { filename => $filename, line => 4, code => 1, inactive => 1, href => $bp_4 }, ],
     'Get breakpoints filtered by file and inactive');
 
 $resp = $client->get_breakpoints(line => 3, code => '$a');
 is_deeply($resp,
-    [ { filename => $filename, line => 3, code => '$a', inactive => 0 } ],
+    [ { filename => $filename, line => 3, code => '$a', inactive => 0, href => $bp_3} ],
     'Get breakpoints filtered by line and code');
 
 $resp = $client->get_breakpoints(line => 3, code => 'garbage');
@@ -79,8 +79,8 @@ ok($resp, 'Remove breakpoint for line 4');
 $resp = $client->get_breakpoints(filename => $filename);
 is_deeply( sort_breakpoints_by_file_and_line($resp),
     [
-      { filename => $filename, line => 3, code => '$a', inactive => 0 },
-      { filename => $filename, line => 5, code => 1, inactive => 0 },
+      { filename => $filename, line => 3, code => '$a', inactive => 0, href => $bp_3 },
+      { filename => $filename, line => 5, code => 1, inactive => 0, href => $bp_5 },
     ],
     'Got all remaining breakpoints for main file'
 );
