@@ -128,10 +128,12 @@ sub _announce {
     } elsif ($hostname ne '127.0.0.1') {
         $hostname = gethostbyaddr($s->sockaddr, AF_INET);
     }
-    $self->{base_url} = sprintf('http://%s:%d/debugger-gui',
+    $self->{base_url} = sprintf('http://%s:%d/',
             $hostname, $s->sockport);
 
-    STDOUT->printflush("Debugger pid $$ listening on ",$self->{base_url},"\n") unless ($Devel::hdb::TESTHARNESS);
+    my $announce_url = $self->{base_url} . 'debugger-gui';
+
+    STDOUT->printflush("Debugger pid $$ listening on $announce_url\n") unless ($Devel::hdb::TESTHARNESS);
 }
 
 sub on_notify_stopped {
