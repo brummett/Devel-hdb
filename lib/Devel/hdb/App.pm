@@ -131,9 +131,7 @@ sub _announce {
     $self->{base_url} = sprintf('http://%s:%d/debugger-gui',
             $hostname, $s->sockport);
 
-    select STDOUT;
-    local $| = 1;
-    print "Debugger pid $$ listening on ",$self->{base_url},"\n" unless ($Devel::hdb::TESTHARNESS);
+    STDOUT->printflush("Debugger pid $$ listening on ",$self->{base_url},"\n") unless ($Devel::hdb::TESTHARNESS);
 }
 
 sub on_notify_stopped {
