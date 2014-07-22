@@ -20,6 +20,7 @@
     <script src="db/filepicker.js"></script>
     <script src="db/restinterface.js"></script>
     <script src="db/breakpointmanager.js"></script>
+    <script src="db/watchedexprmanager.js"></script>
     <script src="db/program_events.js"></script>
     <script src="db/debugger.js"></script>
     <script>
@@ -214,15 +215,23 @@
 
     <! template for watched expression>
     <script id="watched-expr-template" type="text/x-handlebars-template">
-        <div class="watched-expression" data-expr="{{expr}}">
-            <span>
-                <span class="remove-watched-expression close-button">
-                    <i class="icon-remove-sign icon-white"></i>
+        <div class="expr-container">
+            <div class="watched-expression-form">
+                <form>
+                    <input type="text" name="expr" value="{{expr}}">
+                    <input type="hidden" name="originalExpr" value="{{expr}}">
+                </form>
+            </div>
+            <div class="watched-expression" data-expr="{{expr}}">
+                <span>
+                    <span class="remove-watched-expression close-button">
+                        <i class="icon-remove-sign icon-white"></i>
+                    </span>
                 </span>
-            </span>
-            <span class="expr label label-inverse">{{expr}}</span>
-            <span>: </span>
-            <span class="value">{{value}}</span>
+                <span class="expr label label-inverse">{{expr}}</span>
+                <span>: </span>
+                <span class="value">{{value}}</span>
+            </div>
         </div>
     </script>
 
