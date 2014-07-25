@@ -99,6 +99,10 @@ div#controls {
 #stack-tabs .active a  {
     box-shadow: -2px 10px 3px -2px;
 }
+#stack-panes {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
 
 
 
