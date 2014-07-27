@@ -247,6 +247,12 @@ sub notify_uncaught_exception {
     @event{'subroutine','package','filename','line'}
         = map { $exception->$_ } qw(subroutine package filename line);
     $self->enqueue_event(\%event);
+
+    my $exception_as_comment = '# ' . join("\n# ", split(/\n/, $exception->exception));
+    my $stopped = eval qq(sub { \$self->step && (local \$DB::in_debugger = 0);\n# Uncaught exception:\n$exception_as_comment\n1;\n}\n);
+
+    @_ = ();
+    goto &$stopped;
 }
 
 sub exit_code {
