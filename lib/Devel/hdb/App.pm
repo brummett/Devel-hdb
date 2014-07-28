@@ -179,6 +179,17 @@ sub notify_fork_parent {
     $self->step;
 }
 
+{
+    my $parent_process_base_url;
+    sub _parent_process_base_url {
+        my $self = shift;
+        if (@_) {
+            $parent_process_base_url = shift;
+        }
+        return $parent_process_base_url;
+    }
+}
+
 # called in the child process after a fork
 sub notify_fork_child {
     my $self = shift;
@@ -188,7 +199,7 @@ sub notify_fork_child {
     $self->dequeue_events();
 
     $parent_pid = undef;
-    my $parent_base_url = $self->{base_url};
+    my $parent_base_url = $self->_parent_process_base_url($self->{base_url});
 
     my $announced;
     my $when_ready = sub {
