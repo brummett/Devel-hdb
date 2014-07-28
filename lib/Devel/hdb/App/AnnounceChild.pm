@@ -13,12 +13,14 @@ sub announce_child {
     my $req = Plack::Request->new($env);
     my $child_pid = $req->param('pid');
     my $child_uri = $req->param('uri');
+    my $gui_uri = $req->param('gui');
 
     $app->enqueue_event({
         type => 'fork',
         pid => $child_pid,
         href => $child_uri,
-        continue_href => "${child_uri}?nostop=1",
+        gui_href => $gui_uri,
+        continue_href => "${child_uri}/continue?nostop=1",
     });
 
     return [204, [], []];

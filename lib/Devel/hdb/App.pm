@@ -208,7 +208,7 @@ sub notify_fork_child {
             $self->_announce();
             my $ua = LWP::UserAgent->new();
             my $resp = $ua->post($parent_base_url
-                                . 'announce_child', { pid => $$, uri => $self->{base_url} });
+                                . '/announce_child', { pid => $$, uri => $self->{base_url}, gui => $self->_gui_url });
             unless ($resp->is_success()) {
                 print STDERR "sending announce failed... exiting\n";
                 exit(1) if ($Devel::hdb::TESTHARNESS);

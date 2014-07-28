@@ -413,6 +413,7 @@ They have a 'type' key.  Other keys are type-specific:
     type: "fork"
     pid: Integer - Child pid
     href: String - URL to hit to debug the child process
+    gui_href: string - URL to hit to bring up the interactive debugger in the child
     href_continue: String - URL to hit to run the child without stopping
 
     type: "exception"

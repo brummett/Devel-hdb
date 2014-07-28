@@ -9,7 +9,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 5;
+    plan tests => 6;
 }
 
 my $url = start_test_program();
@@ -21,6 +21,7 @@ my $resp = $client->continue();
 my $filename = delete $resp->{filename};
 my $child_pid = delete $resp->{events}->[0]->{pid};
 my $child_url = delete $resp->{events}->[0]->{href};
+my $child_gui_url = delete $resp->{events}->[0]->{gui_href};
 my $child_continue_url = delete $resp->{events}->[0]->{continue_href};
 is_deeply($resp,
     {   subroutine => 'MAIN',
@@ -34,6 +35,7 @@ is_deeply($resp,
 
 ok($child_pid, 'Fork event has pid');
 ok($child_url, 'Fork event has href');
+ok($child_gui_url, 'Fork event has GUI href');
 ok($child_continue_url, 'Fork event has continue_href');
 
 eval qq(END { kill 'TERM', $child_pid }) if ($child_pid);

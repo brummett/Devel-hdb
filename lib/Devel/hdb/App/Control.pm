@@ -45,7 +45,10 @@ sub continue {
         $app->disable_debugger();
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
         return [ 204,
-                    [],
+                    [$app->_parent_process_base_url
+                        ? ('Access-Control-Allow-Origin' => $app->_parent_process_base_url)
+                        : ()
+                    ],
                     [],
                 ];
     }
