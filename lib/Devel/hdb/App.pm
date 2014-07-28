@@ -117,6 +117,11 @@ sub init_debugger {
 
 }
 
+sub _gui_url {
+    my $self = shift;
+    return $self->{base_url} . '/debugger-gui';
+}
+
 sub _announce {
     my $self = shift;
 
@@ -131,7 +136,7 @@ sub _announce {
     $self->{base_url} = sprintf('http://%s:%d',
             $hostname, $s->sockport);
 
-    my $announce_url = $self->{base_url} . 'debugger-gui';
+    my $announce_url = $self->_gui_url;
 
     STDOUT->printflush("Debugger pid $$ listening on $announce_url\n") unless ($Devel::hdb::TESTHARNESS);
 }
