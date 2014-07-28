@@ -13,6 +13,7 @@ use Sys::Hostname;
 use IO::Socket::INET;
 use JSON qw();
 use Data::Transform::ExplicitMetadata;
+use Sub::Name qw(subname);
 
 use Devel::hdb::Router;
 
@@ -265,7 +266,7 @@ sub notify_uncaught_exception {
     $self->enqueue_event(\%event);
 
     my $exception_as_comment = '# ' . join("\n# ", split(/\n/, $exception->exception));
-    my $stopped = eval qq(sub { \$self->step && (local \$DB::in_debugger = 0);\n# Uncaught exception:\n$exception_as_comment\n1;\n}\n);
+    my $stopped = subname '__exception__' => eval qq(sub { \$self->step && (local \$DB::in_debugger = 0);\n# Uncaught exception:\n$exception_as_comment\n1;\n}\n);
 
     @_ = ();
     goto &$stopped;

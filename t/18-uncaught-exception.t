@@ -9,7 +9,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 2;
+    plan tests => 3;
 }
 
 my $url = start_test_program();
@@ -22,8 +22,8 @@ my $filename = $resp->{filename};
 $resp = $client->continue();
 delete @$resp{'filename','line'};
 is_deeply($resp,
-    { subroutine => 'Devel::Chitin::exiting::at_exit',
-      running => 0,
+    { subroutine => 'Devel::hdb::App::__exception__',
+      running => 1,
       events => [
         {
             type => 'exception',
@@ -33,13 +33,21 @@ is_deeply($resp,
             line => 11,
             value => "This is an uncaught exception at $filename line 11.\n",
         },
+    ] },
+    'Stopped in caught exception sub');
+
+$resp = $client->continue();
+delete @$resp{'filename','line'};
+is_deeply($resp,
+    { subroutine => 'Devel::Chitin::exiting::at_exit',
+      running => 0,
+      events => [
         {
             type => 'exit',
             value => 255,
         },
-    ] },
-    'continue response');
-
+    ]},
+    'Stopped in at_exit()');
 
 __DATA__
 eval { die "inside eval" };
@@ -54,4 +62,4 @@ sub do_die {
 sub do_die2 {
     die "This is an uncaught exception";
 }
-    
+
