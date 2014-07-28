@@ -128,7 +128,7 @@ sub _announce {
     } elsif ($hostname ne '127.0.0.1') {
         $hostname = gethostbyaddr($s->sockaddr, AF_INET);
     }
-    $self->{base_url} = sprintf('http://%s:%d/',
+    $self->{base_url} = sprintf('http://%s:%d',
             $hostname, $s->sockport);
 
     my $announce_url = $self->{base_url} . 'debugger-gui';
