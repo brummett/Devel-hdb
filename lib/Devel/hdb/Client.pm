@@ -467,7 +467,7 @@ sub _http_request {
 sub _dmsg {
     my $self = shift;
     return unless $self->debug;
-    print @_,"\n";
+    print STDERR @_,"\n";
 }
 
 sub _GET {
