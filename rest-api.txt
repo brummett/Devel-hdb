@@ -82,7 +82,6 @@ Returns 200 and JSON in the body
 [
     { filename: String - File name
       line: Integer - What line it's stopped on
-      subname: String - Subroutine it's stopped in
       href: URL - url for this stack frame
       uuid: String - Unique identifier for this frame
       subname: String - Short name for this subroutine
