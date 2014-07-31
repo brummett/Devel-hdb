@@ -26,6 +26,7 @@ sub route($$) {
     my $env = shift;
 
     my $req_method = $env->{REQUEST_METHOD};
+    print STDERR "Incoming request: $req_method ",$env->{PATH_INFO},"\n" if ($ENV{HDB_DEBUG_MSG});
     return unless exists $self->{$req_method};
     my $matchlist = $self->{$req_method};
 
