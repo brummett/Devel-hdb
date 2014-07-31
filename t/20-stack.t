@@ -125,7 +125,7 @@ for (my $i = 0; $i < @expected; $i++) {
 
     my $frame = $client->stack_frame($i);
     ok($frame, "stack_frame() for $i");
-    is($uuid, delete $frame->{uuid}, 'uuid matches');
+    is(delete($frame->{uuid}), $uuid, 'uuid matches');
 
     delete @$frame{'hints','bitmask','level'};
     _compare_frames($frame, $expected[$i], $i);
