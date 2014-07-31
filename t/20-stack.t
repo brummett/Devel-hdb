@@ -119,7 +119,7 @@ for (my $i = 0; $i < @expected; $i++) {
     delete $stack->[$i]->{level};
 
     my $uuid = delete $stack->[$i]->{uuid};
-    ok($uuid, "Frame $i has uuid");
+    ok($uuid, "Frame $i has uuid $uuid");
 
     _compare_frames($stack->[$i], $expected[$i], $i);
 
