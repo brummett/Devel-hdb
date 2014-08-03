@@ -235,39 +235,38 @@
         </div>
     </script>
 
-    <! template for a breakpoint condition in the breakpoint menu/list>
+    <! template for a breakpoint or action condition in the breakpoint menu/list>
     <script id="breakpoint-condition-template" type="text/x-handlebars-template">
         {{#ifDefined condition}}<span>{{condition}}</span>
-        {{else}}<span class="label">none</span>{{/ifDefined}}
+        {{else}}<span class="label none">none</span>{{/ifDefined}}
     </script>
-    <! template for a breakpoint action in the breakpoint menu/list>
-    <script id="breakpoint-action-template" type="text/x-handlebars-template">
+    <script id="action-condition-template" type="text/x-handlebars-template">
         {{#ifDefined action}}<span>{{action}}</span>
-        {{else}}<span class="label">none</span>{{/ifDefined}}
+        {{else}}<span class="label none">none</span>{{/ifDefined}}
     </script>
     <! template for the breakpoint right-click menu>
     <script id="breakpoint-right-click-template" type="text/x-handlebars-template">
         <div class="breakpoint-marker" data-filename="{{filename}}" data-lineno="{{lineno}}">
-            <div>
+            <div class="breakpoint-details">
                 <input type="checkbox" class="toggle-breakpoint" {{#if conditionEnabled}}checked="checked"{{/if}}>
                 <i class="icon-stop"></i>&nbsp;
-                <span class="breakpoint-condition">
+                <span class="condition">
                     {{>breakpoint-condition-template}}
                 </span>
             </div>
-            <div>
+            <div class="action-details">
                 <input type="checkbox" class="toggle-action" {{#if actionEnabled}}checked="checked"{{/if}}>
                 <i class="icon-tasks"></i>&nbsp;
-                <span class="action">
-                    {{>breakpoint-action-template}}
+                <span class="condition">
+                    {{>action-condition-template}}
                 </span>
             </div>
         </div>
     </script>
 
     <! template for an item in the breakpoints pane list>
-    <script id="breakpoint-list-item-template" type="text/x-handlebars-template">
-        <li class="breakpoint-list-item" data-filename="{{filename}}" data-lineno="{{lineno}}">
+    <script id="breakpoint-pane-item-template" type="text/x-handlebars-template">
+        <li class="breakpoint-pane-item" data-filename="{{filename}}" data-lineno="{{lineno}}">
             <div>
                 <span class="remove-breakpoint close-button">
                     <i class="icon-remove-sign icon-white"></i>

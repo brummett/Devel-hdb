@@ -224,11 +224,11 @@ body {
     background-color: lightgray;
     float: left;
 }
-.breakpoint-list-item {
+.breakpoint-pane-item {
     list-style: none;
     border-bottom: 1px solid black;
 }
-.breakpoint-list-item:before {
+.breakpoint-pane-item:before {
 
 }
 
@@ -259,26 +259,15 @@ div#watch-expressions-title {
 }
 
 /* The right-click breakpoint menu */
-.breakpoint-condition {
+.breakpoint-details,.action-details .condition {
     display: inline-block;
     height: 2em;
 }
-.breakpoint-condition form {
+.breakpoint-details,.action-details .condition form {
     display: inline-block;
     margin-bottom: 0;
 }
-.breakpoint-condition input {
-    margin-bottom: 0;
-}
-.action {
-    display: inline-block;
-    height: 2em;
-}
-.action form {
-    display: inline-block;
-    margin-bottom: 0;
-}
-.action input {
+.breakpoint-details,.action-details .condition input {
     margin-bottom: 0;
 }
 
