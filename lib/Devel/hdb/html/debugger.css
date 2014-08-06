@@ -34,7 +34,7 @@
 .program-code .inactive-breakpoint .lineno span {
     opacity: 0.4;
 }
-.program-code .bpaction .lineno span {
+.program-code .action .lineno span {
     border-color: black;
 }
 .program-code .unbreakable .lineno span {
