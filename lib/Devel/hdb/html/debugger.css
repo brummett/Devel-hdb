@@ -259,15 +259,15 @@ div#watch-expressions-title {
 }
 
 /* The right-click breakpoint menu */
-.breakpoint-details,.action-details .bpaction-condition {
+.breakpoint-details,.action-details .bpaction-code {
     display: inline-block;
     height: 2em;
 }
-.breakpoint-details,.action-details .bpaction-condition form {
+.breakpoint-details,.action-details .bpaction-code form {
     display: inline-block;
     margin-bottom: 0;
 }
-.breakpoint-details,.action-details .bpaction-condition input {
+.breakpoint-details,.action-details .bpaction-code input {
     margin-bottom: 0;
 }
 
