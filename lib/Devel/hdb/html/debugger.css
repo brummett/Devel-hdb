@@ -45,16 +45,21 @@
     display: inline-block;
     text-align: center;
 }
-.program-code .lineno span {
+.program-code .lineno span {  /* The circle/ellipse indicating a breakpoint/action */
     padding-bottom: 1px;
     border-radius: 50% 50%;
     border: 1px solid transparent;
-    padding: 2px;
+    /* padding: 2px; */
 }
 .program-code .code {
     width: 94%;
     padding-bottom: 1px;
     display: inline-block;
+}
+
+.program-code .code-line {
+    font-size:0.875em;
+    line-height: 1em;
 }
 
 .code {
