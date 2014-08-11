@@ -29,7 +29,7 @@
     background-color: rgb(255,0,0);
 }
 .program-code .conditional-breakpoint .lineno span {
-    background-color: rgb(0,0,255);
+    background-color: rgba(0,0,255, 0.675);
 }
 .program-code .inactive-breakpoint .lineno span {
     opacity: 0.4;
