@@ -163,7 +163,7 @@
     <! template for the file tabs along the top>
     <script id="file-tab-template" type="text/x-handlebars-template">
         <li data-contentid="{{id}}" class="trunc-left {{#active}}active{{/active}}">
-            <a href="#{{id}}" data-toggle="tab">
+            <a href="#pane-{{id}}" data-toggle="tab">
             {{#if closable}}<span class="remove-loaded-file close-button">
                     <i class="icon-remove-sign icon-white"></i>
                 </span>
