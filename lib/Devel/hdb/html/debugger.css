@@ -37,8 +37,12 @@
 .program-code .action .lineno span {
     border-color: black;
 }
-.program-code .unbreakable .lineno span {
+.program-code .lineno {  /* breakable line numbers */
+    cursor: pointer;
+}
+.program-code .unbreakable .lineno {  /* unbreakable line numbers */
     text-decoration: line-through;
+    cursor: default;
 }
 .program-code .lineno {
     width: 5%;
