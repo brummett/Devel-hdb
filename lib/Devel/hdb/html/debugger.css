@@ -22,7 +22,7 @@
 .program-code .active .code  {
     background-color: rgba(0,101,204,0.5) !important;
 }
-.program-code .code-line:hover .code {
+.program-code .code-line:hover {
     background-color: rgba(0,0,0,0.05);
 }
 .program-code .breakpoint .lineno span {
