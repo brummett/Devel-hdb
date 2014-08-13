@@ -112,7 +112,7 @@ Devel::hdb::App::Stack - Get information about the program stack
 
 =over 4
 
-=item /stack
+=item GET /stack
 
 Get a list of the current program stack.  Does not include any stack frames
 within the debugger.  The currently executing frame is the first element in
@@ -124,10 +124,26 @@ with the following keys:
   filename      File where the subroutine was defined
   lineno        Line execution is stopped on
   args          Array of arguments to the subroutine
+  wantarray     Context this frame was called in
+  serial        Unique serial number for this frame
 
 The top-level stack frame is reported as being in the subroutine named 'MAIN'.
 
 Values in the args list are encoded using Devel::hdb::App::EncodePerlData.
+
+=item GET /stack/<number>
+
+Get only one stack frame.  0 is the most recent frame in the debugged program,
+1 is the frame before that.  Returns a JSON-encoded hash with the same
+information as each stack frame returned by GET /stack.  In addition, the header
+X-Stack-Line contains the current frame's line number, and the header
+X-Stack-Serial contains the current frame's serial.  Returns a 404 error if
+there is no frame as deep as was requested.
+
+=item HEAD /stack/<number>
+
+Used to get the headers for line and serial without retrieving the rest of the
+frame's data.
 
 =back
 
