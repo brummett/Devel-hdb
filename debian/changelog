@@ -1,3 +1,11 @@
+libdevel-hdb-perl (0.20-1) unstable; urgency=low
+  * Back-end now uses a documented REST api
+  * Added module to communicate with the api - Devel::hdb::Client
+  * Rewritten GUI to use the REST api
+  * Faster page loading when the stack is deep
+
+ -- Anthony Brummett <brummett@cpan.org>  Sat, 16 Aug 2014 10:05:00 -0500
+
 libdevel-hdb-perl (0.12-1) unstable; urgency=low
   * Extracted debugger infrastructure into a separate module: Devel::Chitin
   * Fix a bug when a difference is found in follow mode
