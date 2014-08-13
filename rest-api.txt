@@ -83,7 +83,7 @@ Returns 200 and JSON in the body
     { filename: String - File name
       line: Integer - What line it's stopped on
       href: URL - url for this stack frame
-      uuid: String - Unique identifier for this frame
+      serial: String - Unique identifier for this frame
       subname: String - Short name for this subroutine
       subroutine: String - Fully qualified package::subroutine
       args: [...] List of arguments to this sub, encoded
@@ -106,7 +106,7 @@ Get info about one particular stack frame.  <id> is an integer representing
 the requested depth.  0 is the most recent stack frame.
 
 If the requested stack frame exists, returns 200 and JSON in the body.
-The header X-Stack-UUID will be the same as the 'uuid' value for this
+The header X-Stack-Serial will be the same as the 'serial' value for this
 frame.  The header X-Stack-Line will be the same as the 'line' value
 for this frame.
 
@@ -116,7 +116,7 @@ re-getting data it already knows.
 {   filename: String - File name
     file_href: URL - url for this file
     line: Integer - Line the debugger is stopped on
-    uuid: String - Unique identifier for this frame
+    serial: String - Unique identifier for this frame
     subname: String - Short name for this subroutine
     subroutine: String - Fully qualified package::subroutine
     args: [...] List of arguments to this sub, encoded

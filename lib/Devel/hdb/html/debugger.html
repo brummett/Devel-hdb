@@ -174,14 +174,14 @@
 
     <! template for Bootstrap stack nav tabs>
     <script id="nav-tab-template" type="text/x-handlebars-template">
-        <li id="tab-{{uuid}}" data-frameno="{{frameno}}" class="stack-tab {{class}}{{#active}} active{{/active}}">
-            <a href="#pane-{{uuid}}" data-toggle="tab" rel="tooltip" data-html="true" data-placement="right" title="{{longlabel}}<br>{{filename}}: {{lineno}}">{{wantarray}}{{#if is_string_eval}}"eval"{{else}}{{label}}{{/if}}</a>
+        <li id="tab-{{serial}}" data-frameno="{{frameno}}" class="stack-tab {{class}}{{#active}} active{{/active}}">
+            <a href="#pane-{{serial}}" data-toggle="tab" rel="tooltip" data-html="true" data-placement="right" title="{{longlabel}}<br>{{filename}}: {{lineno}}">{{wantarray}}{{#if is_string_eval}}"eval"{{else}}{{label}}{{/if}}</a>
         </li>
     </script>
 
     <! template for Bootstrap nav panes>
     <script id="nav-pane-template" type="text/x-handlebars-template">
-        <div id="pane-{{uuid}}" data-frameno="{{frameno}}" class="tab-pane{{#active}} active{{/active}}">
+        <div id="pane-{{serial}}" data-frameno="{{frameno}}" class="tab-pane{{#active}} active{{/active}}">
             <div class="current-sub-and-args alert">{{#if banner}}{{banner}}{{else}}&nbsp;{{/if}}</div>
             <div class="managed-height program-code-container breakpoint-listener" data-filename="{{filename}}">
                 {{{html}}}

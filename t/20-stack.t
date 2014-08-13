@@ -118,20 +118,20 @@ for (my $i = 0; $i < @expected; $i++) {
     delete $stack->[$i]->{bitmask};
     delete $stack->[$i]->{level};
 
-    my $uuid = delete $stack->[$i]->{uuid};
-    ok($uuid, "Frame $i has uuid $uuid");
+    my $serial = delete $stack->[$i]->{serial};
+    ok($serial, "Frame $i has serial $serial");
 
     _compare_frames($stack->[$i], $expected[$i], $i);
 
     my $frame = $client->stack_frame($i);
     ok($frame, "stack_frame() for $i");
-    is(delete($frame->{uuid}), $uuid, 'uuid matches');
+    is(delete($frame->{serial}), $serial, 'serial matches');
 
     delete @$frame{'hints','bitmask','level'};
     _compare_frames($frame, $expected[$i], $i);
 
-    my($head_uuid, $head_line) = $client->stack_frame_signature($i);
-    is($head_uuid, $uuid, 'Frame signature UUID matches');
+    my($head_serial, $head_line) = $client->stack_frame_signature($i);
+    is($head_serial, $serial, 'Frame signature serial matches');
     is($head_line, $expected[$i]->{line}, 'Frame signature line matches');
 }
 

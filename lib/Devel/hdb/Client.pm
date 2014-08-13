@@ -87,7 +87,7 @@ sub stack_frame_signature {
     my $response = $self->_HEAD(join('/', 'stack', $level));
     _assert_success($response, q(Can't get stack frame));
 
-    return ( $response->header('X-Stack-UUID'),
+    return ( $response->header('X-Stack-Serial'),
              $response->header('X-Stack-Line') );
 }
 
@@ -612,7 +612,7 @@ The subroutine name without the package name.
 
 A number indicating how deep this caller frame actually is.
 
-=item uuid
+=item serial
 
 A unique identifier for this caller frame.  It will stay the same as long
 as this frame is still active.
@@ -634,10 +634,10 @@ when the stack is only 9 deep).
 
 Perform HEAD /stack/$level
 
-Return a 2-element list for the given frame: uuid and line.  If a particular
-frame's uuid changes, it is a new function call.  If the uuid is the same,
-but the line changes, then the same function call has moved on to a different
-line.
+Return a 2-element list for the given frame: serial and line.  If a particular
+frame's serial number changes, it is a new function call.  If the serial is
+the same, but the line changes, then the same function call has moved on to
+a different line.
 
 =item $client->gui()
 

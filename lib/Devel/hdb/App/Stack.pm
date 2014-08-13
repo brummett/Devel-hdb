@@ -63,7 +63,7 @@ sub _stack_frame_head_impl {
 
     return [ 200,
                 [   'Content-Type' => 'application/json',
-                    'X-Stack-UUID' => $frame->uuid,
+                    'X-Stack-Serial' => $frame->serial,
                     'X-Stack-Line' => $frame->line,
                 ],
                 [ ]
