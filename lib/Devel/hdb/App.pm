@@ -103,7 +103,6 @@ sub init_debugger {
     require Devel::hdb::App::Stack;
     require Devel::hdb::App::Control;
     require Devel::hdb::App::ProgramName;
-    require Devel::hdb::App::Ping;
     require Devel::hdb::App::Assets;
     require Devel::hdb::App::Config;
     require Devel::hdb::App::Terminate;

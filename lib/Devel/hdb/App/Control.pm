@@ -4,7 +4,6 @@ use strict;
 use warnings;
 
 use base 'Devel::hdb::App::Base';
-use Devel::hdb::Response;
 use Devel::hdb::App::Stack qw(_serialize_stack);
 
 __PACKAGE__->add_route('post', '/stepin', \&stepin);
