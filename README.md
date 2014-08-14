@@ -7,12 +7,12 @@ A Perl graphical debugger that uses an HTTP REST interface
 Start a program with the debugger
 
     shell> perl -d:hdb yourprogram.pl
-    Debugger listening on http://127.0.0.1:8080/
+    Debugger listening on http://127.0.0.1:8080/debugger-gui
 
 Tell the debugger to use a different port
 
     shell> perl -d:hdb=port:9876 yourprogram.pl
-    Debugger listening on http://127.0.0.1:9876
+    Debugger listening on http://127.0.0.1:9876/debugger-gui
 
 ## How to use it
 
@@ -28,7 +28,9 @@ stop on that line.
 
 A line number with a red circle is an unconditional breakpoint.  A blue circle
 is a conditional breakpoint.  The circle is dimmed if the breakpoint is
-inactive, and outlined if that line has an action.
+inactive, and outlined if that line has an action.  Actions are executed
+before the statement on that line is executed, and the action's result is
+ignored.
 
 Click on the thick border between the code and watch expression panes to slide
 out the breakpoint list.
@@ -51,6 +53,7 @@ over the function name will pop up information showing the full name of the
 function and what line execution has reached in that frame.
 
 Function names are prepended by a sigil indicating their context/wantarray-ness.
+String eval frames are represented as `"eval"`.
 
 Clicking on the yellow bar at the top of a code pane will scroll the code to
 show the currently executing line in that frame.
