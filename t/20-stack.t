@@ -9,7 +9,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 80;
+    plan tests => 4;
 }
 
 my $url = start_test_program();
@@ -18,8 +18,6 @@ my $client = Devel::hdb::Client->new(url => $url);
 my $resp = $client->continue();
 ok($resp, 'continue to breakpoint');
 my $filename = $resp->{filename};
-
-my $stack = $client->stack();
 
 my @expected = (
     {   package     => 'Bar',
@@ -116,26 +114,49 @@ my @expected = (
 
 is($client->stack_depth, scalar(@expected), 'stack depth');
 
-for (my $i = 0; $i < @expected; $i++) {
-    delete $stack->[$i]->{hints};
-    delete $stack->[$i]->{bitmask};
-    delete $stack->[$i]->{level};
+subtest 'with sub params' => sub {
+    plan tests => 78;
 
-    my $serial = delete $stack->[$i]->{serial};
-    ok($serial, "Frame $i has serial $serial");
+    my $stack = $client->stack();
 
-    _compare_frames($stack->[$i], $expected[$i], $i);
+    my $stack_frame_getter = sub { $client->stack_frame($_[0]) };
+    check_all_frames($stack, $stack_frame_getter, @expected);
+};
 
-    my $frame = $client->stack_frame($i);
-    ok($frame, "stack_frame() for $i");
-    is(delete($frame->{serial}), $serial, 'serial matches');
+subtest 'without sub params' => sub {
+    plan tests => 78;
 
-    delete @$frame{'hints','bitmask','level'};
-    _compare_frames($frame, $expected[$i], $i);
+    my $stack = $client->stack(exclude_sub_params => 1);
 
-    my($head_serial, $head_line) = $client->stack_frame_signature($i);
-    is($head_serial, $serial, 'Frame signature serial matches');
-    is($head_line, $expected[$i]->{line}, 'Frame signature line matches');
+    my @expected_without_args = map { my %copy = %$_; undef($copy{args}); \%copy } @expected;
+    my $stack_frame_getter = sub { $client->stack_frame($_[0], exclude_sub_params => 1) };
+    check_all_frames($stack, $stack_frame_getter, @expected_without_args);
+};
+
+sub check_all_frames {
+    my($stack, $stack_frame_getter, @expected) = @_;
+
+    for (my $i = 0; $i < @expected; $i++) {
+        delete $stack->[$i]->{hints};
+        delete $stack->[$i]->{bitmask};
+        delete $stack->[$i]->{level};
+
+        my $serial = delete $stack->[$i]->{serial};
+        ok($serial, "Frame $i has serial $serial");
+
+        _compare_frames($stack->[$i], $expected[$i], $i);
+
+        my $frame = $stack_frame_getter->($i);
+        ok($frame, "stack_frame() for $i");
+        is(delete($frame->{serial}), $serial, 'serial matches');
+
+        delete @$frame{'hints','bitmask','level'};
+        _compare_frames($frame, $expected[$i], $i);
+
+        my($head_serial, $head_line) = $client->stack_frame_signature($i);
+        is($head_serial, $serial, 'Frame signature serial matches');
+        is($head_line, $expected[$i]->{line}, 'Frame signature line matches');
+    }
 }
 
 sub _compare_frames {
