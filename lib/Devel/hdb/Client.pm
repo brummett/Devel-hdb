@@ -56,9 +56,14 @@ sub new {
 }
 
 sub stack {
-    my $self = shift;
+    my($self, %params) = @_;
 
-    my $response = $self->_GET('stack');
+    my $url = 'stack';
+    if ($params{exclude_sub_params}) {
+        $url .= '?exclude_sub_params=1';
+    }
+
+    my $response = $self->_GET($url);
     _assert_success($response, q(Can't get stack position));
     my $stack = $JSON->decode($response->content);
     foreach my $frame ( @$stack ) {
@@ -77,8 +82,14 @@ sub stack_depth {
 
 
 sub stack_frame {
-    my($self, $level) = @_;
-    my $response = $self->_GET(join('/', 'stack', $level));
+    my($self, $level, %params) = @_;
+
+    my $url = join('/', 'stack', $level);
+    if ($params{exclude_sub_params}) {
+        $url .= '?exclude_sub_params=1';
+    }
+
+    my $response = $self->_GET($url);
     _assert_success($response, q(Can't get stack frame));
     my $frame = $JSON->decode($response->content);
     $frame->{args} = _decode_stack_frame_args($frame->{args});
@@ -87,7 +98,9 @@ sub stack_frame {
 }
 
 sub _decode_stack_frame_args {
-    [ map { Data::Transform::ExplicitMetadata::decode($_) } @{$_[0]} ];
+    my $args = shift;
+    return unless $args;
+    [ map { Data::Transform::ExplicitMetadata::decode($_) } @{$args} ];
 }
 
 sub stack_frame_signature {

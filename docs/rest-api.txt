@@ -76,6 +76,7 @@ Return 404 if the file is not loaded
 ---------------------------------------------------------------
 
 GET /stack
+GET /stack?exclude_sub_params=1
 HEAD /stack
 Get the current execution stack
 
@@ -101,9 +102,14 @@ Returns 200 and JSON in the body
 The header X-Stack-Depth will have the number of frames in the stack.  The
 caller may request the HEAD to omit the body/data and just get the headers.
 
+If the param exclude_sub_params is true, the 'args' key for each frame will
+be undef, useful to avoid serializing potentially deep data structures passed
+to functions.
+
 ----------------------------------------------------------------
 
 GET /stack/<id>
+GET /stack/<id>?exclude_sub_params=1
 HEAD /stack/<id>
 
 Get info about one particular stack frame.  <id> is an integer representing
@@ -131,6 +137,10 @@ re-getting data it already knows.
     is_require: boolean - true if the frame is created by a "require" or "use"
                             statement
 }
+
+If the param exclude_sub_params is true, the 'args' key for the frame will
+be undef, useful to avoid serializing potentially deep data structures passed
+to the function.
 
 Returns 404 if that stack frame does not exist
 

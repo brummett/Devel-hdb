@@ -6,6 +6,7 @@ BEGIN {
 
 use strict;
 use warnings;
+use Plack::Request;
 
 use base 'Devel::hdb::App::Base';
 
@@ -22,7 +23,9 @@ __PACKAGE__->add_route('head', qr{^/stack/(\d+)$}, \&stack_frame_head);
 sub stack {
     my($class, $app, $env, $base_url) = @_;
 
-    my $frames = $class->_serialize_stack($app, $base_url);
+    my $req = Plack::Request->new($env);
+
+    my $frames = $class->_serialize_stack($app, $base_url, $req->param('exclude_sub_params'));
     return [ 200,
             [ 'Content-Type' => 'application/json',
               'X-Stack-Depth' => scalar(@$frames),
@@ -46,12 +49,14 @@ sub stack_head {
 sub stack_frame {
     my($class, $app, $env, $base_url, $level) = @_;
 
+    my $req = Plack::Request->new($env);
+
     my $stack = $app->stack;
     my $frame = $stack->frame($level);
 
     my $rv = _stack_frame_head_impl($app, $frame);
     if ($rv->[0] == 200) {
-        my $serialized_frame = _serialize_frame($frame, $base_url, $level);
+        my $serialized_frame = _serialize_frame($frame, $base_url, $level, $req->param('exclude_sub_params'));
         $rv->[2] = [ $app->encode_json($serialized_frame) ];
     }
     return $rv;
@@ -85,18 +90,18 @@ sub _stack_frame_head_impl {
 }
 
 sub _serialize_stack {
-    my($class, $app, $base_url) = @_;
+    my($class, $app, $base_url, $exclude_sub_params) = @_;
     my $frames = $app->stack()->iterator;
     my @stack;
     my $level = 0;
     while (my $frame = $frames->()) {
-        push @stack, _serialize_frame($frame, $base_url, $level++);
+        push @stack, _serialize_frame($frame, $base_url, $level++, $exclude_sub_params);
     }
     return \@stack;
 }
 
 sub _serialize_frame {
-    my($frame, $base_url, $level) = @_;
+    my($frame, $base_url, $level, $exclude_sub_params) = @_;
 
     my %frame = %$frame; # copy
 
@@ -104,8 +109,12 @@ sub _serialize_frame {
         $frame{subname} .= "($frame{autoload})";
     }
 
-    my @encoded_args = map { encode($_) } @{$frame{args}};
-    $frame{args} = \@encoded_args;
+    if ($exclude_sub_params) {
+        $frame{args} = undef;
+    } else {
+        my @encoded_args = map { encode($_) } @{$frame{args}};
+        $frame{args} = \@encoded_args;
+    }
 
     $frame{href} = join('/', $base_url, $level++);
 
