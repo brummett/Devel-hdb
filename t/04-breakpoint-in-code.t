@@ -27,12 +27,13 @@ is_deeply($stack,
 
 $resp = $client->continue();
 is_deeply($resp,
-    { filename => $filename, line => 4, subroutine => 'MAIN', running => 1 },
+    { filename => $filename, line => 4, subroutine => 'MAIN', running => 1, stack_depth => 1 },
     'continue to breakpoint in code');
 
 $resp = $client->continue();
 my $stopped_filename = delete $resp->{filename};
 my $stopped_line = delete $resp->{line};
+my $stack_depth = delete $resp->{stack_depth};
 is_deeply($resp,
     {   subroutine => 'Devel::Chitin::exiting::at_exit',
         running => 0,

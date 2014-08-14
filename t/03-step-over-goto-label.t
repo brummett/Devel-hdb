@@ -25,7 +25,7 @@ is_deeply($stack,
 
 my $resp = $client->stepover;
 is_deeply($resp,
-    { filename => $filename, line => 2, subroutine => 'MAIN', running => 1 },
+    { filename => $filename, line => 2, subroutine => 'MAIN', running => 1, stack_depth => 1 },
     'step over');
 $stack = strip_stack($client->stack);
 is_deeply($stack,
@@ -35,6 +35,7 @@ is_deeply($stack,
 $resp = $client->stepover;
 my $stopped_filename = delete $resp->{filename};
 my $stopped_line = delete $resp->{line};
+my $stack_depth = delete $resp->{stack_depth};
 is_deeply($resp,
     {   subroutine => 'Devel::Chitin::exiting::at_exit',
         running => 0,

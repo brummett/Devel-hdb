@@ -18,27 +18,27 @@ my $client = Devel::hdb::Client->new(url => $url);
 my $resp = $client->continue();
 my $filename = $resp->{filename};
 is_deeply($resp,
-    { filename => $filename, line => 6, subroutine => 'main::one', running => 1 },
+    { filename => $filename, line => 6, subroutine => 'main::one', running => 1, stack_depth => 2 },
     'Run to first breakpoint');
 
 $resp = $client->stepout();
 is_deeply($resp,
-    { filename => $filename, line => 2, subroutine => 'MAIN', running => 1 },
+    { filename => $filename, line => 2, subroutine => 'MAIN', running => 1, stack_depth => 1 },
     'step out to line 2');
 
 $resp = $client->continue();
 is_deeply($resp,
-    { filename => $filename, line => 16, subroutine => 'main::subtwo', running => 1 },
+    { filename => $filename, line => 16, subroutine => 'main::subtwo', running => 1, stack_depth => 3 },
     'Run to next breakpoint line 16');
 
 $resp = $client->stepout();
 is_deeply($resp,
-    { filename => $filename, line => 11, subroutine => 'main::two', running => 1 },
+    { filename => $filename, line => 11, subroutine => 'main::two', running => 1, stack_depth => 2 },
     'step out to line 11');
 
 $resp = $client->stepout();
 is_deeply($resp,
-    { filename => $filename, line => 3, subroutine => 'MAIN', running => 1 },
+    { filename => $filename, line => 3, subroutine => 'MAIN', running => 1, stack_depth => 1 },
     'step out to line 3');
 
 

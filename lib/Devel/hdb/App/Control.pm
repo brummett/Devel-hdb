@@ -69,11 +69,13 @@ sub _program_status_data {
 
     my $location = $app->current_location;
     my $is_running = $location->at_end ? 0 : 1;
+    my $stack = $app->stack;
     my %status = (
         running => $is_running,
         filename => $location->filename,
         subroutine => $location->subroutine,
         line => $location->line,
+        stack_depth => $stack->depth,
     );
 
     my $events = $app->dequeue_events;

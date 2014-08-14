@@ -76,6 +76,7 @@ Return 404 if the file is not loaded
 ---------------------------------------------------------------
 
 GET /stack
+HEAD /stack
 Get the current execution stack
 
 Returns 200 and JSON in the body
@@ -96,6 +97,9 @@ Returns 200 and JSON in the body
     },
     ...
 ]
+
+The header X-Stack-Depth will have the number of frames in the stack.  The
+caller may request the HEAD to omit the body/data and just get the headers.
 
 ----------------------------------------------------------------
 
@@ -404,6 +408,7 @@ Returns 200 and JSON in the message body
     subroutine: String (What sub it's stopped in)
     filename: String (What file we're currently stopped on)
     line: Integer (What line we're stopped on)
+    stack_depth: Integer (How deep the program's stack is)
     events: Array of hashes (only if events occurred)
 }
 

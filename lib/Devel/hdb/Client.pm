@@ -67,6 +67,15 @@ sub stack {
     return $stack;
 }
 
+sub stack_depth {
+    my $self = shift;
+
+    my $response = $self->_HEAD('stack');
+    _assert_success($response, q(Can't get stack depth));
+    return $response->header('X-Stack-Depth');
+}
+
+
 sub stack_frame {
     my($self, $level) = @_;
     my $response = $self->_GET(join('/', 'stack', $level));

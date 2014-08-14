@@ -30,7 +30,7 @@ ok($bp, 'Set breakpoint on line 6');
 
 $resp = $client->continue();
 is_deeply($resp,
-    { filename => $filename, line => 6, subroutine => 'main::foo', running => 1 },
+    { filename => $filename, line => 6, subroutine => 'main::foo', running => 1, stack_depth => 2 },
     'Continue to line 6 breakpoint');
 
 $resp = $client->change_breakpoint($bp, inactive => 1 );
@@ -41,7 +41,7 @@ is_deeply($resp,
 
 $resp = $client->continue();
 is_deeply($resp,
-    { filename => $filename, line => 4, subroutine => 'MAIN', running => 1 },
+    { filename => $filename, line => 4, subroutine => 'MAIN', running => 1, stack_depth => 1 },
     'Continue to  line 4, in-code $DB::single');
 
 
@@ -53,7 +53,7 @@ is_deeply($resp,
 
 $resp = $client->continue();
 is_deeply($resp,
-    { filename => $filename, line => 6, subroutine => 'main::foo', running => 1 },
+    { filename => $filename, line => 6, subroutine => 'main::foo', running => 1, stack_depth => 2 },
     'Continue to line 6 breakpoint');
 
 

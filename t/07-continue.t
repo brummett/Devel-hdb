@@ -25,6 +25,7 @@ is_deeply($stack,
 my $resp = $client->continue();
 my $stopped_filename = delete $resp->{filename};
 my $stopped_line = delete $resp->{line};
+my $stack_depth = delete $resp->{stack_depth};
 is_deeply($resp,
     {   subroutine => 'Devel::Chitin::exiting::at_exit',
         running => 0,

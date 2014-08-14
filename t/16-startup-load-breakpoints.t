@@ -52,17 +52,17 @@ is_deeply($stack,
 
 $resp = $client->continue();
 is_deeply($resp,
-    { filename => $program_file_name, line => 5, subroutine => 'MAIN', running => 1 },
+    { filename => $program_file_name, line => 5, subroutine => 'MAIN', running => 1, stack_depth => 1 },
     'continue to line 5');
 
 $resp = $client->continue();
 is_deeply($resp,
-    { filename => 't/TestNothing.pm', line => 6, subroutine => 'TestNothing::a_sub', running => 1 },
+    { filename => 't/TestNothing.pm', line => 6, subroutine => 'TestNothing::a_sub', running => 1, stack_depth => 2 },
     'Continue to line 6 of TestNothing');
 
 $resp = $client->continue();
 is_deeply($resp,
-    { filename => $program_file_name, line => 11, subroutine => 'MAIN', running => 1 },
+    { filename => $program_file_name, line => 11, subroutine => 'MAIN', running => 1, stack_depth => 1 },
     'Continue to line 11');
 
 $resp = $client->eval('$a');

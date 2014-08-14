@@ -9,7 +9,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 79;
+    plan tests => 80;
 }
 
 my $url = start_test_program();
@@ -113,6 +113,9 @@ my @expected = (
         href        => '/stack/5',
     },
 );
+
+is($client->stack_depth, scalar(@expected), 'stack depth');
+
 for (my $i = 0; $i < @expected; $i++) {
     delete $stack->[$i]->{hints};
     delete $stack->[$i]->{bitmask};

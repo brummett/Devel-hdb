@@ -27,7 +27,7 @@ is_deeply($stack,
 
 $resp = $client->stepin();
 is_deeply($resp,
-    { filename => $filename, line => 2, subroutine => 'MAIN', running => 1 },
+    { filename => $filename, line => 2, subroutine => 'MAIN', running => 1, stack_depth => 1 },
     'step in');
 $stack = strip_stack($client->stack);
 is_deeply($stack,
@@ -36,7 +36,7 @@ is_deeply($stack,
 
 $resp = $client->stepin();
 is_deeply($resp,
-    { filename => $filename, line => 6, subroutine => 'main::foo', running => 1 },
+    { filename => $filename, line => 6, subroutine => 'main::foo', running => 1, stack_depth => 2 },
     'step in');
 $stack = strip_stack($client->stack);
 is_deeply($stack,
@@ -46,7 +46,7 @@ is_deeply($stack,
 
 $resp = $client->stepin();
 is_deeply($resp,
-    { filename => $filename, line => 3, subroutine => 'MAIN', running => 1 },
+    { filename => $filename, line => 3, subroutine => 'MAIN', running => 1, stack_depth => 1 },
     'step in');
 $stack = strip_stack($client->stack);
 is_deeply($stack,
@@ -55,7 +55,7 @@ is_deeply($stack,
 
 $resp = $client->stepin();
 is_deeply($resp,
-    { filename => $filename, line => 4, subroutine => 'MAIN', running => 1 },
+    { filename => $filename, line => 4, subroutine => 'MAIN', running => 1, stack_depth => 1 },
     'step in');
 $stack = strip_stack($client->stack);
 is_deeply($stack,

@@ -27,6 +27,7 @@ is_deeply($resp,
     {   subroutine => 'MAIN',
         line => 5,
         running => 1,
+        stack_depth => 1,
         events => [
             { type => 'fork' },
         ]
@@ -47,6 +48,7 @@ is_deeply($resp,
         line => 3,
         subroutine => 'MAIN',
         running => 1,
+        stack_depth => 1,
     },
     'Child is stopped on line 3');
 

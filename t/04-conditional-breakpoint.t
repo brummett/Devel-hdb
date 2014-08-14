@@ -37,12 +37,12 @@ ok($resp, 'Set conditional breakpoint on line 6 for $a != 3');
 
 $resp = $client->continue();
 is_deeply($resp,
-    { filename => $filename, line => 2, subroutine => 'MAIN', running => 1 },
+    { filename => $filename, line => 2, subroutine => 'MAIN', running => 1, stack_depth => 1 },
     'continue to line 2');
 
 $resp = $client->continue();
 is_deeply($resp,
-    { filename => $filename, line => 6, subroutine => 'MAIN', running => 1 },
+    { filename => $filename, line => 6, subroutine => 'MAIN', running => 1, stack_depth => 1 },
     'continue to line 6');
 
 

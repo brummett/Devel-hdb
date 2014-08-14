@@ -62,6 +62,7 @@ is_deeply($resp,
         filename => $program_file->filename,
         line => 4,
         running => 1,
+        stack_depth => 2,
         subroutine => 'main::f',
         events => [
             {

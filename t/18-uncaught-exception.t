@@ -20,7 +20,7 @@ ok($resp, 'status');
 my $filename = $resp->{filename};
 
 $resp = $client->continue();
-delete @$resp{'filename','line'};
+delete @$resp{'filename','line','stack_depth'};
 is_deeply($resp,
     { subroutine => 'Devel::hdb::App::__exception__',
       running => 1,
@@ -37,7 +37,7 @@ is_deeply($resp,
     'Stopped in caught exception sub');
 
 $resp = $client->continue();
-delete @$resp{'filename','line'};
+delete @$resp{'filename','line','stack_depth'};
 is_deeply($resp,
     { subroutine => 'Devel::Chitin::exiting::at_exit',
       running => 0,

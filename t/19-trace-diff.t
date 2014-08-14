@@ -45,6 +45,7 @@ is_deeply($resp,
         line => 2,
         subroutine => 'MAIN',
         running => 1,
+        stack_depth => 1,
         events => [
             {
                 type => 'trace_diff',

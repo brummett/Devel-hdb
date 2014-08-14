@@ -15,18 +15,32 @@ our @EXPORT_OK = qw(_serialize_stack);
 use Data::Transform::ExplicitMetadata qw(encode);
 
 __PACKAGE__->add_route('get', qr{(^/stack$)}, \&stack);
+__PACKAGE__->add_route('head', qr{^/stack$}, \&stack_head);
 __PACKAGE__->add_route('get', qr{(^/stack)/(\d+)$}, \&stack_frame);
 __PACKAGE__->add_route('head', qr{^/stack/(\d+)$}, \&stack_frame_head);
 
 sub stack {
     my($class, $app, $env, $base_url) = @_;
 
+    my $frames = $class->_serialize_stack($app, $base_url);
     return [ 200,
-            [ 'Content-Type' => 'application/json' ],
-            [ $app->encode_json($class->_serialize_stack($app, $base_url)) ]
+            [ 'Content-Type' => 'application/json',
+              'X-Stack-Depth' => scalar(@$frames),
+            ],
+            [ $app->encode_json($frames) ],
         ];
 }
 
+sub stack_head {
+    my($class, $app, $env) = @_;
+    my $stack = $app->stack;
+    return [ 200,
+            [ 'Content-Type' => 'application/json',
+              'X-Stack-Depth' => $stack->depth,
+            ],
+            [],
+        ];
+}
 
 
 sub stack_frame {
