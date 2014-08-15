@@ -36,7 +36,7 @@ my @expected = (
         href        => '/stack/0',
     },
     {   package     => 'Bar',
-        filename    => qr/\(eval \d+\)\[$filename:10\]/,
+        filename    => qr/\(eval \d+\)\[\Q$filename\E:10\]/,
         subroutine  => qr/\(eval\)/,
         line        => 1,          # It's line 1 if the eval-ed text
         hasargs     => 0,

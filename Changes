@@ -4,6 +4,11 @@
     * Rewritten GUI to use the REST api
     * Faster page loading when the stack is deep
 
+1 July 2014 - v0.13
+    * Extracted a module to transform a Perl data structure into a serializable
+      format: Data::Transform::ExplicitMetadata
+    * Fix a test that failed in Perl 5.21
+
 4 Mar 2014 - v0.12
     * Extracted debugger infrastructure into a separate module: Devel::Chitin
     * Fix a bug when a difference is found in follow mode
