@@ -75,9 +75,10 @@ Registers a route used to get the name of the running program, $0
 
 =over 4
 
-=item /program_name
+=item GET /program_name
 
-Returns the program name as a string
+Returns 200 and a JSON-encoded hash with one key:
+  program_name => $0 when the program was started
 
 =back
 

@@ -139,6 +139,10 @@ Devel::hdb::App::Stack - Get information about the program stack
 
 =item GET /stack
 
+=item GET /stack?exclude_sub_params=1
+
+=item HEAD /stack
+
 Get a list of the current program stack.  Does not include any stack frames
 within the debugger.  The currently executing frame is the first element in
 the list.  Returns a JSON-encoded array where each item is a hash
@@ -152,11 +156,22 @@ with the following keys:
   wantarray     Context this frame was called in
   serial        Unique serial number for this frame
 
-The top-level stack frame is reported as being in the subroutine named 'MAIN'.
+The header X-Stack-Depth will have the number of frames in the stack.  The
+caller may request the HEAD to omit the body/data and just get the headers.
 
-Values in the args list are encoded using Devel::hdb::App::EncodePerlData.
+The deepest stack frame is reported as being in the subroutine named 'MAIN'.
 
-=item GET /stack/<number>
+Values in the args list are encoded using Data::Transform::ExplicitMetadata
+
+If the param exclude_sub_params is true, then the 'args' value will be undef,
+useful to avoid serializing/deserializing possibly deep data structures
+passed as arguments to functions.
+
+=item GET /stack/<id>
+
+=item GET /stack/<id>?exclude_sub_params=1
+
+=item HEAD /stack/<id>
 
 Get only one stack frame.  0 is the most recent frame in the debugged program,
 1 is the frame before that.  Returns a JSON-encoded hash with the same
@@ -165,16 +180,11 @@ X-Stack-Line contains the current frame's line number, and the header
 X-Stack-Serial contains the current frame's serial.  Returns a 404 error if
 there is no frame as deep as was requested.
 
-=item HEAD /stack/<number>
-
-Used to get the headers for line and serial without retrieving the rest of the
-frame's data.
-
 =back
 
 =head1 SEE ALSO
 
-Devel::hdb, Devel::hdb::App::EncodePerlData
+Devel::hdb, Data::Transform::ExplicitMetadata
 
 =head1 AUTHOR
 

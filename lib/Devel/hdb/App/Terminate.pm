@@ -31,7 +31,7 @@ Devel::hdb::App::Terminate - Terminate the debugged process
 
 =head1 DESCRIPTION
 
-Registers a route for GET /exit that terminates the debugged process, as
+Registers a route for POST /exit that terminates the debugged process, as
 well as the HTTP listener.
 
 =head1 SEE ALSO

@@ -41,46 +41,55 @@ state, including lexical variables.
 
 =over 4
 
-=item GET /action
-
-Get line action information about a particular file and line number.  Accepts
-these parameters:
-  f     File name
-  l     Line number
-
-Returns a JSON-encoded hash with these keys:
-  filename  => File name
-  lineno    => Line number
-  action    => Debugger action
-  action_inactive    => 1 (yes) or undef (no), whether this debugger
-                        action is disabled/inactive
-
-=item POST /action
-
-Set an action.  Accepts these parameters:
-  f     File name
-  l     Line number
-  c     Debugger action code.  This Perl code will be run whenever execution
-        reaches this line.  The action is executed before the program line.
-  ci    Set to true to make the action code inactive, false to clear the
-        setting.
-
-It responds with the same JSON-encoded hash as GET /action.  If both the
-action code is empty/false (to clear the action), the response will only
-include the keys 'filename' and 'lineno'.
-
-=item GET /delete-action
-
-Delete an action on a particular file ane line number.  Requires these
-parameters:
-  f     File name
-  l     Line number
-
 =item GET /actions
 
-Request data about all actions.  Return a JSON-encoded array.  Each
-item in the array is a hash with the same information returned by GET
-/action.
+Get action information about a particular file and line number.  Accepts
+these parameters as filters to limit the returned breakpoint data:
+  filename  File name
+  line      Line number
+  code      Perl code string
+  inactive  True if the breakpoint is inactive
+
+Returns 200 and a JSON-encoded array containing hashes with these keys:
+  filename  => File name
+  lineno    => Line number
+  code      => Code to execute for this action
+  inactive  => 1 (yes) or undef (no), whether this action
+                        is disabled/inactive
+  href      => URL string to uniquely identify this action
+
+=item POST /actions
+
+Create an action.  Action details must appear in the body as JSON hash
+with these keys:
+  filename  File name
+  line      Line number
+  code      Action code to run before this line executes.
+  inactive  Set to true to make the action inactive, false to
+            clear the setting.
+
+It responds 200 with the same JSON-encoded hash as GET /actions.
+Returns 403 if the line is not breakable.
+Returns 404 if the filename is not loaded.
+
+=item GET /actions/<id>
+
+Return the same JSON-encoded hash as GET /breakpoints.
+Returns 404 if there is no breakpoint with that id.
+
+=item POST /actions/<id>
+
+Change an action property.  The body contains a JSON hash of which keys to
+change, along with their new values.  Returns 200 and the same JSON hash
+as GET /actions, including the new values.
+
+Returns 403 if the given property cannot be changed.
+Returns 404 if there is no action with that id.
+
+=item DELETE /actions/<id>
+
+Delete the action with the given id.  Returns 204 if successful.
+Returns 404 if there is no action with that id.
 
 =back
 

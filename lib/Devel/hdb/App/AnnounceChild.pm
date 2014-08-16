@@ -43,11 +43,11 @@ listening at a particular URL.
 
 =over 4
 
-=item POST /announce_child
+=item POST /announce_child?pid=<pid>&uri=<uri>
 
 This route requires two parameters:
   pid   The process ID of the sending process
-  url   The URL of the debugger of the sending process
+  uri   The URL of the debugger of the sending process
 
 After a child process forks, it should contact the parent process' debugger
 at this route to notify the parent what URL it is listening for commands on.

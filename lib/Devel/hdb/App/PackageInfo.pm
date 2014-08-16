@@ -98,22 +98,49 @@ Devel::hdb::App::PackageInfo - Get information about packages and subroutines
 
 =over 4
 
-=item /pkginfo/<package>
+=item GET /packageinfo/<package>
 
-Returns a JSON-encoded hash with two keys: "packages" containing a list of
-namespaces within the requested package, and "subs" containing a list of
-debuggable subroutine names in the requested package.  Subroutines are
-considered debuggable is there is an entry in %DB::sub for them.
+Get information about the named package, or 'main::' if no package is given.
 
-=item /subinfo/<subname>
+Returns 200 and a JSON in the body:
+  {
+    name: String - package name
+    packages: [ // list of packages under this package
+        {
+            name: String - package name
+            href: URL (/packageinfo/<That::package::name>)
+        },
+        ...
+    ],
+    subroutines: [ // List of subroutine names in this package
+        {
+            name: String - subroutine name including package
+            href: URL (/subinfo/<That::package::subname>)
+        },
+        ...
+    ],
+  }
 
-Given a fully-qualified subroutine name, including package, in the format
-Package::SubPackage::subroutine, returns a JSON-encoded hash with these keys:
-  file   => Filename this subroutine was defined
-  start  => Line number in the file the subroutine starts
-  end    => Line in the file the subroutine ends
-  source => Original source file of the subroutine text
-  source_line => Line in the original source file
+Returns 400 if the named package is not a valid package name
+Returns 404 if the named package is not present
+
+=item GET /subinfo/<subname>
+
+Get information about the named subroutine.  If the subname has no package
+included, package main:: is assummed.
+
+Returns 200 and a JSON-encoded hash in the body with these keys:
+
+subroutine: String - subroutine name, not including package
+    package     => Package the subroutine is in
+    filename    => File the sub was defined
+    line        => What line the sub is defined
+    end         => Last line where the sub is defined
+    source      => If the sub was created in an eval, this is the file the
+                   eval happened in
+    source_line => Line the eval happened in
+
+Returns 404 if the given subroutine was not found.
 
 source and source_line can differ from file and start in the case of
 subroutines defined inside of a string eval.  In this case, "file" will

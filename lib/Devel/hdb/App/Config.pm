@@ -51,15 +51,15 @@ Devel::hdb::App::Config - Load and save debugger configuration
 
 =over 4
 
-=item /saveconfig&f=<filename>
+=item POST /saveconfig/<filename>
 
-Save debugger configuration to the file given with request parameter 'f'.
-Breakpoint and line-actions are saved.
+Save debugger configuration to the given file.  Breakpoint and
+line-actions are saved.
 
-=item /loadconfig&f=<filename>
+=item POST /loadconfig/<filename>
 
-Loads debugger configuration from the file given with request parameter 'f'
-Breakpoint and line-actions are restored.
+Loads debugger configuration from the given file.  Breakpoint and
+line-actions are restored.
 
 =back
 

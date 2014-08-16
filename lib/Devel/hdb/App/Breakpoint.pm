@@ -254,47 +254,57 @@ Unconditional breakpoints are usually stored as "1".
 
 =over 4
 
-=item GET /breakpoint
+=item GET /breakpoints
 
 Get breakpoint information about a particular file and line number.  Accepts
-these parameters:
-  f     File name
-  l     Line number
+these parameters as filters to limit the returned breakpoint data:
+  filename  File name
+  line      Line number
+  code      Perl code string
+  inactive  True if the breakpoint is inactive
 
-Returns a JSON-encoded hash with these keys:
+Returns 200 and a JSON-encoded array containing hashes with these keys:
   filename  => File name
   lineno    => Line number
   code      => Breakpoint condition, or 1 for an unconditional break
   inactive  => 1 (yes) or undef (no), whether this breakpoint
                         is disabled/inactive
+  href      => URL string to uniquely identify this breakpoint
 
-=item POST /breakpoint
+=item POST /breakpoints
 
-Set a breakpoint.  Accepts these parameters:
-  f     File name
-  l     Line number
-  c     Breakpoint condition code.  This can be a bit of Perl code to
-        represent a conditional breakpoint, or "1" for an unconditional
-        breakpoint.
-  ci    Set to true to make the breakpoint condition inactive, false to
-        clear the setting.
+Create a breakpoint.  Breakpoint details must appear in the body as JSON hash
+with these keys:
+  filename  File name
+  line      Line number
+  code      Breakpoint condition code.  This can be a bit of Perl code to
+            represent a conditional breakpoint, or "1" for an unconditional
+            breakpoint.
+  inactive  Set to true to make the breakpoint condition inactive, false to
+            clear the setting.
 
-It responds with the same JSON-encoded hash as GET /breakpoint.  If the
-condition is empty/false (to clear the breakpoint) the response will only
-include the keys 'filename' and 'lineno'.
+It responds 200 with the same JSON-encoded hash as GET /breakpoints.
+Returns 403 if the line is not breakable.
+Returns 404 if the filename is not loaded.
 
-=item GET /delete-breakpoint
+=item GET /breakpoints/<id>
 
-Delete a breakpoint on a particular file ane line number.  Requires these
-parameters:
-  f     File name
-  l     Line number
+Return the same JSON-encoded hash as GET /breakpoints.
+Returns 404 if there is no breakpoint with that id.
 
-=item GET /breakpoints
+=item POST /breakpoints/<id>
 
-Request data about all breakpoints.  Return a JSON-encoded array.  Each
-item in the array is a hash with the same information returned by GET
-/breakpoint.
+Change a breakpoint property.  The body contains a JSON hash of which keys to
+change, along with their new values.  Returns 200 and the same JSON hash
+as GET /breakpoints, including the new values.
+
+Returns 403 if the given property cannot be changed.
+Returns 404 if there is no breakpoint with that id.
+
+=item DELETE /breakpoints/<id>
+
+Delete the breakpoint with the given id.  Returns 204 if successful.
+Returns 404 if there is no breakpoint with that id.
 
 =back
 

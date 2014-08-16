@@ -120,16 +120,30 @@ variables in the debugged program.
 =item POST /eval
 
 Evaluate a string of Perl code in the context of the debugged process.
-The Perl code to evaluate is in the body of the POST request.
-
 The code is evaluated in the content of the nearest stack frame that
-is not part of the debugger.
+is not part of the debugger.  The request body must contain a JSON-encoded
+hash with these keys:
 
-=item POST /getvar
+  code      => String of Perl code to evaluate
+  wantarray => 0, 1 or undef; whether to evaluate the code in scalar list
+               or void context
 
-This route requires 2 parameters:
-  l    Number of stack frames above the current one
-  v    Name of the variable, including the sigil
+Returns 200 if successful and the result in the body.  The body contents
+should be decoded using Data::Transform::ExplicitMetadata
+Returns 409 if there was an exception.  The body contents should be decoded
+using Data::Transform::ExplicitMetadata
+
+=item GET /getvar/<level>
+
+Get a list of all the lexical variables at the given stack level.
+Return a JSON-encoded array containing hashes with these keys:
+
+  name => Name of the variable, including the sigil
+  href => URL to use to get the value of the variable
+
+Returns 404 if the requested stack level does not exist.
+
+=item GET /getvar/<level>/<varname>
 
 Searches the requested stack frame for the named variable.  0 is the currently
 executing stack frame, 1 is the frame above that, etc.  The variable must
@@ -142,6 +156,10 @@ portion of a composite value.  For example:
   @array[1,2]       Array slice
   @hash{key1,key2}  Hash slice
   @array[1 .. 2]    Array slice with a range
+
+Returns 200 and JSON in the body.  The returned JSON is an
+encoded version of whatever the Perl code evaluated to, and should
+be decoded with Data::Transform::ExplicitMetadata.
 
 =back
 

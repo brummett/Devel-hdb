@@ -66,19 +66,23 @@ debugged program.
 
 =over 4
 
-=item /sourcefile
+=item GET /source
 
-This route requires one parameter 'f' , the filename to get the source for.
-It returns a JSON-encoded array of arrays.  The first-level array has one
-element for each line in the file.  The second-level elements each have
-2 elements.  The first is the Perl source for that line in the file.  The
-second element is 0 if the line is not breakable, and true if it is.
-
-=item /loadedfiles
-
-Returns a JSON-encoded array of files names loaded by the debugged program.
+Get a list of all the source code files loaded by the application.
 This list also contains the files used by the debugger, and the file-like
 entities for "eval"ed strings.
+
+Returns 200 an a JSON-encoded array containing hashes with these keys:
+  filename => Pathname of the file
+  href     => URL to get the source code information for this file
+
+=item GET /source/<filename>
+
+Get source code information for the given file.  It returns a JSON-encoded
+array of arrays.  The first-level array has one element for each line in
+the file.  The second-level elements each have 2 elements.  The first is
+the Perl source for that line in the file.  The second element is 0 if the
+line is not breakable, and true if it is.
 
 =back
 

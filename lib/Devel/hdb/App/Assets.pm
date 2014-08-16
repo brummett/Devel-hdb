@@ -53,7 +53,7 @@ Devel::hdb::App::Assets - Handler for file assets
 =head1 DESCRIPTION
 
 Registers routes for GET request for /db/.* and /img/.* that serve up files
-located un the html subdirectory of Devel::hdb.  The GET / route returns the
+located un the html subdirectory of Devel::hdb.  The GET /debugger-gui route returns the
 file debugger.html.
 
 =head1 SEE ALSO

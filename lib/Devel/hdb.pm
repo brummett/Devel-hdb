@@ -247,6 +247,10 @@ This package includes these third party libraries:
 
 =back
 
+=head1 SEE ALSO
+
+L<Devel::Chitin>, L<DB>, L<perldebguts>
+
 =head1 AUTHOR
 
 Anthony Brummett <brummett@cpan.org>
