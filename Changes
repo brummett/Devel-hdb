@@ -1,4 +1,4 @@
-16 Aug 1024 - v0.20
+16 Aug 2014 - v0.20
     * Back-end now uses a documented REST api
     * Added module to communicate with the api - Devel::hdb::Client
     * Rewritten GUI to use the REST api
