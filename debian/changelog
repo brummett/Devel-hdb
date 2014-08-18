@@ -1,3 +1,9 @@
+libdevel-hdb-perl (0.20001-1) unstable; urgency=low
+  * Fix bug scrolling the current line into view
+  * fix bug that was discarding keystrokes
+
+ -- Anthony Brummett <brummett@cpan.org>  Mon, 18 Aug 2014 16:23:00 -0500
+
 libdevel-hdb-perl (0.20-1) unstable; urgency=low
   * Back-end now uses a documented REST api
   * Added module to communicate with the api - Devel::hdb::Client
