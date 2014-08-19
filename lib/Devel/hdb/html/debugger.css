@@ -114,7 +114,9 @@ div#controls {
 }
 
 #stack-tabs {
-    overflow-x: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-width: 30%;
 }
 
 /* These make the tabs across the top wider and darker than
@@ -133,11 +135,12 @@ div#controls {
     border-right: 2px solid rgb(170, 170, 170);
 }
 /* In practice, this is for the filewindow tabs */
-.trunc-left {
+li.trunc-left {
     white-space: nowrap;
     overflow: hidden;
     direction: rtl;
     text-align: left;
+    text-overflow: ellipsis;
 }
 
 .current-sub-and-args {
