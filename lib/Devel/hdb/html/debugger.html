@@ -174,8 +174,8 @@
 
     <! template for Bootstrap stack nav tabs>
     <script id="nav-tab-template" type="text/x-handlebars-template">
-        <li id="tab-{{serial}}" data-frameno="{{frameno}}" class="stack-tab {{class}}{{#active}} active{{/active}}">
-            <a href="#pane-{{serial}}" data-toggle="tab" rel="tooltip" data-html="true" data-placement="right" title="{{longlabel}}<br>{{filename}}: {{lineno}}">{{wantarray}}{{#if is_string_eval}}"eval"{{else}}{{label}}{{/if}}</a>
+        <li id="tab-{{serial}}" data-frameno="{{frameno}}" class="stack-tab trunc-left {{class}}{{#active}} active{{/active}}" rel="tooltip" data-html="true" data-placement="right" title="{{longlabel}}<br>{{filename}}: {{lineno}}">
+            <a href="#pane-{{serial}}" data-toggle="tab">{{wantarray}}{{#if is_string_eval}}"eval"{{else}}{{label}}{{/if}}</a>
         </li>
     </script>
 
