@@ -113,7 +113,9 @@ div#controls {
     overflow-y: hidden;
 }
 
-
+#stack-tabs {
+    overflow-x: auto;
+}
 
 /* These make the tabs across the top wider and darker than
    in the basic Bootstrap stuff */
