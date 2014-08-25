@@ -502,6 +502,11 @@ sub _POST {
     $self->_http_request('POST', @_);
 }
 
+sub _PUT {
+    my $self = shift;
+    $self->_http_request('PUT', @_);
+}
+
 sub _HEAD {
     my $self = shift;
     $self->_http_request('HEAD', @_);
