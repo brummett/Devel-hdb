@@ -9,6 +9,7 @@ Returns 200 and JSON in the body
     loaded_files: url - Where to get the list of all loaded files (/source)
     stack: url - where to get the whole stack (/stack)
     breakpoints: url - where to the breakpoint info (/breakpoints)
+    watchpoints: url - where to the breakpoint info (/watchpoints)
     actions: url - where to get action info (/actions)
     stepin: url - URL to make the debugger step-in
     stepover: url - URL to make the debugger step-over

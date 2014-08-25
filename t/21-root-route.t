@@ -10,7 +10,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 31;
+    plan tests => 33;
 }
 
 my $url = start_test_program();
@@ -20,7 +20,7 @@ my $resp = $client->overview();
 ok($resp, 'overview');
 
 my @get_keys = qw( program_name perl_version source loaded_files stack breakpoints actions
-                   packageinfo debugger_gui status );
+                   watchpoints packageinfo debugger_gui status );
 my @other_keys = qw( stepin stepover stepout continue eval getvar subinfo exit
                     loadconfig saveconfig);
 foreach my $key ( @get_keys, @other_keys ) {

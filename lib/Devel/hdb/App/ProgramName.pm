@@ -26,6 +26,7 @@ sub overview {
         loaded_files => '/source',
         stack => '/stack',
         breakpoints => '/breakpoints',
+        watchpoints => '/watchpoints',
         actions => '/actions',
         stepin => '/stepin',
         stepover => '/stepover',
