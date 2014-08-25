@@ -14,9 +14,11 @@ foreach my $method ( qw(get post put delete head) ) {
         sub {
             my(\$self, \$path, \$sub) = \@_;
             my \$list = \$self->{$key} ||= [];
+            #print STDERR "Registering route for \$key \$path\\n";
             push \@\$list, [ \$path, \$sub ];
         };
     );
+    $sub =~ s/#// if $ENV{HDB_DEBUG_MSG};
     no strict 'refs';
     *$method = eval $sub;
 }
@@ -45,6 +47,7 @@ sub route($$) {
         }
 
         if ($fire) {
+            print STDERR "  matched!\n" if ($ENV{HDB_DEBUG_MSG});
             my $rv = $cb->($env, @matches);
             my $hooks = $self->{after_hooks}->{$req_method}->{$path};
             if ($hooks && @$hooks) {
@@ -53,6 +56,7 @@ sub route($$) {
             return $rv;
         }
     }
+    print STDERR "  no matching route\n" if ($ENV{HDB_DEBUG_MSG});
     return [ 404, [ 'Content-Type' => 'text/html'], ['Not found']];
 }
 
