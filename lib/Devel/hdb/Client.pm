@@ -124,12 +124,25 @@ sub gui {
     return $response->content;
 }
 
+sub _deserialize_status {
+    my $status = shift;
+    if ($status->{events}
+        and
+        my @watchpoint_events = grep { $_->{type} eq 'watchpoint' } @{$status->{events}}
+    ) {
+        foreach my $event ( @watchpoint_events ) {
+            $event->{$_} = Data::Transform::ExplicitMetadata::decode($event->{$_}) foreach (qw(old new));
+        }
+    }
+    return $status;
+}
+
 sub stepin {
     my $self = shift;
 
     my $response = $self->_POST('stepin');
     _assert_success($response, q(Can't stepin));
-    return $JSON->decode($response->content);
+    return _deserialize_status $JSON->decode($response->content);
 }
 
 sub stepover {
@@ -137,7 +150,7 @@ sub stepover {
 
     my $response = $self->_POST('stepover');
     _assert_success($response, q(Can't stepover));
-    return $JSON->decode($response->content);
+    return _deserialize_status $JSON->decode($response->content);
 }
 
 sub stepout {
@@ -145,7 +158,7 @@ sub stepout {
 
     my $response = $self->_POST('stepout');
     _assert_success($response, q(Can't stepover));
-    return $JSON->decode($response->content);
+    return _deserialize_status $JSON->decode($response->content);
 }
 
 sub continue {
@@ -161,7 +174,7 @@ sub continue {
     _assert_success($response, q(Can't continue'));
     return $nostop
                 ? 1
-                : $JSON->decode($response->content);
+                : _deserialize_status $JSON->decode($response->content);
 }
 
 sub status {
@@ -169,7 +182,7 @@ sub status {
 
     my $response = $self->_GET('status');
     _assert_success($response, q(Can't get status));
-    return $JSON->decode($response->content);
+    return _deserialize_status $JSON->decode($response->content);
 }
 
 sub overview {
