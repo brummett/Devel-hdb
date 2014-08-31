@@ -428,6 +428,35 @@ sub sub_info {
     return $JSON->decode($response->content);
 }
 
+sub add_watchpoint {
+    my($self, $expr) = @_;
+
+    my $escaped_expr = URI::Escape::uri_escape($expr);
+    my $response = $self->_PUT(join('/', 'watchpoints', $escaped_expr));
+    _assert_success($response, "Cannot add watchpoint for $expr");
+
+    return 1;
+}
+
+sub delete_watchpoint {
+    my($self, $expr) = @_;
+
+    my $escaped_expr = URI::Escape::uri_escape($expr);
+    my $response = $self->_DELETE(join('/', 'watchpoints', $escaped_expr));
+    _assert_success($response, "Cannot delete watchpoint for $expr");
+
+    return 1;
+}
+
+sub get_watchpoints {
+    my $self = shift;
+
+    my $response = $self->_GET('watchpoints');
+    _assert_success($response, 'Cannot get watchpoints');
+
+    return $JSON->decode($response->content);
+}
+
 sub _encode_query_string_for_hash {
     my @params;
     for(my $i = 0; $i < @_; $i += 2) {
@@ -826,6 +855,35 @@ then it returns all breakpoints or actions.
 
 The return value is a listref of hashrefs.
 
+=item $client->add_watchpoint($expression)
+
+Add a watchpoint expression.  These expressions are evaluated before each
+statement in the program.  If their value ever changes, the program will
+stop and the status will include a 'watchpoint' event indicating which line
+caused the change.
+
+=item $client->delete_watchpoint($expression)
+
+Remove a watchpoint expression.  It must have been previously added with
+C<add_watchpoint()> or an exception will be thrown.
+
+=item $client->get_watchpoints($expression)
+
+Return a listref of hashrefs with all the currently set watchpoints.  Each
+hashref has these keys
+
+=over 2
+
+=item expr
+
+The watchpoint expression
+
+=item href
+
+A URL uniquely identifying this watchpoint
+
+=back
+
 =item $client->loaded_files()
 
 Perform GET /source
@@ -964,6 +1022,38 @@ URL to bring up the graphical debugger in a browser.
 =item href_continue
 
 URL to POST to tell the child to run without stopping.
+
+=back
+
+=head2 watchpoint event
+
+When a watchpoint expression's value changes.
+
+=over 2
+
+=item expr
+
+The perl expression whose value changed
+
+=item old
+
+The old value of the expression.  Watchpoint expressions are evaluated in
+list context, so old will always be a listref.
+
+=item new
+
+The new value of the expression.  Also a listref.
+
+=item filename
+
+=item line
+
+=item package
+
+=item subroutine
+
+The location where the change likely happened.  This is whichever line was
+executing immediately before the change was detected.
 
 =back
 

@@ -3,7 +3,7 @@ use strict;
 
 package Devel::hdb::App;
 
-use Devel::Chitin 0.04;
+use Devel::Chitin 0.05;
 use base 'Devel::Chitin';
 use Devel::hdb::Server;
 use IO::File;
@@ -112,6 +112,7 @@ sub init_debugger {
     require Devel::hdb::App::SourceFile;
     require Devel::hdb::App::Eval;
     require Devel::hdb::App::AnnounceChild;
+    require Devel::hdb::App::Watchpoint;
 
     eval { $self->load_settings_from_file() };
 

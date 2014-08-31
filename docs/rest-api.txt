@@ -517,3 +517,46 @@ Returns 204 if successful.
 Returns 400 if there was a problem saving.
 
 ---------------------------------------------------------------------
+
+PUT /watchpoints/<expr>
+
+Add a watchpoint expression.  The debugged program will stop when the value
+of the expression changes.
+
+Returns 201
+
+----------------------------------------------------------------------
+
+GET /watchpoints
+
+List all the currently set watchpoints
+Returns 200 and JSON in the message body
+[
+    { expr: String - Perl expression
+      href: URL for this expression
+    },
+    ...
+]
+
+------------------------------------------------------------------------
+
+GET /watchpoints/<expr>
+
+Get a single watchpoint expression
+
+Returns 200 and JSON in the message body
+{ expr: String - Perl expression
+  href: URL for this expression
+}
+
+Returns 404 if there is no matching watchpoint
+
+------------------------------------------------------------------------
+
+DELETE /watchpoints/<expr>
+
+Remove a previously set watchpoint
+Returns 204 on success
+Returns 404 if there was no matching watchpoint
+
+------------------------------------------------------------------------

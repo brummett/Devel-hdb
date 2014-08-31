@@ -156,6 +156,20 @@ When the program generates an uncaught exception
         subroutine => ...
         line       => ...
 
+=item watchpoint
+
+When a watchpoint expression changes value.  The location reported is
+whichever line had executed immediately before the current program
+line - likely the line that caused the change.
+        type       => "watchpoint"
+        expr       => Expression that changed value
+        old        => Listref of the previous value
+        new        => Listref of the new value
+        package    => Location where the value was changed
+        filename   => ...
+        subroutine => ...
+        line       => ...
+
 =item exit
 
 When the program is terminating
