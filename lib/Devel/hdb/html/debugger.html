@@ -76,6 +76,27 @@
         </div>
     </script>
 
+    <! template for the watchpoint-triggered notification >
+    <script id="watchpoint-triggered-modal-template" type="test/x-handlebars-template">
+        <div class="modal">
+            <div class="modal-header">
+                Watchpoint
+            </div>
+            <div class="modal-body">
+                Watch expression {{expr}} changed value
+                <dl>
+                    <dt>from</dt>
+                        <dd>{{{old}}}</dd>
+                    <dt>to</dt>
+                        <dd>{{{new}}}</dd>
+                </dl>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </script>
+
     <! Template for the execution trace difference notifiaction>
     <script id="trace-diff-modal-template" type="text/x-handlebars-template">
         <div class="modal">
