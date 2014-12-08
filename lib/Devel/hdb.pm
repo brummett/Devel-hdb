@@ -243,7 +243,7 @@ This package includes these third party libraries:
 
 =item * Twitter Bootstrap version 2.3.0 L<http://twitter.github.com/bootstrap/index.html>
 
-=item * Handlebars version 1.0rc2 L<http://handlebarsjs.com/>
+=item * Handlebars version 2.0.0 L<http://handlebarsjs.com/>
 
 =back
 
