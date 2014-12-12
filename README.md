@@ -43,6 +43,12 @@ Double-click on an existing expression to edit the expression.
 
 For arrays, hashes and globs, click on the blue circle to collapse/expand it
 
+Click on the checkbox to turn the expression into a watchpoint.  Execution
+will stop if the expression's value changes.  Watchpoint values are evaluated
+in list context.  Execution will stop if the list's length changes or if any
+of the first-level elements changes values.  It will not recurse further down
+into data structures.
+
 ### Stack
 
 The current stack is shown to the left of the code pane.  The inital program
