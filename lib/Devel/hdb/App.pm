@@ -112,7 +112,7 @@ sub init_debugger {
     require Devel::hdb::App::SourceFile;
     require Devel::hdb::App::Eval;
     require Devel::hdb::App::AnnounceChild;
-    require Devel::hdb::App::Watchpoint;
+    require Devel::hdb::App::WatchPoint;
 
     eval { $self->load_settings_from_file() };
 
