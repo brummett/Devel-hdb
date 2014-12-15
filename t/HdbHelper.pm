@@ -85,9 +85,9 @@ sub start_test_program {
     $HdbHelper::child_pid = $pid;
 
     if (wantarray) {
-        return ("http://localhost:${port}/", $pid, $program_file);
+        return ("http://127.0.0.1:${port}/", $pid, $program_file);
     } else {
-        return "http://localhost:${port}/";
+        return "http://127.0.0.1:${port}/";
     }
 }
 
