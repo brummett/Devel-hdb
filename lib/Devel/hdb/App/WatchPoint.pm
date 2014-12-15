@@ -104,7 +104,7 @@ sub Devel::hdb::App::notify_watch_expr {
 
 =head1 NAME
 
-Devel::hdb::App::Watchpoint - Get and set watchpoints
+Devel::hdb::App::WatchPoint - Get and set watchpoints
 
 =head1 DESCRIPTION
 
