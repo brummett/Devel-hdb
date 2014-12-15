@@ -1,3 +1,9 @@
+libdevel-hdb-perl (0.21001-1) unstable; urgency=low
+    * Fix for running tests on machines with IPv6 enabled
+    * Typo fix that prevented the WatchPoint module for getting loaded
+
+ -- Anthony Brummett <brummett@cpan.org>  Mon, 15 Dec 2014 15:47:00 -0500
+
 libdevel-hdb-perl (0.21-1) unstable; urgency=low
   * New feature: Add a watchpoint by enabling the checkbox next to a watched
       expression.  Execution will stop when its value changes.
@@ -5,7 +11,7 @@ libdevel-hdb-perl (0.21-1) unstable; urgency=low
       element expression.
   * The stack tab pane is now scrollable.
 
- -- Anthony Brummett <brummett@cpan.org>  Mon, 18 Aug 2014 16:23:00 -0500
+ -- Anthony Brummett <brummett@cpan.org>  Fri, 12 Dec 2014 10:30:00 -0500
 
 libdevel-hdb-perl (0.20001-1) unstable; urgency=low
   * Fix bug scrolling the current line into view

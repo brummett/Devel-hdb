@@ -1,3 +1,7 @@
+15 Dec 2014 - v0.21001
+    * Fix for running tests on machines with IPv6 enabled
+    * Typo fix that prevented the WatchPoint module for getting loaded
+
 12 Dec 2014 - v0.21
     * New feature: Add a watchpoint by enabling the checkbox next to a watched
         expression.  Execution will stop when its value changes.
