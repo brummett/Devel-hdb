@@ -163,6 +163,12 @@ versions of perl will always create an undefined value in the SCALAR slot.
 The value for the IO slot will be the file descriptor number of the
 filehandle and its position as reported by sysseek(), or undef if it is closed.
 
+Enabling the checkbox next to the expression turns it into a watchpoint.
+Watchpoints are evaluated in list context, and if their value changes, the
+debugged program will stop.  For list values, it is considered changed if any
+of the elements changes value or if the number of values in the list changes.
+It will not perform a deep search for changed values.
+
 =head3 Key bindings
 
 The debugger responds to these keys, which are generally the same as the
