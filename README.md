@@ -37,7 +37,8 @@ out the breakpoint list.
 
 ### Watch Expressions
 
-Click on the "+" to add a new watch expression.
+Click on the "+" to add a new watch expression, or right-click on a variable
+in the code pane.
 
 Double-click on an existing expression to edit the expression.
 

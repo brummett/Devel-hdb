@@ -153,10 +153,10 @@ in higher frames, select the appropriate frame from the tab on the left.
 =head3 Watch Expressions
 
 The right side of the GUI shows watch expressions.  To add a new expression to
-the watch window, click on the "+".  To remove a watched expression, click on
-the "x" next to its name.  Composite types like hashes and arrays have a blue
-circled number indicating how many elements belong to it.  To collapse/expand
-them, click the blue circle.
+the watch window, click on the "+" or right-click on a variable in a code pane.
+To remove a watched expression, click on the "x" next to its name.  Composite
+types like hashes and arrays have a blue circled number indicating how many
+elements belong to it.  To collapse/expand them, click the blue circle.
 
 A watched typeglob will show all the used slots within the glob.  Older
 versions of perl will always create an undefined value in the SCALAR slot.
