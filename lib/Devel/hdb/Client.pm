@@ -1086,7 +1086,7 @@ When the debugged program has finished.  The debugger is still running.
 
 =over 2
 
-=item exit_code
+=item value
 
 The process exit code
 
