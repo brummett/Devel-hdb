@@ -209,9 +209,11 @@ debugger window, it will pop up a dialog with two options
 =over
 
 =item Open
+
 Open a new browser window and debug the child process inside it
 
 =item Detach
+
 Disables the debugger in the child process, and forces it to run to completion.
 
 =back
