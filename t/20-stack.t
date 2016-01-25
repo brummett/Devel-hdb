@@ -19,6 +19,8 @@ my $resp = $client->continue();
 ok($resp, 'continue to breakpoint');
 my $filename = $resp->{filename};
 
+my $expected_callsite = has_callsite() ? qr/\d+/ : undef;
+
 my @expected = (
     {   package     => 'Bar',
         filename    => $filename,
@@ -34,6 +36,7 @@ my @expected = (
         subname     => 'baz',
         args        => [],
         href        => '/stack/0',
+        callsite    => $expected_callsite,
     },
     {   package     => 'Bar',
         filename    => qr/\(eval \d+\)\[\Q$filename\E:10\]/,
@@ -49,6 +52,7 @@ my @expected = (
         subname     => qr/\(eval\)/,
         args        => [],
         href        => '/stack/1',
+        callsite    => $expected_callsite,
     },
     {   package     => 'Bar',
         filename    => $filename,
@@ -64,6 +68,7 @@ my @expected = (
         subname     => qr/\(eval\)/,
         args        => [],
         href        => '/stack/2',
+        callsite    => $expected_callsite,
     },
     {   package     => 'Bar',
         filename    => $filename,
@@ -79,6 +84,7 @@ my @expected = (
         subname     => 'bar',
         args        => [],
         href        => '/stack/3',
+        callsite    => $expected_callsite,
     },
     {   package     => 'main',
         filename    => $filename,
@@ -94,6 +100,7 @@ my @expected = (
         subname     => 'foo',
         args        => [1,2,3],
         href        => '/stack/4',
+        callsite    => $expected_callsite,
     },
     {   package     => 'main',
         filename    => $filename,
@@ -109,13 +116,14 @@ my @expected = (
         subname     => 'MAIN',
         args        => [],
         href        => '/stack/5',
+        callsite    => undef,
     },
 );
 
 is($client->stack_depth, scalar(@expected), 'stack depth');
 
 subtest 'with sub params' => sub {
-    plan tests => 78;
+    plan tests => 90;
 
     my $stack = $client->stack();
 
@@ -124,7 +132,7 @@ subtest 'with sub params' => sub {
 };
 
 subtest 'without sub params' => sub {
-    plan tests => 78;
+    plan tests => 90;
 
     my $stack = $client->stack(exclude_sub_params => 1);
 
@@ -132,6 +140,23 @@ subtest 'without sub params' => sub {
     my $stack_frame_getter = sub { $client->stack_frame($_[0], exclude_sub_params => 1) };
     check_all_frames($stack, $stack_frame_getter, @expected_without_args);
 };
+
+my $has_callsite;
+sub has_callsite {
+    unless (defined $has_callsite) {
+        my $callsite_tester = sub {
+                local $@;
+                my $callsite = eval {
+                        require Devel::Callsite;
+                        (sub { Devel::Callsite::callsite() })->();
+                };
+                $has_callsite = ! ! $callsite;
+        };
+        $has_callsite = $callsite_tester->();
+        note("has_callsite: $has_callsite\n");
+    }
+    $has_callsite;
+}
 
 sub check_all_frames {
     my($stack, $stack_frame_getter, @expected) = @_;
@@ -176,6 +201,10 @@ sub _compare_frames {
     _compare_strings(   delete $frame{filename},
                         delete $expected{filename},
                         "filename matches for level $level");
+
+    _compare_strings(   delete $frame{callsite},
+                        delete $expected{callsite},
+                        "callsite matches for level $level");
 
     is_deeply(\%frame,
                 \%expected,
