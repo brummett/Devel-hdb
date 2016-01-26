@@ -149,6 +149,8 @@ currently executing line.
 Hover the mouse over a variable to see its value.  It shows the value in
 whichever stack frame is being displayed.  To see the values for variables
 in higher frames, select the appropriate frame from the tab on the left.
+Right-click on a variable to add it to the list of watch expressions on the
+right.
 
 =head3 Watch Expressions
 
