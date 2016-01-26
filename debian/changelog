@@ -1,3 +1,12 @@
+libdevel-hdb-perl (0.23-1) unstable; urgency=low
+  * Right-click on a variable in the Code Pane to add it to the Watch Pane
+  * Exit code is now displayed properly by the Program Terminated modal (Eli Lindsey)
+  * Child processes listen on the parent process's port + 1, if available
+  * Fix tests running with Devel::Chitin 0.06 which include 'callsite' in Location/stackframe objects
+  * POD fixes
+
+ -- Anthony Brummett <brummett@cpan.org>  Tue, 26 Jan 2016 15:47:00 -0500
+
 libdevel-hdb-perl (0.21001-1) unstable; urgency=low
     * Fix for running tests on machines with IPv6 enabled
     * Typo fix that prevented the WatchPoint module for getting loaded

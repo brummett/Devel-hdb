@@ -1,10 +1,13 @@
-25 Jan 2016 - v0.21001_01
+26 Jan 2016 - v0.23
+    * Right-click on a variable in the Code Pane to add it to the Watch Pane
     * Exit code is now displayed properly by the Program Terminated modal
         (Eli Lindsey)
     * Child processes listen on the parent process's port + 1, if available
     * Fix tests running with Devel::Chitin 0.06 which include 'callsite' in
         Location/stackframe objects
     * POD fixes
+
+v0.22 - Skipped because of a packaging problem
 
 15 Dec 2014 - v0.21001
     * Fix for running tests on machines with IPv6 enabled
