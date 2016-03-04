@@ -36,7 +36,7 @@ well as the HTTP listener.
 
 =head1 SEE ALSO
 
-Devel::hdb
+L<Devel::hdb>
 
 =head1 AUTHOR
 

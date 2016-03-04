@@ -57,7 +57,7 @@ The parent should then pass that information along to the user.
 
 =head1 SEE ALSO
 
-Devel::hdb
+L<Devel::hdb>
 
 =head1 AUTHOR
 

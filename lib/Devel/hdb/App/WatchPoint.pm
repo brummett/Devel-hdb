@@ -156,7 +156,7 @@ Returns 404 if there is no watchpoint with that expr.
 
 =head1 SEE ALSO
 
-Devel::hdb
+L<Devel::hdb>
 
 =head1 AUTHOR
 

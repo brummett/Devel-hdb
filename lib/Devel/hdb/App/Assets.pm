@@ -58,7 +58,7 @@ file debugger.html.
 
 =head1 SEE ALSO
 
-Devel::hdb
+L<Devel::hdb>
 
 =head1 AUTHOR
 

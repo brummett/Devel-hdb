@@ -165,7 +165,7 @@ be decoded with Data::Transform::ExplicitMetadata.
 
 =head1 SEE ALSO
 
-Devel::hdb, Padwalker
+L<Devel::hdb>, L<Padwalker>
 
 =head1 AUTHOR
 

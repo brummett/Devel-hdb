@@ -85,7 +85,7 @@ Returns 200 and a JSON-encoded hash with one key:
 
 =head1 SEE ALSO
 
-Devel::hdb
+L<Devel::hdb>
 
 =head1 AUTHOR
 

@@ -311,7 +311,7 @@ Returns 404 if there is no breakpoint with that id.
 
 =head1 SEE ALSO
 
-Devel::hdb
+L<Devel::hdb>
 
 =head1 AUTHOR
 

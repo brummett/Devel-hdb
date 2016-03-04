@@ -184,7 +184,7 @@ there is no frame as deep as was requested.
 
 =head1 SEE ALSO
 
-Devel::hdb, Data::Transform::ExplicitMetadata
+L<Devel::hdb>, L<Data::Transform::ExplicitMetadata>
 
 =head1 AUTHOR
 
