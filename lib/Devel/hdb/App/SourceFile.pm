@@ -88,7 +88,7 @@ line is not breakable, and true if it is.
 
 =head1 SEE ALSO
 
-Devel::hdb
+L<Devel::hdb>
 
 =head1 AUTHOR
 

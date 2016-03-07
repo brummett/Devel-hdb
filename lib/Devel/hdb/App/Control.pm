@@ -241,7 +241,7 @@ Returns 204 if successful.
 
 =head1 SEE ALSO
 
-Devel::hdb
+L<Devel::hdb>
 
 =head1 AUTHOR
 
