@@ -164,7 +164,9 @@ sub _validate_params {
 sub stepin {
     my $self = shift;
 
-    my $response = $self->_POST('stepin');
+    _validate_params(\@_, qw(next_statement next_fragment));
+    my $url = _encode_url('stepin', @_);
+    my $response = $self->_POST($url);
     _assert_success($response, q(Can't stepin));
     return _deserialize_status $JSON->decode($response->content);
 }
@@ -172,7 +174,9 @@ sub stepin {
 sub stepover {
     my $self = shift;
 
-    my $response = $self->_POST('stepover');
+    _validate_params(\@_, qw(next_statement next_fragment));
+    my $url = _encode_url('stepover', @_);
+    my $response = $self->_POST($url);
     _assert_success($response, q(Can't stepover));
     return _deserialize_status $JSON->decode($response->content);
 }
@@ -180,7 +184,9 @@ sub stepover {
 sub stepout {
     my $self = shift;
 
-    my $response = $self->_POST('stepout');
+    _validate_params(\@_, qw(next_statement next_fragment));
+    my $url = _encode_url('stepout', @_);
+    my $response = $self->_POST($url);
     _assert_success($response, q(Can't stepover));
     return _deserialize_status $JSON->decode($response->content);
 }
@@ -188,7 +194,7 @@ sub stepout {
 sub continue {
     my $self = shift;
 
-    _validate_params(\@_, qw(nostop));
+    _validate_params(\@_, qw(nostop next_statement next_fragment));
     my %params = @_;
     my $url = _encode_url('continue', %params);
 
@@ -202,7 +208,9 @@ sub continue {
 sub status {
     my $self = shift;
 
-    my $response = $self->_GET('status');
+    _validate_params(\@_, qw(next_statement next_fragment));
+    my $url = _encode_url('status', @_);
+    my $response = $self->_GET($url);
     _assert_success($response, q(Can't get status));
     return _deserialize_status $JSON->decode($response->content);
 }
