@@ -20,7 +20,7 @@ my $resp = $client->stack();
 ok($resp, 'stack');
 my $filename = $resp->[0]->{filename};
 
-$resp = $client->continue(1);
+$resp = $client->continue(nostop => 1);
 is($resp, 1, 'continue to end without stopping');
 
 $SIG{'ALRM'} = sub { die "alarm" };
