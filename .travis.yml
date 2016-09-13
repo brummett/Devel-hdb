@@ -22,6 +22,7 @@ install:
     - cpanm --quiet --notest --skip-satisfied Dist::Zilla~'>=5.04, <6.000'
     - dzil authordeps | grep -vP '[^\w:]' | xargs -n 5 -P 10 cpanm --quiet --notest --skip-satisfied
     - export RELEASE_TESTING=1 AUTOMATED_TESTING=1 AUTHOR_TESTING=1 HARNESS_OPTIONS=j10:c HARNESS_TIMER=1
+    - cpanm --verbose Test::Kwalitee Test::Spelling Test::NoTabs Pod::Coverage::TrustPod Test::EOL Test::Version Test::CPAN::Changes Test::CPAN::Meta Test::Synopsis Test::Mojibake Test::Code::TidyAll Exception::Class  # Exc::Class's dependancies weren't getting installed below
     - dzil listdeps | grep -vP '[^\w:]' | cpanm --verbose
 
 script:
