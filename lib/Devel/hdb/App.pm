@@ -72,30 +72,38 @@ sub _make_listen_socket {
 
     if (exists($server_params{port}) and !defined($server_params{port}) and $self->{server}) {
         # This was a forked child process
-        # try making a new listen socket that's 1 port higher
-        my $current_local_addr = $self->{server}->{listen_sock}->sockhost;
-        my $current_port = $self->{server}->{listen_sock}->sockport;
-        my $new_sock;
-        for(my $tries = 1; !$new_sock && $tries < 20; $tries++) {
-            $new_sock = IO::Socket::INET->new(Listen => 5,
-                                              LocalAddr => $current_local_addr,
-                                              LocalPort => $current_port + $tries,
-                                              Proto => 'tcp',
-                                              ReuseAddr => 1);
-        }
+        my $new_sock = $self->_open_new_listen_sock_after_fork();
         if ($new_sock) {
             $server_params{listen_sock} = $new_sock;
             delete $server_params{port};
         } else {
             local($SIG{__WARN__});
-            warn 'Could not find an open TCP port between '
-                    . ($current_port + 1) . ' and ' . ($current_port + 20)
+            my $current_port = $self->{server}->{listen_sock}->sockport;
+            warn 'Could not find an open TCP port near '
+                    . ($current_port + 1)
                     . " for child process $$. Letting the system pick one...";
         }
     }
 
     $Devel::hdb::LISTEN_SOCK = undef;
     $self->{server} = Devel::hdb::Server->new( %server_params );
+}
+
+sub _open_new_listen_sock_after_fork {
+    my $self = shift;
+
+    # try making a new listen socket that's 1 port higher
+    my $current_local_addr = $self->{server}->{listen_sock}->sockhost;
+    my $current_port = $self->{server}->{listen_sock}->sockport;
+    my $new_sock;
+    for(my $tries = 1; !$new_sock && $tries < 20; $tries++) {
+        $new_sock = IO::Socket::INET->new(Listen => 5,
+                                          LocalAddr => $current_local_addr,
+                                          LocalPort => $current_port + $tries,
+                                          Proto => 'tcp',
+                                          ReuseAddr => 1);
+    }
+    return $new_sock;
 }
 
 sub router {
