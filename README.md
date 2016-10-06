@@ -32,6 +32,18 @@ inactive, and outlined if that line has an action.  Actions are executed
 before the statement on that line is executed, and the action's result is
 ignored.
 
+The 'b' hotkey will open the Quick Breakpoint dialog that allows setting
+unconditional breakpoints.  Entering a line number will set a breakpoint
+on that line in the file the debugger is currently stopped in.  Several
+other expressions are accepted:
+    * . - Set a breakpoint on the current line
+    * subName - Stop on the first line of the named sub in the current package
+    * Some::Package::subName - Stop on the first line of the named sub
+    * subName:linenum - Stop on the nth line of the named sub in the current package
+    * Some::Package::subName:linenum - Stop on the nth line of the named sub
+    * file/name.pm:linenum - Stop on a particular line in a file
+If it doesn't understand the expression, it'll show an alert describing the problem.
+
 Click on the thick border between the code and watch expression panes to slide
 out the breakpoint list.
 
