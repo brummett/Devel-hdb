@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/brummett/Devel-hdb.png?branch=master)](https://travis-ci.org/brummett/Devel-hdb)
 ## Devel::hdb
 
 A Perl graphical debugger that uses an HTTP REST interface
