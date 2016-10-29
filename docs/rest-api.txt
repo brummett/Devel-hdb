@@ -261,6 +261,8 @@ Returns 404 if there is no breakpoint/action with that ID
 -------------------------------------------------------------------------
 
 POST /stepin
+POST /stepin?next_statement=1
+POST /stepin?next_fragment=<integer>
 
 Request the debugger step in to the next statement.
 
@@ -270,6 +272,8 @@ same as reported by the GET /status URL
 -------------------------------------------------------------------------
 
 POST /stepover
+POST /stepover?next_statement=1
+POST /stepover?next_fragment=<integer>
 
 Request the debugger step over the next statement.
 
@@ -279,6 +283,8 @@ same as reported by the GET /status URL
 -------------------------------------------------------------------------
 
 POST /stepout
+POST /stepout?next_statement=1
+POST /stepout?next_fragment=<integer>
 
 Request the debugger return from the current subroutine
 
@@ -411,6 +417,8 @@ Returns 200 and HTML that implements the debugger GUI
 --------------------------------------------------------------------------
 
 GET /status
+GET /status?next_statement=1
+GET /status?next_fragment=<integer>
 
 Returns 200 and JSON in the message body
 
@@ -422,6 +430,10 @@ Returns 200 and JSON in the message body
     stack_depth: Integer (How deep the program's stack is)
     events: Array of hashes (only if events occurred)
 }
+
+If the 'next_statement' or 'next_fragment' params are present, then the
+response will include those keys and contain the deparsed next statement or
+statement fragment to execute.
 
 Events are asynchronous events that happened since the last status report.
 They have a 'type' key.  Other keys are type-specific:

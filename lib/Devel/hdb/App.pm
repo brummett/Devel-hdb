@@ -3,7 +3,7 @@ use strict;
 
 package Devel::hdb::App;
 
-use Devel::Chitin 0.06;
+use Devel::Chitin 0.09;
 use base 'Devel::Chitin';
 use Devel::hdb::Server;
 use IO::File;
