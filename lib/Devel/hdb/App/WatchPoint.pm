@@ -9,6 +9,8 @@ use Plack::Request;
 use Data::Transform::ExplicitMetadata;
 use URI::Escape qw(uri_escape);
 
+our $VERSION = '0.23_02';
+
 sub response_url_base() { '/watchpoints' };
 
 __PACKAGE__->add_route('put', qr{/watchpoints/(.+)}, 'set');

@@ -5,6 +5,8 @@ use warnings;
 
 use base 'Devel::hdb::App::Breakpoint';
 
+our $VERSION = '0.23_02';
+
 sub response_url_base() { '/actions' }
 
 __PACKAGE__->add_route('post', response_url_base(), 'set');

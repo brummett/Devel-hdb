@@ -9,6 +9,8 @@ use base 'Devel::hdb::App::Base';
 
 use Devel::hdb::Utils;
 
+our $VERSION = '0.23_02';
+
 __PACKAGE__->add_route('post', '/eval', \&do_eval);
 __PACKAGE__->add_route('get', qr{/getvar/(\d+)/([^/]+)}, \&do_getvar);
 __PACKAGE__->add_route('get', qr{/getvar/(\d+)}, \&list_vars_at_level);

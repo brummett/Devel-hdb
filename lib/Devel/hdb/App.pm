@@ -19,6 +19,8 @@ use Devel::hdb::Router;
 
 use vars qw( $parent_pid ); # when running in the test harness
 
+our $VERSION = '0.23_02';
+
 our $APP_OBJ;
 sub get {
     return $APP_OBJ if $APP_OBJ;  # get() is a singleton

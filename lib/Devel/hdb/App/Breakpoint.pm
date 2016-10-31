@@ -9,6 +9,8 @@ use Plack::Request;
 use Digest::MD5 qw();
 use Time::HiRes qw();
 
+our $VERSION = '0.23_02';
+
 sub response_url_base() { '/breakpoints' };
 
 __PACKAGE__->add_route('post', response_url_base(), 'set');

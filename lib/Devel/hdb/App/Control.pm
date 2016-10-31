@@ -6,6 +6,8 @@ use warnings;
 use base 'Devel::hdb::App::Base';
 use Devel::hdb::App::Stack qw(_serialize_stack);
 
+our $VERSION = '0.23_02';
+
 __PACKAGE__->add_route('post', '/stepin', \&stepin);
 __PACKAGE__->add_route('post', '/stepover', \&stepover);
 __PACKAGE__->add_route('post', '/stepout', \&stepout);
