@@ -13,6 +13,7 @@ __PACKAGE__->add_route('post', '/stepover', \&stepover);
 __PACKAGE__->add_route('post', '/stepout', \&stepout);
 __PACKAGE__->add_route('post', '/continue', \&continue);
 __PACKAGE__->add_route('get', '/status', \&program_status);
+__PACKAGE__->add_route('get', '/print_optree', \&print_optree);
 
 sub stepin {
     my($class, $app, $env) = @_;
@@ -82,7 +83,11 @@ sub _program_status_data {
 
     my $req = Plack::Request->new($env);
     if ($req->param('next_statement')) {
-        $status{next_statement} = $app->next_statement;
+        local $@;
+        $status{next_statement} = eval { $app->next_statement };
+        if ($@) {
+            print STDERR "Trapped exception getting next statement: $@";
+        }
     }
     if (defined(my $next_fragment = $req->param('next_fragment'))) {
         $status{next_fragment} = $app->next_fragment($next_fragment);
@@ -94,6 +99,14 @@ sub _program_status_data {
     }
 
     return \%status;
+}
+
+sub print_optree {
+    my($class, $app, $env) = @_;
+
+    my $loc = $app->current_location;
+    my $optree = $app->_get_optree_for_current_sub();
+    $optree->print_as_tree($loc->callsite);
 }
 
 

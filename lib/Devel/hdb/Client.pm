@@ -487,6 +487,12 @@ sub get_watchpoints {
     return $JSON->decode($response->content);
 }
 
+sub print_optree {
+    my $self = shift;
+    my $response = $self->_GET('print_optree');
+    _assert_success($response, 'Cannot print_optree');
+}
+
 sub _encode_query_string_for_hash {
     my @params;
     for(my $i = 0; $i < @_; $i += 2) {

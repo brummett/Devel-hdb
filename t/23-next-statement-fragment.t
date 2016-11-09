@@ -26,7 +26,7 @@ is_deeply($resp,
         next_statement => '$a = 6',
         next_fragment => '6',
     },
-    'Run to first breakpoint');
+    'Run to first breakpoint') || $client->print_optree();
 
 $resp = $client->status(next_statement => 1, next_fragment => 1);
 is_deeply($resp,
@@ -38,7 +38,7 @@ is_deeply($resp,
         next_statement => '$a = 6',
         next_fragment => '$a = 6',
     },
-    'status');
+    'status') || $client->print_optree();
 
 $resp = $client->stepin(next_statement => 1);
 is_deeply($resp,
@@ -49,7 +49,7 @@ is_deeply($resp,
         stack_depth => 2,
         next_statement => '$b = 6',
     },
-    'step in to line 6');
+    'step in to line 6') || $client->print_optree();
     
 
 $resp = $client->stepout(next_statement => 1);
@@ -61,7 +61,7 @@ is_deeply($resp,
         stack_depth => 1,
         next_statement => 'two()',
     },
-    'step out to line 2');
+    'step out to line 2') || $client->print_optree();
 
 $resp = $client->stepover(next_fragment => 0);
 is_deeply($resp,
@@ -72,7 +72,7 @@ is_deeply($resp,
         stack_depth => 1,
         next_fragment => '3',
     },
-    'step over to line 3');
+    'step over to line 3') || $client->print_optree();
 
 __DATA__
 one();
