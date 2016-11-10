@@ -8,6 +8,8 @@ use Devel::hdb::Client;
 use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
+} elsif ($^V lt v5.10.0) {
+    plan skip_all => 'Callsite does not work properly on Perl 5.8';
 } else {
     plan tests => 5;
 }
