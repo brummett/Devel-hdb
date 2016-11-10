@@ -15,7 +15,6 @@ sudo: false
 before_install:
     # Prevent "Please tell me who you are" errors for certain DZIL configs
     - git config --global user.name "TravisCI"
-    - echo "--verbose" > ~/.proverc
 
 install:
     # Deal with all of the DZIL dependancies, quickly and quietly
