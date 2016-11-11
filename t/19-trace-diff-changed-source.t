@@ -37,10 +37,10 @@ my($url, $pid) = start_test_program('-file' => $program_file->filename,
                                     '-module_args' => 'trace:'.$trace_file->filename);
 
 local $SIG{ALRM} = sub {
-    ok(0, 'Test program did not finish');
+    ok(0, 'Test program finished in time');
     exit;
 };
-alarm(5);
+alarm(10);
 waitpid($pid, 0);
 ok(-s $trace_file->filename, 'Program generated a trace file');
 
