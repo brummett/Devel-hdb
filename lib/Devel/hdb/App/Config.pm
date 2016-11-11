@@ -5,6 +5,8 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
+our $VERSION = '0.23_02';
+
 __PACKAGE__->add_route('post', qr{/loadconfig/(.+)}, \&loadconfig);
 __PACKAGE__->add_route('post', qr{/saveconfig/(.+)}, \&saveconfig);
 

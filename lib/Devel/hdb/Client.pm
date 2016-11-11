@@ -13,7 +13,7 @@ use Scalar::Util qw(reftype);
 
 use Devel::hdb::Utils;
 
-our $VERSION = "0.23";
+our $VERSION = '0.23_02';
 
 use Exception::Class (
         'Devel::hdb::Client::Exception',
@@ -137,10 +137,36 @@ sub _deserialize_status {
     return $status;
 }
 
+sub _encode_url {
+    my $base = shift;
+    my @params;
+    for(my $i = 0; $i < @_; $i += 2) {
+        if (defined $_[$i + 1]) {
+            push @params, join('=', @_[$i, $i+1])
+        } else {
+            push @params, $_[$i];
+        }
+    }
+    return join('', $base, '?', join('&', @params));
+}
+
+sub _validate_params {
+    my $params = shift;
+    my %allowed = map { $_ => 1 } @_;
+    for (my $i = 0; $i < @$params; $i += 2) {
+        unless (exists $allowed{ $params->[$i] }) {
+            Carp::croak('Unrecognized param ' . $params->[$i]);
+        }
+    }
+    return 1;
+}
+
 sub stepin {
     my $self = shift;
 
-    my $response = $self->_POST('stepin');
+    _validate_params(\@_, qw(next_statement next_fragment));
+    my $url = _encode_url('stepin', @_);
+    my $response = $self->_POST($url);
     _assert_success($response, q(Can't stepin));
     return _deserialize_status $JSON->decode($response->content);
 }
@@ -148,7 +174,9 @@ sub stepin {
 sub stepover {
     my $self = shift;
 
-    my $response = $self->_POST('stepover');
+    _validate_params(\@_, qw(next_statement next_fragment));
+    my $url = _encode_url('stepover', @_);
+    my $response = $self->_POST($url);
     _assert_success($response, q(Can't stepover));
     return _deserialize_status $JSON->decode($response->content);
 }
@@ -156,23 +184,23 @@ sub stepover {
 sub stepout {
     my $self = shift;
 
-    my $response = $self->_POST('stepout');
+    _validate_params(\@_, qw(next_statement next_fragment));
+    my $url = _encode_url('stepout', @_);
+    my $response = $self->_POST($url);
     _assert_success($response, q(Can't stepover));
     return _deserialize_status $JSON->decode($response->content);
 }
 
 sub continue {
     my $self = shift;
-    my $nostop = shift;
 
-    my $url = 'continue';
-    if ($nostop) {
-        $url .= '?nostop=1';
-    }
+    _validate_params(\@_, qw(nostop next_statement next_fragment));
+    my %params = @_;
+    my $url = _encode_url('continue', %params);
 
     my $response = $self->_POST($url);
     _assert_success($response, q(Can't continue'));
-    return $nostop
+    return $params{nostop}
                 ? 1
                 : _deserialize_status $JSON->decode($response->content);
 }
@@ -180,7 +208,9 @@ sub continue {
 sub status {
     my $self = shift;
 
-    my $response = $self->_GET('status');
+    _validate_params(\@_, qw(next_statement next_fragment));
+    my $url = _encode_url('status', @_);
+    my $response = $self->_GET($url);
     _assert_success($response, q(Can't get status));
     return _deserialize_status $JSON->decode($response->content);
 }
@@ -455,6 +485,12 @@ sub get_watchpoints {
     _assert_success($response, 'Cannot get watchpoints');
 
     return $JSON->decode($response->content);
+}
+
+sub print_optree {
+    my $self = shift;
+    my $response = $self->_GET('print_optree');
+    _assert_success($response, 'Cannot print_optree');
 }
 
 sub _encode_query_string_for_hash {

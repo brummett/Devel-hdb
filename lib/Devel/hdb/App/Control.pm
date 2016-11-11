@@ -6,11 +6,14 @@ use warnings;
 use base 'Devel::hdb::App::Base';
 use Devel::hdb::App::Stack qw(_serialize_stack);
 
+our $VERSION = '0.23_02';
+
 __PACKAGE__->add_route('post', '/stepin', \&stepin);
 __PACKAGE__->add_route('post', '/stepover', \&stepover);
 __PACKAGE__->add_route('post', '/stepout', \&stepout);
 __PACKAGE__->add_route('post', '/continue', \&continue);
 __PACKAGE__->add_route('get', '/status', \&program_status);
+__PACKAGE__->add_route('get', '/print_optree', \&print_optree);
 
 sub stepin {
     my($class, $app, $env) = @_;
@@ -58,14 +61,14 @@ sub continue {
 sub program_status {
     my($class, $app, $env) = @_;
 
-    my $status = $class->_program_status_data($app);
+    my $status = $class->_program_status_data($app, $env);
     return [ 200,
             [ 'Content-Type' => 'application/json' ],
             [ $app->encode_json($status) ] ];
 }
 
 sub _program_status_data {
-    my($class, $app) = @_;
+    my($class, $app, $env) = @_;
 
     my $location = $app->current_location;
     my $is_running = $location->at_end ? 0 : 1;
@@ -78,12 +81,32 @@ sub _program_status_data {
         stack_depth => $stack->depth,
     );
 
+    my $req = Plack::Request->new($env);
+    if ($req->param('next_statement')) {
+        local $@;
+        $status{next_statement} = eval { $app->next_statement };
+        if ($@) {
+            print STDERR "Trapped exception getting next statement: $@";
+        }
+    }
+    if (defined(my $next_fragment = $req->param('next_fragment'))) {
+        $status{next_fragment} = $app->next_fragment($next_fragment);
+    }
+
     my $events = $app->dequeue_events;
     if ($events and @$events) {
         $status{events} = $events;
     }
 
     return \%status;
+}
+
+sub print_optree {
+    my($class, $app, $env) = @_;
+
+    my $loc = $app->current_location;
+    my $optree = $app->_get_optree_for_current_sub();
+    $optree->print_as_tree($loc->callsite);
 }
 
 
@@ -96,7 +119,7 @@ sub _delay_status_return_to_client {
         $env->{'psgix.harakiri.commit'} = Plack::Util::TRUE;
 
         my $cb = sub {
-            my $status = $class->_program_status_data($app);
+            my $status = $class->_program_status_data($app, $env);
             $writer->write( $app->encode_json($status) );
             $writer->close();
         };
@@ -125,6 +148,7 @@ Registers routes for methods to control execution of the debugged program
 
 Get status information about the debugged program.  Returns 200 and a
 JSON-encoded hash in the body with these keys:
+
   running     => True if the program is running, false if terminated
   subroutine  => Name of the subroutine the program is stopped in
   filename    => Name of the file the program is stopped in
@@ -140,6 +164,7 @@ a 'type' key.  The other keys are type-specific.
 =item fork
 
 Immediately after the debugged program fork()s.
+
         type     => "fork"
         pid      => Child process ID
         href     => URL to communicate with the child process debugger
@@ -149,6 +174,7 @@ Immediately after the debugged program fork()s.
 =item exception
 
 When the program generates an uncaught exception
+
         type       => "exception"
         value      => Value of the exception
         package    => Location where the exception occurred
@@ -161,6 +187,7 @@ When the program generates an uncaught exception
 When a watchpoint expression changes value.  The location reported is
 whichever line had executed immediately before the current program
 line - likely the line that caused the change.
+
         type       => "watchpoint"
         expr       => Expression that changed value
         old        => Listref of the previous value
@@ -173,17 +200,20 @@ line - likely the line that caused the change.
 =item exit
 
 When the program is terminating
+
         type       => "exit"
         value      => Program exit code
 
 =item hangup
 
 When the program is exiting and will not respond to further requests.
+
         type       => "hangup"
 
 =item trace_diff
 
 When run in follow mode and an execution difference has happened.
+
         type       => "trace_diff"
         filename   => Where the program is stopped now
         line       => ...
@@ -236,6 +266,26 @@ Request the debugger continue execution.  The param nostop=1 instructs the
 debugger to run the program to completion and not stop at any breakpoints.
 
 Returns 204 if successful.
+
+=back
+
+C</status>, C</stepin>, C</stepover>, C</stepout> and C<continue>  accept
+either or both of these optional parameters
+
+=over 2
+
+=item next_statement=1
+
+The returned status hash includes a C<next_statement> key whose value
+is a string representation of the next Perl statement to execute.
+
+=item next_fragment=<integer>
+
+The returned status hash includes a C<next_fragment> key whose value
+is a string representation of the immediately-next opcode to execute.
+The integer value is the number of parents of the current opcode to go
+up before starting to deparse.  0 means to deparse only the current opcode;
+1 means to deparse the current opcode's parent and that parent's children.
 
 =back
 
