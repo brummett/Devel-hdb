@@ -5,7 +5,7 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
-our $VERSION = '0.23_02';
+our $VERSION = '0.23_03';
 
 __PACKAGE__->add_route('get', qr(^/db/(.*)), \&assets);
 __PACKAGE__->add_route('get', qr(^/img/(.*)), \&assets);
