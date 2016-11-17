@@ -12,7 +12,7 @@ if ($^O =~ m/^MS/) {
     plan tests => 13;
 }
 
-my $url = start_test_program();
+my($url, $child_pid) = start_test_program();
 my $client = Devel::hdb::Client->new(url => $url);
 
 my $resp;
@@ -39,7 +39,9 @@ $test_nothing_file = $test_nothing_file->{filename};
 my $bp_tn = $client->create_breakpoint( filename => $test_nothing_file, line => 3 );
 ok($bp_tn, 'Set breakpoint for line TestNothing.pm 3');
 
+warn "Before get_breakpoints(), child process $child_pid is " . ( kill(0, $child_pid) ? 'alive' : 'dead');
 $resp = $client->get_breakpoints();
+warn "After get_breakpoints(), child process $child_pid is " . ( kill(0, $child_pid) ? 'alive' : 'dead');
 is_deeply(sort_breakpoints_by_file_and_line($resp),
     [   { filename => $filename, line => 3, code => '$a', inactive => 0, href => $bp_3 },
         { filename => $filename, line => 4, code => 1, inactive => 1, href => $bp_4 },
