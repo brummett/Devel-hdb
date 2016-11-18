@@ -25,8 +25,9 @@ local $SIG{ALRM} = sub {
     ok(0, 'Test program finished in time');
     exit;
 };
-alarm(10);
+alarm(5);
 waitpid($pid, 0);
+alarm(0);
 ok(-s $trace_file->filename, 'Program generated a trace file');
 
 my $url2 = start_test_program('-file' => $program_file->filename,
