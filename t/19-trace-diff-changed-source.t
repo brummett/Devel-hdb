@@ -40,8 +40,9 @@ local $SIG{ALRM} = sub {
     ok(0, 'Test program finished in time');
     exit;
 };
-alarm(10);
+alarm(5);
 waitpid($pid, 0);
+alarm(0);
 ok(-s $trace_file->filename, 'Program generated a trace file');
 
 # Run it again, but remove the line "# EMPTY_LINE" to make the raw line number different
