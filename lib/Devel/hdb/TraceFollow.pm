@@ -6,7 +6,7 @@ use warnings;
 use base 'Devel::Chitin';
 use IO::File;
 
-our $VERSION = '0.23_04';
+our $VERSION = '0.23_05';
 
 sub new {
     my($class, $file, $cb) = @_;
