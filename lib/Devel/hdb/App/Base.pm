@@ -3,7 +3,7 @@ package Devel::hdb::App::Base;
 use strict;
 use warnings;
 
-our $VERSION = '0.23_05';
+our $VERSION = '0.23_06';
 
 sub add_route {
     my($class, $method, $path, $cb) = @_;

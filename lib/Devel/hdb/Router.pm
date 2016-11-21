@@ -3,7 +3,7 @@ package Devel::hdb::Router;
 use strict;
 use warnings;
 
-our $VERSION = '0.23_05';
+our $VERSION = '0.23_06';
 
 sub new {
     my $class = shift;
