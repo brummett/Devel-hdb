@@ -14,15 +14,15 @@ if ($^O =~ m/^MS/) {
 }
 
 my $program_source = <<'PROGRAM';
-    f($a);
+    warn "child program $$ starting"; f($a);
     # EMPTY_LINE
     sub f {
         if ($a) {
-            4;
+            warn "on line 4"; 4;
         } else {
-            6;
+            warn "on line 6"; 6;
         }
-        8;
+        warn "on line 8"; 8;
     }
 PROGRAM
 

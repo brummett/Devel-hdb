@@ -67,10 +67,10 @@ is_deeply($resp,
 
 
 __DATA__
-if($a) {  # default $a is undef
-    2;
+warn "child process $$ starting"; if($a) {  # default $a is undef
+    warn "on line 2"; 2;
 } else {
-    4;
+    warn "on line 4"; 4;
 }
-6;
+warn "on line 6"; 6;
 
