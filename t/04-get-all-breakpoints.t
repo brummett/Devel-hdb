@@ -53,6 +53,8 @@ $test_nothing_file = $test_nothing_file->{filename};
 is_alive;
 my $bp_tn = $client->create_breakpoint( filename => $test_nothing_file, line => 3 );
 is_alive;
+use Data::Dumper;
+warn "*** Response from creating TestNothing breakpoint in $test_nothing_file: ",Data::Dumper::Dumper($bp_tn);
 ok($bp_tn, 'Set breakpoint for line TestNothing.pm 3');
 
 is_alive;

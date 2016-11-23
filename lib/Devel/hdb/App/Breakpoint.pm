@@ -54,13 +54,18 @@ sub is_file_or_line_invalid {
 sub set {
     my($class, $app, $env) = @_;
 
+print STDERR "Setting Breakpoint\n";
     my $body = $class->_read_request_body($env);
+print STDERR "    decoded body\n";
     my $params = $app->decode_json( $body );
+print STDERR "    filename ",$params->{filename}," line ", $params->{line},"\n";
 
     if (my $error = $class->is_file_or_line_invalid($app, @$params{'filename','line'})) {
+print STDERR "    error was $error\n";
         return $error;
     }
 
+print STDERR "    setting breakpoint...\n";
     my $resp_data = $class->set_and_respond($app, $params);
 
     return [ 200,
@@ -191,12 +196,16 @@ sub get {
 
 sub get_all {
     my($class, $app, $env) = @_;
+warn "### Getting all breakpoints...";
     my $req = Plack::Request->new($env);
+warn "    parsed request from env";
 
     my %filters;
     foreach my $filter ( qw( line code inactive ) ) {
         $filters{$filter} = $req->param($filter) if defined $req->param($filter);
     }
+use Data::Dumper;
+warn "    filters: ".Data::Dumper::Dumper(\%filters);
 
     my @bp_list =
             map { my %bp_data = (href => $class->lookup_id($_));
@@ -208,6 +217,7 @@ sub get_all {
             defined($req->param('filename'))
                 ? ($req->param('filename'))
                 : $app->loaded_files;
+warn "    returning ".scalar(@bp_list)." breakpoints";
 
     return [ 200, ['Content-Type' => 'application/json'],
             [ JSON::encode_json( \@bp_list ) ]
