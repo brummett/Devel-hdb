@@ -9,7 +9,7 @@ use Plack::Request;
 use Digest::MD5 qw();
 use Time::HiRes qw();
 
-our $VERSION = '0.23_06';
+our $VERSION = '0.23_07';
 
 sub response_url_base() { '/breakpoints' };
 
