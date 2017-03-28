@@ -25,6 +25,11 @@ sub sourcefile {
         no warnings 'uninitialized';  # at program termination, the loaded file data can be undef
         no warnings 'numeric';        # eval-ed "sources" generate "not-numeric" warnings
         @rv = map { [ $_, $_ + 0 ] } @$file;
+
+        #hack to enable debugging code containing HTML
+        $_->[0] =~ s/&/&amp;/g for @rv;
+        $_->[0] =~ s/</&lt;/g for @rv;
+
         shift @rv;  # Get rid of the 0th element
 
         return [ 200,
