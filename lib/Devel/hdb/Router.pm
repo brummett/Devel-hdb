@@ -57,7 +57,7 @@ sub route($$) {
             if ($hooks && @$hooks) {
                 $_->($rv, $env, @matches) foreach @$hooks;
             }
-            log '  returning code ',$rv->[0];
+            log '  returning code ',$rv;
             return $rv;
         }
     }
