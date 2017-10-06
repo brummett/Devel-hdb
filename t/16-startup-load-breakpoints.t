@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 
+BEGIN { $ENV{'HDB_DEBUG_MSG'} = 1 }
+
 use lib 't';
 use HdbHelper;
 use IO::File;
