@@ -9,7 +9,7 @@ use Plack::Request;
 use Digest::MD5 qw();
 use Time::HiRes qw();
 
-our $VERSION = '0.23_08';
+our $VERSION = '0.23_09';
 
 use Devel::hdb::Logger qw(log);
 

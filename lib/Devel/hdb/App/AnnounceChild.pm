@@ -5,7 +5,7 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
-our $VERSION = '0.23_08';
+our $VERSION = '0.23_09';
 
 __PACKAGE__->add_route('post', '/announce_child', \&announce_child);
 

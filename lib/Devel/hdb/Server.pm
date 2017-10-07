@@ -8,7 +8,7 @@ our @ISA = qw( HTTP::Server::PSGI );
 
 use Socket qw(IPPROTO_TCP TCP_NODELAY);
 
-our $VERSION = '0.23_08';
+our $VERSION = '0.23_09';
 
 use Devel::hdb::Logger qw(log);
 

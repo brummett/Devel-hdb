@@ -5,7 +5,7 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
-our $VERSION = '0.23_08';
+our $VERSION = '0.23_09';
 
 __PACKAGE__->add_route('post', '/exit', \&do_terminate);
 
