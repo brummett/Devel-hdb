@@ -68,6 +68,92 @@ sub accept_loop {
     }
 }
 
+use constant MAX_REQUEST_SIZE => 131072;
+use Plack::HTTPParser qw( parse_http_request );
+sub handle_connection {
+    my($self, $env, $conn, $app) = @_;
+
+    my $buf = '';
+    my $res = [ 400, [ 'Content-Type' => 'text/plain' ], [ 'Bad Request' ] ];
+
+    while (1) {
+        log('top of handle_connection() loop');
+        my $rlen = $self->read_timeout(
+            $conn, \$buf, MAX_REQUEST_SIZE - length($buf), length($buf),
+            $self->{timeout},
+        ) or return;
+        log('parsing request...');
+        my $reqlen = parse_http_request($buf, $env);
+        log("   ... reqlen $reqlen");
+        if ($reqlen >= 0) {
+            $buf = substr $buf, $reqlen;
+            log('buf length: '.length($buf));
+            if (my $cl = $env->{CONTENT_LENGTH}) {
+                log("CONTENT_LENGTH: $cl");
+                my $buffer = Stream::Buffered->new($cl);
+                log('buffer: ',$buffer);
+                while ($cl > 0) {
+                    log("top of cl loop: $cl");
+                    my $chunk;
+                    if (length $buf) {
+                        $chunk = $buf;
+                        log('chunk length: '.length($chunk));
+                        $buf = '';
+                    } else {
+                        log('trying read_timeout()...');
+                        $self->read_timeout($conn, \$chunk, $cl, 0, $self->{timeout})
+                            or return;
+                    }
+                    log('printing chunk to buffer...');
+                    $buffer->print($chunk);
+                    log('next time, cl will be '.length($chunk));
+                    $cl -= length $chunk;
+                }
+                log('rewinding buffer...');
+                $env->{'psgi.input'} = $buffer->rewind;
+                log('   ... done rewinding');
+            } else {
+                log('opening input from buf ref...');
+                my $rv = open my $input, "<", \$buf;
+                log("   ... opened: $rv");
+                $env->{'psgi.input'} = $input;
+            }
+
+            log('before run_app()...');
+            $res = Plack::Util::run_app $app, $env;
+            log('    ... back from run_app()');
+            last;
+        }
+        if ($reqlen == -2) {
+            log('reqlen was -2');
+            # request is incomplete, do nothing
+        } elsif ($reqlen == -1) {
+            log('reqlen was -1');
+            # error, close conn
+            last;
+        }
+        log('bottom of handle_connection() loop');
+    }
+
+    if (ref $res eq 'ARRAY') {
+        log('response was ARRAYref');
+        $self->_handle_response($res, $conn);
+    } elsif (ref $res eq 'CODE') {
+        log('response was CODEref');
+        $res->(sub {
+            log('running response CODEref...');
+            $self->_handle_response($_[0], $conn);
+            log('    .... back from response CODEref');
+        });
+    } else {
+        log("Bad response: $res");
+        die "Bad response $res";
+    }
+
+    log('returning from handle_connection');
+    return;
+}
+
 sub _handle_response {
     my($self, $res, $conn) = @_;
 
