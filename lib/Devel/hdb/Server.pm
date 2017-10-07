@@ -38,8 +38,9 @@ sub accept_loop {
         local $SIG{PIPE} = 'IGNORE';
         if (my $conn = $self->{listen_sock}->accept) {
             log('Connection from ',$conn->peerhost,':',$conn->peerport);
-            $conn->setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
+            my $rv = $conn->setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
                 or die "setsockopt(TCP_NODELAY) failed:$!";
+            log("setsockopt() returned $rv");
             my $env = {
                 SERVER_PORT => $self->{port},
                 SERVER_NAME => $self->{host},
@@ -60,6 +61,7 @@ sub accept_loop {
             };
 
             $self->handle_connection($env, $conn, $app);
+            log('back from handle_connection(), harakiri: '.$env->{'psgix.harakiri.commit'});
             #$conn->close;
             last if $env->{'psgix.harakiri.commit'};
         }
