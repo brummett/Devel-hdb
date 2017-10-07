@@ -1,5 +1,7 @@
 package Devel::hdb::Logger;
 
+our $VERSION = '0.23_08';
+
 use Exporter 'import';
 our @EXPORT_OK = qw(log);
 
