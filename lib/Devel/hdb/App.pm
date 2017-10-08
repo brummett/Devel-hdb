@@ -19,7 +19,7 @@ use Devel::hdb::Router;
 
 use vars qw( $parent_pid ); # when running in the test harness
 
-our $VERSION = '0.23_09';
+our $VERSION = '0.23_10';
 
 our $APP_OBJ;
 sub get {

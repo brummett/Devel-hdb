@@ -3,7 +3,7 @@ package Devel::hdb::Router;
 use strict;
 use warnings;
 
-our $VERSION = '0.23_09';
+our $VERSION = '0.23_10';
 
 use Devel::hdb::Logger qw(log);
 
