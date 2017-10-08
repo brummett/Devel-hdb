@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 
+BEGIN { $ENV{'HDB_DEBUG_MSG'} = 1 }
+
 use lib 't';
 use HdbHelper;
 use Devel::hdb::Client;
@@ -22,11 +24,12 @@ $trace_file->close();
 my($url, $pid) = start_test_program('-file' => $program_file->filename,
                                     '-module_args' => 'trace:'.$trace_file->filename);
 local $SIG{ALRM} = sub {
-    ok(0, 'Test program did not finish');
+    ok(0, 'Test program finished in time');
     exit;
 };
 alarm(5);
 waitpid($pid, 0);
+alarm(0);
 ok(-s $trace_file->filename, 'Program generated a trace file');
 
 my $url2 = start_test_program('-file' => $program_file->filename,
@@ -66,10 +69,10 @@ is_deeply($resp,
 
 
 __DATA__
-if($a) {  # default $a is undef
-    2;
+warn "child process $$ starting"; if($a) {  # default $a is undef
+    warn "on line 2"; 2;
 } else {
-    4;
+    warn "on line 4"; 4;
 }
-6;
+warn "on line 6"; 6;
 

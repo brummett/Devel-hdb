@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 
+BEGIN { $ENV{'HDB_DEBUG_MSG'} = 1 }
+
 use lib 't';
 use HdbHelper;
 use Devel::hdb::Client;
@@ -12,12 +14,25 @@ if ($^O =~ m/^MS/) {
     plan tests => 13;
 }
 
-my $url = start_test_program();
+my($url, $child_pid) = start_test_program();
 my $client = Devel::hdb::Client->new(url => $url);
+
+sub trap(&) {
+    my $code = shift;
+
+    local $@;
+    my @rv = eval { $code->() };
+    if ($@) {
+        my(undef, undef, $line) = caller;
+        diag "on line $line: child process $child_pid is " . ( kill(0, $child_pid) ? 'alive' : 'dead');
+        die $@;
+    }
+    return wantarray ? @rv : $rv[0];
+}
 
 my $resp;
 
-my $stack = $client->stack();
+my $stack = trap { $client->stack() };
 ok($stack, 'Request stack position');
 my $filename = $stack->[0]->{filename};
 $stack = strip_stack($stack);
@@ -25,21 +40,21 @@ is_deeply($stack,
     [ { line => 3, subroutine => 'main::MAIN' } ],
     'Stopped on line 3');
 
-my $bp_3 = $client->create_breakpoint( filename => $filename, line => 3, code => '$a' );
+my $bp_3 = trap { $client->create_breakpoint( filename => $filename, line => 3, code => '$a' ) };
 ok($bp_3, 'Set breakpoint for line 3');
 
-my $bp_4 = $client->create_breakpoint( filename => $filename, line => 4, inactive => 1 );
+my $bp_4 = trap { $client->create_breakpoint( filename => $filename, line => 4, inactive => 1 ) };
 ok($bp_4, 'Set breakpoint for line 4');
 
-my $bp_5 = $client->create_breakpoint( filename => $filename, line => 5 );
+my $bp_5 = trap { $client->create_breakpoint( filename => $filename, line => 5 ) };
 ok($bp_5, 'Set breakpoint line 5');
 
-my($test_nothing_file) = grep { $_->{filename} =~ m/TestNothing.pm/ } @{$client->loaded_files()};
+my($test_nothing_file) = grep { $_->{filename} =~ m/TestNothing.pm/ } trap { @{$client->loaded_files()} };
 $test_nothing_file = $test_nothing_file->{filename};
-my $bp_tn = $client->create_breakpoint( filename => $test_nothing_file, line => 3 );
+my $bp_tn = trap { $client->create_breakpoint( filename => $test_nothing_file, line => 3 ) };
 ok($bp_tn, 'Set breakpoint for line TestNothing.pm 3');
 
-$resp = $client->get_breakpoints();
+$resp = trap { $client->get_breakpoints() };
 is_deeply(sort_breakpoints_by_file_and_line($resp),
     [   { filename => $filename, line => 3, code => '$a', inactive => 0, href => $bp_3 },
         { filename => $filename, line => 4, code => 1, inactive => 1, href => $bp_4 },
@@ -49,7 +64,7 @@ is_deeply(sort_breakpoints_by_file_and_line($resp),
     'Got all set breakpoints'
 );
 
-$resp = $client->get_breakpoints(filename => $filename);
+$resp = trap { $client->get_breakpoints(filename => $filename) };
 is_deeply(sort_breakpoints_by_file_and_line($resp),
     [
         { filename => $filename, line => 3, code => '$a', inactive => 0, href => $bp_3 },
@@ -59,24 +74,24 @@ is_deeply(sort_breakpoints_by_file_and_line($resp),
     'Get all breakpoints for main file'
 );
 
-$resp = $client->get_breakpoints(filename => $filename, inactive => 1);
+$resp = trap { $client->get_breakpoints(filename => $filename, inactive => 1) };
 is_deeply($resp,
     [ { filename => $filename, line => 4, code => 1, inactive => 1, href => $bp_4 }, ],
     'Get breakpoints filtered by file and inactive');
 
-$resp = $client->get_breakpoints(line => 3, code => '$a');
+$resp = trap { $client->get_breakpoints(line => 3, code => '$a') };
 is_deeply($resp,
     [ { filename => $filename, line => 3, code => '$a', inactive => 0, href => $bp_3} ],
     'Get breakpoints filtered by line and code');
 
-$resp = $client->get_breakpoints(line => 3, code => 'garbage');
+$resp = trap { $client->get_breakpoints(line => 3, code => 'garbage') };
 is_deeply($resp,
     [],
     'Get breakpoints filtered by line and code matching nothing');
 
-$resp = $client->delete_breakpoint($bp_4);
+$resp = trap { $client->delete_breakpoint($bp_4) };
 ok($resp, 'Remove breakpoint for line 4');
-$resp = $client->get_breakpoints(filename => $filename);
+$resp = trap { $client->get_breakpoints(filename => $filename) };
 is_deeply( sort_breakpoints_by_file_and_line($resp),
     [
       { filename => $filename, line => 3, code => '$a', inactive => 0, href => $bp_3 },
@@ -96,8 +111,6 @@ sub sort_breakpoints_by_file_and_line {
             @$bp_list;
     return \@sorted;
 }
-
-
 
 __DATA__
 use lib 't';

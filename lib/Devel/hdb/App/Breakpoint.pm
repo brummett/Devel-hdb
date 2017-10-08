@@ -9,7 +9,9 @@ use Plack::Request;
 use Digest::MD5 qw();
 use Time::HiRes qw();
 
-our $VERSION = '0.23_02';
+our $VERSION = '0.23_10';
+
+use Devel::hdb::Logger qw(log);
 
 sub response_url_base() { '/breakpoints' };
 

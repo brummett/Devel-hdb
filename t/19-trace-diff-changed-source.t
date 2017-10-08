@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 
+BEGIN { $ENV{'HDB_DEBUG_MSG'} = 1 }
+
 use lib 't';
 use HdbHelper;
 use Devel::hdb::Client;
@@ -14,15 +16,15 @@ if ($^O =~ m/^MS/) {
 }
 
 my $program_source = <<'PROGRAM';
-    f($a);
+    warn "child program $$ starting"; f($a);
     # EMPTY_LINE
     sub f {
         if ($a) {
-            4;
+            warn "on line 4"; 4;
         } else {
-            6;
+            warn "on line 6"; 6;
         }
-        8;
+        warn "on line 8"; 8;
     }
 PROGRAM
 
@@ -37,11 +39,12 @@ my($url, $pid) = start_test_program('-file' => $program_file->filename,
                                     '-module_args' => 'trace:'.$trace_file->filename);
 
 local $SIG{ALRM} = sub {
-    ok(0, 'Test program did not finish');
+    ok(0, 'Test program finished in time');
     exit;
 };
 alarm(5);
 waitpid($pid, 0);
+alarm(0);
 ok(-s $trace_file->filename, 'Program generated a trace file');
 
 # Run it again, but remove the line "# EMPTY_LINE" to make the raw line number different
