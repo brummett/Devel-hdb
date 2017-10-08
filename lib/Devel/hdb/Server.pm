@@ -142,8 +142,21 @@ sub handle_connection {
         log('response was CODEref');
         $res->(sub {
             log('running response CODEref...');
-            $self->_handle_response($_[0], $conn);
+            my $wantarray = wantarray;
+            my($rv, @rv);
+            if ($wantarray) {
+                @rv = $self->_handle_response($_[0], $conn);
+            } elsif (defined $wantarray) {
+                $rv = $self->_handle_response($_[0], $conn);
+            } else {
+                $self->_handle_response($_[0], $conn);
+            }
             log('    .... back from response CODEref');
+            if ($wantarray) {
+                return @rv;
+            } else {
+                return $rv;
+            }
         });
     } else {
         log("Bad response: $res");
