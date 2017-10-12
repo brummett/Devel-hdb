@@ -32,10 +32,14 @@ sub new {
 sub accept_loop {
     my($self, $app) = @_;
 
+    log('entering accept_loop()');
     $app = Plack::Middleware::ContentLength->wrap($app);
+    log("got app $app");
 
     while (1) {
+        log('Top of accept_loop() loop');
         local $SIG{PIPE} = 'IGNORE';
+        log('Just before accept...');
         if (my $conn = $self->{listen_sock}->accept) {
             log('Connection from ',$conn->peerhost,':',$conn->peerport);
             my $rv = $conn->setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
@@ -64,6 +68,10 @@ sub accept_loop {
             log('back from handle_connection(), harakiri: ' . (!! $env->{'psgix.harakiri.commit'}));
             #$conn->close;
             last if $env->{'psgix.harakiri.commit'};
+        } else {
+            log("accept() failed: $!");
+            my $errno = $! + 0;
+            log("   errno $errno");
         }
     }
 }
