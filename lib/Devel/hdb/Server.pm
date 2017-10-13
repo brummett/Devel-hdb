@@ -36,6 +36,7 @@ sub accept_loop {
     $app = Plack::Middleware::ContentLength->wrap($app);
     log("got app $app");
 
+    ACCEPT_LOOP:
     while (1) {
         log('Top of accept_loop() loop');
         local $SIG{PIPE} = 'IGNORE';
@@ -67,7 +68,8 @@ sub accept_loop {
             $self->handle_connection($env, $conn, $app);
             log('back from handle_connection(), harakiri: ' . (!! $env->{'psgix.harakiri.commit'}));
             #$conn->close;
-            last if $env->{'psgix.harakiri.commit'};
+            last ACCEPT_LOOP if $env->{'psgix.harakiri.commit'};
+            log('bottom of if-block after accept()');
         } else {
             log("accept() failed: $!");
             my $errno = $! + 0;
