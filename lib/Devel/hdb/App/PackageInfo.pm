@@ -7,7 +7,7 @@ use URI::Escape qw(uri_escape);
 
 use base 'Devel::hdb::App::Base';
 
-our $VERSION = '0.23_02';
+our $VERSION = '0.23_14';
 
 __PACKAGE__->add_route('get', qr(/packageinfo/((\w+)(::\w+)*)), \&pkginfo);
 __PACKAGE__->add_route('get', qr(/subinfo/((\w+)(::\w+)*)), \&subinfo);

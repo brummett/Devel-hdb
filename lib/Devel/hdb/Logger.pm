@@ -5,6 +5,8 @@ our @EXPORT_OK = qw(log);
 
 use Scalar::Util qw(reftype);
 
+our $VERSION = '0.23_14';
+
 sub log {
     return unless $ENV{HDB_DEBUG_MSG};
     my $subname = (caller(1))[3];
