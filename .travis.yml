@@ -1,6 +1,5 @@
 language: perl
 perl:
-  - "5.8"  # Devel::Callsite doesn't install properly on TravisCI here
   - "5.10"
   - "5.12"
   - "5.14"
@@ -9,6 +8,7 @@ perl:
   - "5.20"
   - "5.22"
   - "5.24"
+  - "5.26"
 
 sudo: false
 

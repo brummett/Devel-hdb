@@ -13,7 +13,7 @@ use Scalar::Util qw(reftype);
 
 use Devel::hdb::Utils;
 
-our $VERSION = '0.23_02';
+our $VERSION = '0.23_14';
 
 use Exception::Class (
         'Devel::hdb::Client::Exception',
@@ -258,34 +258,38 @@ my $create_action = "create_action";
 
 foreach my $type ( qw(breakpoint action) ) {
     # change_breakpoint() and change_action()
+    my $change_subname = "change_$type";
     my $change = sub {
         my($self, $bp, %params) = @_;
 
         my $response = $self->_POST($bp, \%params);
-        _assert_success($response, "Can't change $type");
+        _assert_success($response, "Can't $change_subname");
         return $JSON->decode($response->content);
     };
 
     # delete_breakpoint() and delete_action()
+    my $delete_subname = "delete_$type";
     my $delete = sub {
         my($self, $href) = @_;
 
         my $response = $self->_DELETE($href);
-        _assert_success($response, "Can't delete $type");
+        _assert_success($response, "Can't $delete_subname");
         return 1;
     };
 
     # get_breakpoint() and get_action()
+    my $get_one_subname = "get_$type";
     my $get_one = sub {
         my($self, $href) = @_;
 
         my $response = $self->_GET($href);
-        _assert_success($response, "Can't get $type");
+        _assert_success($response, "Can't $get_one_subname");
 
         my $bp = $JSON->decode($response->content);
         return $bp;
     };
 
+    my $get_multiple_subname = "get_${type}s";
     my $get_multiple = do {
         my @recognized_params = qw(filename line code inactive);
 
@@ -300,16 +304,11 @@ foreach my $type ( qw(breakpoint action) ) {
             my $query_string = _encode_query_string_for_hash(%filters);
             $url .= '?' . $query_string if length($query_string);
             my $response = $self->_GET($url);
-            _assert_success($response, "Can't get $type");
+            _assert_success($response, "Can't $get_multiple_subname");
 
             return $JSON->decode($response->content);
         };
     };
-
-    my $change_subname = "change_$type";
-    my $delete_subname = "delete_$type";
-    my $get_one_subname = "get_$type";
-    my $get_multiple_subname = "get_${type}s";
 
     no strict 'refs';
     *$change_subname = $change;

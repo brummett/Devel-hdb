@@ -1,3 +1,8 @@
+20 Oct 2017 - v0.24
+    * Set breakpoints quickly with the 'b' hotkey
+    * Initial support for highliting the next statement
+    * Stashes are now displayed properly in the watch window
+
 26 Jan 2016 - v0.23
     * Right-click on a variable in the Code Pane to add it to the Watch Pane
     * Exit code is now displayed properly by the Program Terminated modal

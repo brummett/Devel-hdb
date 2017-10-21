@@ -8,7 +8,9 @@ our @ISA = qw( HTTP::Server::PSGI );
 
 use Socket qw(IPPROTO_TCP TCP_NODELAY);
 
-our $VERSION = '0.23_02';
+our $VERSION = '0.23_14';
+
+use Devel::hdb::Logger qw(log);
 
 sub new {
     my($class, %args) = @_;
@@ -30,13 +32,20 @@ sub new {
 sub accept_loop {
     my($self, $app) = @_;
 
+    log('entering accept_loop()');
     $app = Plack::Middleware::ContentLength->wrap($app);
+    log("got app $app");
 
+    ACCEPT_LOOP:
     while (1) {
+        log('Top of accept_loop() loop');
         local $SIG{PIPE} = 'IGNORE';
+        log('Just before accept...');
         if (my $conn = $self->{listen_sock}->accept) {
-            $conn->setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
+            log('Connection from ',$conn->peerhost,':',$conn->peerport);
+            my $rv = $conn->setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
                 or die "setsockopt(TCP_NODELAY) failed:$!";
+            log("setsockopt() returned $rv");
             my $env = {
                 SERVER_PORT => $self->{port},
                 SERVER_NAME => $self->{host},
@@ -57,8 +66,14 @@ sub accept_loop {
             };
 
             $self->handle_connection($env, $conn, $app);
+            log('back from handle_connection(), harakiri: ' . (!! $env->{'psgix.harakiri.commit'}));
             #$conn->close;
-            last if $env->{'psgix.harakiri.commit'};
+            last ACCEPT_LOOP if $env->{'psgix.harakiri.commit'};
+            log('bottom of if-block after accept()');
+        } else {
+            log("accept() failed: $!");
+            my $errno = $! + 0;
+            log("   errno $errno");
         }
     }
 }
@@ -66,6 +81,7 @@ sub accept_loop {
 sub _handle_response {
     my($self, $res, $conn) = @_;
 
+    log('Preparing response for code ',$res->[0]);
     my @lines = (
         "Date: @{[HTTP::Date::time2str()]}\015\012",
         "Server: $self->{server_software}\015\012",
@@ -79,10 +95,12 @@ sub _handle_response {
     unshift @lines, "HTTP/1.0 $res->[0] @{[ HTTP::Status::status_message($res->[0]) ]}\015\012";
     push @lines, "\015\012";
 
+    log('Writing ', scalar(@lines), ' lines of headers');
     $self->write_all($conn, join('', @lines), $self->{timeout})
         or return;
 
     if (defined $res->[2]) {
+        log('Writing ',length($res->[2]),' bytes of body');
         my $err;
         my $done;
         {
@@ -100,6 +118,7 @@ sub _handle_response {
             $err = $@;
         };
         if ($done) {
+            log('Done writing; closing connection');
             $conn->close();
 
         } else {
@@ -110,6 +129,7 @@ sub _handle_response {
             }
         }
     } else {
+        log('Setting up for delayed write');
         return Plack::Util::inline_object
             write => sub { $self->write_all($conn, $_[0], $self->{timeout}) },
             close => sub { $conn->close() };

@@ -3,7 +3,9 @@ package Devel::hdb::Router;
 use strict;
 use warnings;
 
-our $VERSION = '0.23_02';
+our $VERSION = '0.23_14';
+
+use Devel::hdb::Logger qw(log);
 
 sub new {
     my $class = shift;
@@ -16,7 +18,7 @@ foreach my $method ( qw(get post put delete head) ) {
         sub {
             my(\$self, \$path, \$sub) = \@_;
             my \$list = \$self->{$key} ||= [];
-            #print STDERR "Registering route for \$key \$path\\n";
+            #log("Registering route for \$key \$path");
             push \@\$list, [ \$path, \$sub ];
         };
     );
@@ -30,7 +32,7 @@ sub route($$) {
     my $env = shift;
 
     my $req_method = $env->{REQUEST_METHOD};
-    print STDERR "Incoming request: $req_method ",$env->{PATH_INFO},"\n" if ($ENV{HDB_DEBUG_MSG});
+    log "Incoming request: $req_method ",$env->{PATH_INFO};
     return unless exists $self->{$req_method};
     my $matchlist = $self->{$req_method};
 
@@ -49,16 +51,17 @@ sub route($$) {
         }
 
         if ($fire) {
-            print STDERR "  matched!\n" if ($ENV{HDB_DEBUG_MSG});
+            log '  matched!';
             my $rv = $cb->($env, @matches);
             my $hooks = $self->{after_hooks}->{$req_method}->{$path};
             if ($hooks && @$hooks) {
                 $_->($rv, $env, @matches) foreach @$hooks;
             }
+            log '  returning code ',$rv;
             return $rv;
         }
     }
-    print STDERR "  no matching route\n" if ($ENV{HDB_DEBUG_MSG});
+    log '  no matching route';
     return [ 404, [ 'Content-Type' => 'text/html'], ['Not found']];
 }
 
