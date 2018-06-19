@@ -67,7 +67,11 @@ sub start_test_program {
     if ($module_args) {
         $module_invocation .= ",$module_args";
     }
+
+    my $other_includes = $ENV{HDB_TEST_INCLUDE} || '';
+
     my $cmdline = join(' ', $^X, "-I $libdir $module_invocation",
+                               $other_includes,
                                $program_file,
                                @argv);
 
