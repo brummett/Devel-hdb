@@ -15,7 +15,12 @@ sudo: false
 before_install:
     # Prevent "Please tell me who you are" errors for certain DZIL configs
     - git config --global user.name "TravisCI"
-    - if [ $TRAVIS_PERL_VERSION == '5.8' ]; then perlbrew --notest install perl-5.8.9; perlbrew use perl-5.8.9; perl --version; fi
+    - |
+      if perl -e 'if ($] < "5.008009") { exit(0) } else { exit(1) }'; then
+        perlbrew --notest install perl-5.8.9
+        perlbrew use perl-5.8.9
+        perl --version
+      fi
 
 install:
     # Deal with all of the DZIL dependancies, quickly and quietly
