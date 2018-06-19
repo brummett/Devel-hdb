@@ -36,15 +36,15 @@ ok($bp_5, 'Set breakpoint line 5');
 
 my($test_nothing_file) = grep { $_->{filename} =~ m/TestNothing.pm/ } @{$client->loaded_files()};
 $test_nothing_file = $test_nothing_file->{filename};
-my $bp_tn = $client->create_breakpoint( filename => $test_nothing_file, line => 3 );
-ok($bp_tn, 'Set breakpoint for line TestNothing.pm 3');
+my $bp_tn = $client->create_breakpoint( filename => $test_nothing_file, line => 6 );
+ok($bp_tn, 'Set breakpoint for line TestNothing.pm 6');
 
 $resp = $client->get_breakpoints();
 is_deeply(sort_breakpoints_by_file_and_line($resp),
     [   { filename => $filename, line => 3, code => '$a', inactive => 0, href => $bp_3 },
         { filename => $filename, line => 4, code => 1, inactive => 1, href => $bp_4 },
         { filename => $filename, line => 5, code => 1, inactive => 0, href => $bp_5 },
-        { filename => $test_nothing_file, line => 3, code => 1, inactive => 0, href => $bp_tn },
+        { filename => $test_nothing_file, line => 6, code => 1, inactive => 0, href => $bp_tn },
     ],
     'Got all set breakpoints'
 );
