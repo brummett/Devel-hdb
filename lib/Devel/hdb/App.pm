@@ -3,7 +3,7 @@ use strict;
 
 package Devel::hdb::App;
 
-use Devel::Chitin 0.09;
+use Devel::Chitin 0.15;
 use base 'Devel::Chitin';
 use Devel::hdb::Server;
 use IO::File;
@@ -19,7 +19,7 @@ use Devel::hdb::Router;
 
 use vars qw( $parent_pid ); # when running in the test harness
 
-our $VERSION = '0.23_02';
+our $VERSION = '0.24';
 
 our $APP_OBJ;
 sub get {

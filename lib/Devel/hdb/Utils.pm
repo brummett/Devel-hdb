@@ -3,7 +3,7 @@ package Devel::hdb::Utils;
 use strict;
 use warnings;
 
-our $VERSION = '0.23_02';
+our $VERSION = '0.24';
 
 # This substitution is done so that we return HASH, as opposed to a list
 # An expression of %hash results in a list of key/value pairs that can't

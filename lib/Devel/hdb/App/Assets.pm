@@ -5,7 +5,7 @@ use warnings;
 
 use base 'Devel::hdb::App::Base';
 
-our $VERSION = '0.23_02';
+our $VERSION = '0.24';
 
 __PACKAGE__->add_route('get', qr(^/db/(.*)), \&assets);
 __PACKAGE__->add_route('get', qr(^/img/(.*)), \&assets);
@@ -68,5 +68,5 @@ Anthony Brummett <brummett@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright 2014, Anthony Brummett.  This module is free software. It may
+Copyright 2018, Anthony Brummett.  This module is free software. It may
 be used, redistributed and/or modified under the same terms as Perl itself.

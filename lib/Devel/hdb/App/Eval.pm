@@ -9,7 +9,7 @@ use base 'Devel::hdb::App::Base';
 
 use Devel::hdb::Utils;
 
-our $VERSION = '0.23_02';
+our $VERSION = '0.24';
 
 __PACKAGE__->add_route('post', '/eval', \&do_eval);
 __PACKAGE__->add_route('get', qr{/getvar/(\d+)/([^/]+)}, \&do_getvar);
@@ -175,5 +175,5 @@ Anthony Brummett <brummett@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright 2014, Anthony Brummett.  This module is free software. It may
+Copyright 2018, Anthony Brummett.  This module is free software. It may
 be used, redistributed and/or modified under the same terms as Perl itself.

@@ -9,7 +9,7 @@ use Plack::Request;
 use Digest::MD5 qw();
 use Time::HiRes qw();
 
-our $VERSION = '0.23_02';
+our $VERSION = '0.24';
 
 sub response_url_base() { '/breakpoints' };
 
@@ -321,5 +321,5 @@ Anthony Brummett <brummett@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright 2014, Anthony Brummett.  This module is free software. It may
+Copyright 2018, Anthony Brummett.  This module is free software. It may
 be used, redistributed and/or modified under the same terms as Perl itself.
