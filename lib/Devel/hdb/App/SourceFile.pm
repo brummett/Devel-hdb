@@ -7,7 +7,7 @@ use base 'Devel::hdb::App::Base';
 
 use URI::Escape;
 
-our $VERSION = '0.23_15';
+our $VERSION = '0.24';
 
 __PACKAGE__->add_route('get', qr{/source/(.+)}, \&sourcefile);
 __PACKAGE__->add_route('get', qr{(/source)}, \&loaded_files);

@@ -15,7 +15,7 @@ our @EXPORT_OK = qw(_serialize_stack);
 
 use Data::Transform::ExplicitMetadata qw(encode);
 
-our $VERSION = '0.23_15';
+our $VERSION = '0.24';
 
 __PACKAGE__->add_route('get', qr{(^/stack$)}, \&stack);
 __PACKAGE__->add_route('head', qr{^/stack$}, \&stack_head);

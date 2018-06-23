@@ -5,7 +5,7 @@ use warnings;
 
 use base 'Devel::hdb::App::Breakpoint';
 
-our $VERSION = '0.23_15';
+our $VERSION = '0.24';
 
 sub response_url_base() { '/actions' }
 
