@@ -31,6 +31,9 @@ sub assets {
         $type = 'text/html';
     } elsif ($file =~ m/\.css$/) {
         $type = 'text/css';
+    } elsif ( $file =~ m/\.png$/) {
+        $type = 'image/png';
+        $fh->binmode();
     } else {
         $type = 'text/plain';
     }
