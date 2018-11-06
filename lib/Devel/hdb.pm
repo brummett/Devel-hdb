@@ -116,6 +116,13 @@ subroutine.
 
 Resumes execution of the program until the next breakpoint.
 
+=item Run/to
+
+Opens a dialog that allows setting a one-shot breakpoint.  The program will
+then continue until the next breakpoint, likely the one just entered.  This
+breakpoint is entered in the same manner as the Quick Breakpoints described
+below.
+
 =item Exit
 
 The debugged program immediately exits.  The GUI in the web browser remains

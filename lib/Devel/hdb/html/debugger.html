@@ -76,30 +76,29 @@
         </div>
     </script>
 
-    <! template for the quick-breakpoint modal>
+    <! template for the quick-breakpoint and continue-to modal>
     <script id="quick-breakpoint-entry-template" type="text/x-handlebars-template">
         <div class="modal">
             <form>
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h3>Quick-add Breakpoint</h3>
+                    <h3>{{title}}</h3>
                 </div>
                 <div class="modal-body">
                     <div class="control-group">
-                        <label class="control-label" for="filename">New breakpoint:</label>
+                        <label class="control-label" for="breakpoint">{{prompt}}:</label>
                         <div class="controls">
                             <input type="text" autofocus="autofocus" value="{{breakpoint}}" class="span4" name="breakpoint">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary" value="Add">Add</button>
+                    <button type="submit" class="btn btn-primary" value="Add">{{ok_button}}</button>
                     <button class="btn" data-dismiss="modal" value="cancel">Cancel</button>
                 </div>
             </form>
         </div>
     </script>
-    <!aaaa>
 
     <! template for the watchpoint-triggered notification >
     <script id="watchpoint-triggered-modal-template" type="test/x-handlebars-template">
@@ -333,12 +332,15 @@
         <div class="container-column">
             <div class="row">
                 <div id="controls" class="span6 offset1">
-                    <button class="btn control-button" data-action="stepin">Step In</button>
-                    <button class="btn control-button" data-action="stepover">Step Over</button>
-                    <button class="btn control-button" data-action="stepout">Step Out</button>
-                    <button class="btn btn-primary control-button" data-action="continue">Run</button>
+                    <button class="btn control-button" data-action="stepin" name="stepin">Step In</button>
+                    <button class="btn control-button" data-action="stepover" name="stepover">Step Over</button>
+                    <button class="btn control-button" data-action="stepout" name="stepout">Step Out</button>
+                    <div class="btn-group">
+                        <button class="btn btn-primary control-button" data-action="continue" name="continue">Run</button>
+                        <button class="btn control-button" data-action="continue-to" name="continue-to">to</button>
+                    </div>
 
-                    <button class="btn btn-danger control-button pull-right" data-action="exit">Exit</button>
+                    <button class="btn btn-danger control-button pull-right" data-action="exit" name="exit">Exit</button>
                 </div>
             </div>
 
