@@ -34,6 +34,9 @@ sub assets {
     } elsif ( $file =~ m/\.png$/) {
         $type = 'image/png';
         $fh->binmode();
+    } elsif ( $file =~ m/\.ico$/) {
+        $type = 'image/x-icon';
+        $fh->binmode();
     } else {
         $type = 'text/plain';
     }
