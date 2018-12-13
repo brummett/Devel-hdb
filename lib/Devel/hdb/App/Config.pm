@@ -32,8 +32,11 @@ sub loadconfig {
 sub saveconfig {
     my($class, $app, $env, $file) = @_;
 
+    my $body = $class->_read_request_body($env);
+    my $additional = $app->decode_json($body);
+
     local $@;
-    $file = eval { $app->save_settings_to_file($file) };
+    $file = eval { $app->save_settings_to_file($file, $additional) };
     if ($@) {
         return [ 400,
                 [ 'Content-Type' => 'text/html' ],

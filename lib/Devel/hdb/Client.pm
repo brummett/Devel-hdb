@@ -419,10 +419,10 @@ sub load_config {
 }
 
 sub save_config {
-    my($self, $filename) = @_;
+    my($self, $filename, $additional) = @_;
 
     my $escaped_filename = URI::Escape::uri_escape($filename);
-    my $response = $self->_POST(join('/', 'saveconfig', $escaped_filename));
+    my $response = $self->_POST(join('/', 'saveconfig', $escaped_filename), $additional);
     _assert_success($response, "Save config to $filename failed: " . $response->content);
 
     return 1;
