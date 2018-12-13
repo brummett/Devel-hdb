@@ -37,7 +37,7 @@ sub saveconfig {
     if ($@) {
         return [ 400,
                 [ 'Content-Type' => 'text/html' ],
-                [ "Problem loading $file: $@" ] ];
+                [ "Problem saving $file: $@" ] ];
     } else {
         return [ 204, [], [] ];
     }
