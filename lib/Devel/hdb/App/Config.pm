@@ -13,6 +13,7 @@ __PACKAGE__->add_route('post', qr{/saveconfig/(.+)}, \&saveconfig);
 sub loadconfig {
     my($class, $app, $env, $file) = @_;
 
+    local $@;
     my $result = eval { $app->load_settings_from_file($file) };
     if ($@) {
         return [ 400,
@@ -31,6 +32,7 @@ sub loadconfig {
 sub saveconfig {
     my($class, $app, $env, $file) = @_;
 
+    local $@;
     $file = eval { $app->save_settings_to_file($file) };
     if ($@) {
         return [ 400,
