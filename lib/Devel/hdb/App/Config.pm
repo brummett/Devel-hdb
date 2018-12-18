@@ -14,14 +14,16 @@ sub loadconfig {
     my($class, $app, $env, $file) = @_;
 
     local $@;
-    my $result = eval { $app->load_settings_from_file($file) };
+    my $settings = eval { $app->load_settings_from_file($file) };
     if ($@) {
         return [ 400,
                 [ 'Content-Type' => 'text/plain' ],
                 [ $@ ] ];
 
-    } elsif ($result ) {
-        return [ 204, [], [] ];
+    } elsif ($settings) {
+        return [ 200,
+                ['Content-Type' => 'application/json'],
+                [ $app->encode_json($settings->{additional}) ] ];
     } else {
         return [ 404,
                 [ 'Content-Type' => 'text/plain' ],

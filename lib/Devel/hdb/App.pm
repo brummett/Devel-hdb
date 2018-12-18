@@ -376,7 +376,7 @@ sub load_settings_from_file {
         push @set_breakpoints,
             Devel::hdb::App::Action->set_and_respond($self, $action);
     }
-    return 1;
+    return $settings;
 }
 
 sub save_settings_to_file {
