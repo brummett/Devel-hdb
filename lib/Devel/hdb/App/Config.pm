@@ -23,7 +23,7 @@ sub loadconfig {
     } elsif ($settings) {
         return [ 200,
                 ['Content-Type' => 'application/json'],
-                [ $app->encode_json($settings->{additional}) ] ];
+                [ $app->encode_json($settings) ] ];
     } else {
         return [ 404,
                 [ 'Content-Type' => 'text/plain' ],
