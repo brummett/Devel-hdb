@@ -17,14 +17,14 @@ sub loadconfig {
     my $result = eval { $app->load_settings_from_file($file) };
     if ($@) {
         return [ 400,
-                [ 'Content-Type' => 'text/html' ],
+                [ 'Content-Type' => 'text/plain' ],
                 [ $@ ] ];
 
     } elsif ($result ) {
         return [ 204, [], [] ];
     } else {
         return [ 404,
-                [ 'Content-Type' => 'text/html' ],
+                [ 'Content-Type' => 'text/plain' ],
                 [ "File $file not found" ] ];
     }
 }
