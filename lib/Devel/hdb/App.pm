@@ -148,6 +148,7 @@ sub init_debugger {
     require Devel::hdb::App::AnnounceChild;
     require Devel::hdb::App::WatchPoint;
 
+    local $@;
     eval { $self->load_settings_from_file() };
 
 }
@@ -362,9 +363,9 @@ sub load_settings_from_file {
         my $fh = IO::File->new($file, 'r') || die "Can't open file $file for reading: $!";
         $buffer = <$fh>;
     }
+    local $@;
     my $settings = eval $buffer;
     die $@ if $@;
-
 
     my @set_breakpoints;
     foreach my $bp ( @{ $settings->{breakpoints}} ) {
