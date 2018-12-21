@@ -376,12 +376,13 @@ sub load_settings_from_file {
         push @set_breakpoints,
             Devel::hdb::App::Action->set_and_respond($self, $action);
     }
-    return 1;
+    return $settings;
 }
 
 sub save_settings_to_file {
     my $self = shift;
     my $file = shift;
+    my $additional = shift;
 
     unless (defined $file) {
         $file = $self->settings_file();
@@ -396,7 +397,7 @@ sub save_settings_to_file {
     my @breakpoints = map { $serializer->($_) } $self->get_breaks();
     my @actions = map { $serializer->($_) } $self->get_actions();
     my $fh = IO::File->new($file, 'w') || die "Can't open $file for writing: $!";
-    my $config = { breakpoints => \@breakpoints, actions => \@actions };
+    my $config = { breakpoints => \@breakpoints, actions => \@actions, additional => $additional };
     $fh->print( Data::Dumper->new([ $config ])->Terse(1)->Dump());
     return $file;
 }

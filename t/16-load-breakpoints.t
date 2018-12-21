@@ -12,7 +12,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 10;
+    plan tests => 13;
 }
 
 my $url = start_test_program();
@@ -37,6 +37,9 @@ my $config = {
     ],
     actions => [
         { filename => $program_file_name, line => 7, code => '$a++' },
+    ],
+    additional => [
+        1, 2, 3
     ]
 };
 
@@ -44,9 +47,15 @@ my $fh = File::Temp->new(TEMPLATE => 'devel-hdb-config-XXXX', TMPDIR => 1);
 $fh->print(Data::Dumper->new([$config])->Terse(1)->Dump());
 ok($fh->close(), 'Wrote settings file');
 
-$resp = $client->load_config($fh->filename);
-ok($resp, 'loadconfig');
-
+my $settings = $client->load_config($fh->filename);
+# is_deeply() would be the best test, but the 'filename' attribute of breakpoints/actions
+# get turned into 'file' by Devel::hdb::App::Breakpoint.  There's already an issue
+# to normalize these
+#is_deeply($settings, $config, 'loadconfig');
+ok($settings, 'loadconfig');
+is(scalar(@{$settings->{breakpoints}}), 4, 'Loaded 4 breakpoints');
+is(scalar(@{$settings->{actions}}), 1, 'Loaded 1 action');
+is(scalar(@{$settings->{additional}}), 3, 'loaded 3 additionals');
 
 my $result = $client->get_breakpoints();
 is(@$result, 3, '3 breakpoints were set'); # TestNothing isn't loaded yet

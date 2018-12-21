@@ -13,7 +13,7 @@ use Test::More;
 if ($^O =~ m/^MS/) {
     plan skip_all => 'Test hangs on Windows';
 } else {
-    plan tests => 15;
+    plan tests => 16;
 }
 
 my $url = start_test_program();
@@ -34,17 +34,20 @@ ok($resp, 'set breakpoint');
 $resp = $client->create_action( filename => $filename, line => 4, code => '123', inactive => 1 );
 ok($resp, 'set action');
 
+my $additional_data = { one => 1, two => 2 };
 my $configfile = File::Temp::tmpnam();
-$resp = $client->save_config($configfile);
+$resp = $client->save_config($configfile, $additional_data);
 ok($resp, 'save config');
 ok(-f $configfile, 'Config file created');
 
 eval "END { unlink '$configfile' }";
 
-config_file_is_correct($configfile);
+config_file_is_correct($configfile, $additional_data);
 
 sub config_file_is_correct {
     my $file = shift;
+    my $additional_data = shift;
+
     my $fh = IO::File->new($file, 'r') || die "Can't load $file: $!";
     local($/);
     my $content = <$fh>;
@@ -64,6 +67,8 @@ sub config_file_is_correct {
     is( $action->{code}, 123, '    action code');
     is( $action->{line}, 4, '    on line 4');
     is( $action->{filename}, $filename, "    of $filename");
+
+    is_deeply($config->{additional}, $additional_data, 'additional_data');
 }
 
     
