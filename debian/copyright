@@ -3,12 +3,12 @@ Maintainer: Anthony Brummett
 Source: https://metacpan.org/pod/Devel::hdb
 Name: Devel-hdb
 
-Copyright: © 2014, Anthony Brummett
+Copyright: © 2018, Anthony Brummett
 License: Artistic or GPL-1+
 
 Files: debian/*
 Copyright:
- © 2014, Anthony Brummett <brummett@cpan.org>
+ © 2018, Anthony Brummett <brummett@cpan.org>
 License: Artistic or GPL-1+
 
 License: Artistic
