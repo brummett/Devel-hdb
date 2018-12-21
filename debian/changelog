@@ -1,3 +1,10 @@
+libdevel-hdb-perl (0.25-1) unstable; urgency=low
+    * Fix for loading the png icons on Windows - forgot a binmode()
+    * New feature: Run/to control button to continue to a given line/sub
+    * Watched expressions are now saved/loaded along with breakpoints
+
+ -- Anthony Brummett <brummett@cpan.org>  Fri, 21 Dec 2018 10:09:00 -0500
+
 libdevel-hdb-perl (0.24-1) unstable; urgency=low
     * Set breakpoints quickly with the 'b' hotkey
     * Initial support for highliting the next statement

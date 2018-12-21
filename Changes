@@ -1,6 +1,7 @@
-5 Nov 2018 - v0.25
+21 Nov 2018 - v0.25
     * Fix for loading the png icons on Windows - forgot a binmode()
     * New feature: Run/to control button to continue to a given line/sub
+    * Watched expressions are now saved/loaded along with breakpoints
 
 23 Jun 2018 - v0.24
     * Set breakpoints quickly with the 'b' hotkey
