@@ -1,6 +1,6 @@
 Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=135
 Maintainer: Anthony Brummett
-Source: http://search.cpan.org/dist/Devel-hdb/
+Source: https://metacpan.org/pod/Devel::hdb
 Name: Devel-hdb
 
 Copyright: © 2014, Anthony Brummett
