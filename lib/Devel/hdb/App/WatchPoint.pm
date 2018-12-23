@@ -9,7 +9,7 @@ use Plack::Request;
 use Data::Transform::ExplicitMetadata;
 use URI::Escape qw(uri_escape);
 
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 
 sub response_url_base() { '/watchpoints' };
 

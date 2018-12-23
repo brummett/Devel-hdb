@@ -8,7 +8,7 @@ our @ISA = qw( HTTP::Server::PSGI );
 
 use Socket qw(IPPROTO_TCP TCP_NODELAY);
 
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 
 sub new {
     my($class, %args) = @_;

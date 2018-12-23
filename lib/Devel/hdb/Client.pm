@@ -13,7 +13,7 @@ use Scalar::Util qw(reftype);
 
 use Devel::hdb::Utils;
 
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 
 use Exception::Class (
         'Devel::hdb::Client::Exception',
