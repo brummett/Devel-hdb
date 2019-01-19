@@ -33,7 +33,12 @@ sub import {
         } elsif ($param =~ m/listenfd:(\d+)/) {
             our $LISTEN_SOCK = IO::Socket::INET->new();
             $LISTEN_SOCK->fdopen($1, 'r');
-        }
+        } elsif ($param =~ m/\Alaunch(:(.+))?/) {
+	    our $LAUNCH = $1 ? $2 : do {
+		require Browser::Open;
+		Browser::Open::open_browser_cmd();
+	    };
+	}
 
     }
 
@@ -81,6 +86,15 @@ start it like this:
 To specify a particular IP address to listen on:
 
     perl -d:hdb=host:192.168.0.123 yourprogram.pl
+
+To launch the browser automatically:
+
+    perl -d:hdb=launch:xdg-open yourprogram.pl
+
+where the argument to C<launch> is the command to open a URL. If you have
+L<Browser::Open|Browser::Open> installed, you can omit the argument:
+
+    perl -d:hdb=launch yourprogram.pl
 
 And to listen on any interface:
 

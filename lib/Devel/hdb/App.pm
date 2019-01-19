@@ -89,6 +89,7 @@ sub _make_listen_socket {
 
     $Devel::hdb::LISTEN_SOCK = undef;
     $self->{server} = Devel::hdb::Server->new( %server_params );
+
 }
 
 sub _open_new_listen_sock_after_fork {
@@ -150,6 +151,9 @@ sub init_debugger {
 
     local $@;
     eval { $self->load_settings_from_file() };
+
+    system { $Devel::hdb::LAUNCH } $Devel::hdb::LAUNCH, $self->_gui_url()
+	if defined $Devel::hdb::LAUNCH;
 
 }
 
