@@ -34,10 +34,7 @@ sub import {
             our $LISTEN_SOCK = IO::Socket::INET->new();
             $LISTEN_SOCK->fdopen($1, 'r');
         } elsif ($param =~ m/\Alaunch(:(.+))?/) {
-	    our $LAUNCH = $1 ? $2 : do {
-		require Browser::Open;
-		Browser::Open::open_browser_cmd();
-	    };
+	    our $LAUNCH = $1 ? $2 : _get_default_launch_command();
 	}
 
     }
@@ -55,6 +52,19 @@ sub import {
 
     $self->attach();
 }
+
+sub _get_default_launch_command {
+    local $@ = undef;
+    my $cmd = eval {
+	require Browser::Open;
+	Browser::Open::open_browser_cmd();
+    } or warn <<'EOD';
+Unable to default launch command; can not load Browser::Open.
+You can still debug by launching the browser manually.
+EOD
+    return $cmd;
+}
+
 1;
 __END__
 

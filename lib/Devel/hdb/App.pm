@@ -152,8 +152,23 @@ sub init_debugger {
     local $@;
     eval { $self->load_settings_from_file() };
 
-    system { $Devel::hdb::LAUNCH } $Devel::hdb::LAUNCH, $self->_gui_url()
-	if defined $Devel::hdb::LAUNCH;
+    if ( defined $Devel::hdb::LAUNCH ) {
+	system { $Devel::hdb::LAUNCH } $Devel::hdb::LAUNCH, $self->_gui_url();
+	if ( $? ) {
+	    my $error;
+	    if ( -1 == $? ) {
+		$error = "Unable to start program $Devel::hdb::LAUNCH";
+	    } else {
+		$error = sprintf '%s exited with error %d',
+		    $Devel::hdb::LAUNCH, $? >> 8;
+	    }
+	    warn <<"EOD";
+$error.
+You can still debug by launching the browser manually.
+EOD
+	}
+
+    }
 
 }
 
