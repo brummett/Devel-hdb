@@ -58,9 +58,8 @@ sub _get_default_launch_command {
     my $cmd = eval {
 	require Browser::Open;
 	Browser::Open::open_browser_cmd();
-    } or warn <<'EOD';
+    } or die <<'EOD';
 Unable to default launch command; can not load Browser::Open.
-You can still debug by launching the browser manually.
 EOD
     return $cmd;
 }

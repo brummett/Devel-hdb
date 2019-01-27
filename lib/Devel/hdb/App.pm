@@ -162,10 +162,7 @@ sub init_debugger {
 		$error = sprintf '%s exited with error %d',
 		    $Devel::hdb::LAUNCH, $? >> 8;
 	    }
-	    warn <<"EOD";
-$error.
-You can still debug by launching the browser manually.
-EOD
+	    die "$error\n";
 	}
 
     }
