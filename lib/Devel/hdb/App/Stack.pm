@@ -113,8 +113,6 @@ sub _serialize_frame {
 
     if ($exclude_sub_params) {
         $frame{args} = undef;
-    } elsif ($frame{subroutine} eq '(eval)') {
-        $frame{args} = [];
     } else {
         my @encoded_args = map { encode($_) } @{$frame{args}};
         $frame{args} = \@encoded_args;
